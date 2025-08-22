@@ -1,13 +1,54 @@
-"use client";
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { MapPin, Search, Star, Clock } from "lucide-react";
-import { motion } from "framer-motion";
+import { MapPin, Search } from "lucide-react";
 import Map, { type Venue } from "@/components/maps/Map";
+import VenueCard from "@/components/venues/VenueCard";
+import HomePageClient from "./HomePageClient";
+import { createClient } from "@/lib/supabase/server";
+import type { Venue as VenueType } from "@/lib/venues";
 
-export default function Home() {
+// Function to fetch random venues for homepage
+async function getRandomVenues(count: number = 3): Promise<VenueType[]> {
+  try {
+    const supabase = createClient();
+    
+    const { data: venues, error } = await supabase
+      .from("venues")
+      .select("*, latitude, longitude")
+      .eq("status", "approved")
+      .limit(50); // Fetch more to have a good selection
+
+    if (error) {
+      console.error("Error fetching random venues:", error);
+      return [];
+    }
+
+    if (!venues || venues.length === 0) {
+      return [];
+    }
+
+    // Shuffle and pick random venues
+    const shuffled = venues.sort(() => 0.5 - Math.random());
+    const selected = shuffled.slice(0, count);
+
+    // Transform to match our interface
+    return selected.map((venue: any) => ({
+      ...venue,
+      location: venue.latitude && venue.longitude 
+        ? { lat: venue.latitude, lng: venue.longitude }
+        : null,
+    }));
+  } catch (error) {
+    console.error("Unexpected error fetching random venues:", error);
+    return [];
+  }
+}
+
+export default async function Home() {
+  // Fetch random venues for featured section
+  const featuredVenues = await getRandomVenues(3);
+  
   // Sample venue data for map preview
   const sampleVenues: Venue[] = [
     {
@@ -47,11 +88,7 @@ export default function Home() {
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-primary/5 via-background to-primary/10 py-20 px-4">
         <div className="container mx-auto text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
+          <HomePageClient delay={0}>
             <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
               Find Amazing Piscola Venues
             </h1>
@@ -71,7 +108,7 @@ export default function Home() {
                 Find Venues
               </Button>
             </div>
-          </motion.div>
+          </HomePageClient>
         </div>
       </section>
 
@@ -96,44 +133,23 @@ export default function Home() {
 
           {/* Featured Venues Preview */}
           <div className="grid md:grid-cols-3 gap-6">
-            {[1, 2, 3].map((i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: i * 0.1 }}
-              >
-                <Card className="hover:shadow-lg transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <h3 className="font-semibold">
-                        Example Cocktail Bar {i}
-                      </h3>
-                      <div className="flex items-center">
-                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                        <span className="text-sm text-muted-foreground ml-1">
-                          4.{5 + i}
-                        </span>
-                      </div>
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Experience crafted cocktails in a sophisticated atmosphere
-                      with expert mixologists.
-                    </p>
-                    <div className="flex items-center justify-between text-sm">
-                      <div className="flex items-center text-muted-foreground">
-                        <MapPin className="h-4 w-4 mr-1" />
-                        Downtown District
-                      </div>
-                      <div className="flex items-center text-muted-foreground">
-                        <Clock className="h-4 w-4 mr-1" />
-                        Open Now
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
+            {featuredVenues.length > 0 ? (
+              featuredVenues.map((venue, index) => (
+                <HomePageClient key={venue.id} delay={index * 0.1}>
+                  <VenueCard venue={venue} />
+                </HomePageClient>
+              ))
+            ) : (
+              // Fallback content if no venues found
+              <div className="col-span-3 text-center py-12">
+                <p className="text-muted-foreground">
+                  No venues available yet. Be the first to add one!
+                </p>
+                <Button asChild className="mt-4">
+                  <a href="/venues/new">Add First Venue</a>
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </section>
