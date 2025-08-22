@@ -126,8 +126,24 @@ export async function listVenuePhotos(
   const supabase = createClient();
 
   try {
-    // If userId provided, search in specific user folder, otherwise search all
-    const searchPath = userId ? `${userId}/${venueId}` : "";
+    // If no userId provided, get current user ID
+    let targetUserId = userId;
+    if (!targetUserId) {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+      if (userError || !user) {
+        return {
+          data: null,
+          error: new Error("User must be authenticated to list photos"),
+        };
+      }
+      targetUserId = user.id;
+    }
+
+    // Search in the specific user's folder for this venue
+    const searchPath = `${targetUserId}/${venueId}`;
 
     const { data, error } = await supabase.storage
       .from("venue-photos")
@@ -145,9 +161,7 @@ export async function listVenuePhotos(
       data
         ?.filter((file) => file.name !== ".emptyFolderPlaceholder") // Filter out folder placeholders
         ?.map((file) => {
-          const fullPath = userId
-            ? `${userId}/${venueId}/${file.name}`
-            : `${venueId}/${file.name}`;
+          const fullPath = `${targetUserId}/${venueId}/${file.name}`;
           return {
             path: fullPath,
             publicUrl: getPublicUrl(fullPath),
