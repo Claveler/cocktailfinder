@@ -5,8 +5,43 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { MapPin, Search, Star, Clock } from "lucide-react";
 import { motion } from "framer-motion";
+import Map, { type Venue } from "@/components/maps/Map";
 
 export default function Home() {
+  // Sample venue data for map preview
+  const sampleVenues: Venue[] = [
+    {
+      id: "1",
+      name: "The Speakeasy",
+      location: { lat: 40.7589, lng: -73.9851 }, // Times Square area
+      status: "approved",
+    },
+    {
+      id: "2",
+      name: "Rooftop Cocktail Lounge",
+      location: { lat: 40.7505, lng: -73.9934 }, // Herald Square area
+      status: "approved",
+    },
+    {
+      id: "3",
+      name: "Classic Martini Bar",
+      location: { lat: 40.7614, lng: -73.9776 }, // Midtown East
+      status: "approved",
+    },
+    {
+      id: "4",
+      name: "Modern Mixology",
+      location: { lat: 40.7549, lng: -73.984 }, // Near Bryant Park
+      status: "approved",
+    },
+    {
+      id: "5",
+      name: "Pending Venue", // This shouldn't show on map
+      location: { lat: 40.748, lng: -73.9857 },
+      status: "pending",
+    },
+  ];
+
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
@@ -47,18 +82,15 @@ export default function Home() {
             Explore Venues Near You
           </h2>
 
-          {/* Map Placeholder */}
-          <Card className="w-full h-96 mb-8">
-            <CardContent className="h-full flex items-center justify-center bg-gradient-to-br from-muted/50 to-muted/30 rounded-lg">
-              <div className="text-center">
-                <MapPin className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-xl font-semibold mb-2">
-                  Interactive Map Coming Soon
-                </h3>
-                <p className="text-muted-foreground">
-                  Browse cocktail venues on an interactive map
-                </p>
-              </div>
+          {/* Interactive Map */}
+          <Card className="w-full h-96 mb-8 overflow-hidden">
+            <CardContent className="p-0 h-full">
+              <Map
+                venues={sampleVenues}
+                height="100%"
+                center={[40.7589, -73.9851]} // NYC center
+                zoom={13}
+              />
             </CardContent>
           </Card>
 
