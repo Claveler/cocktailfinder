@@ -12,22 +12,41 @@ export default async function AdminLayout({
 }) {
   // Check authentication and admin role
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  console.log("🔍 Admin Layout Debug:");
+  console.log("- User:", user?.email);
+  console.log("- Auth Error:", authError);
 
   if (!user) {
+    console.log("❌ No user found, redirecting to login");
     redirect("/login?message=Please sign in to access admin panel");
   }
 
   // Get user profile to check role
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, full_name")
     .eq("id", user.id)
     .single();
 
+  console.log("👤 Profile Debug:");
+  console.log("- Profile Data:", profile);
+  console.log("- Profile Error:", profileError);
+  console.log("- User ID:", user.id);
+  console.log("- Role:", profile?.role);
+
+  if (profileError) {
+    console.log("❌ Profile error:", profileError);
+    redirect("/?message=Profile not found - Please complete your profile first");
+  }
+
   if (!profile || profile.role !== "admin") {
+    console.log(`❌ Access denied. Role: ${profile?.role}, Expected: admin`);
     redirect("/?message=Access denied - Admin privileges required");
   }
+
+  console.log("✅ Admin access granted");
 
   return (
     <div className="container mx-auto px-4 py-8">
