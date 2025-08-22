@@ -58,7 +58,7 @@ export async function listVenues(
 
     let query = supabase
       .from("venues")
-      .select("*", { count: "exact" })
+      .select("*, latitude, longitude", { count: "exact" })
       .eq("status", "approved");
 
     // Apply filters
@@ -104,18 +104,17 @@ export async function listVenues(
     console.log("🔍 Raw venue data sample:", venues?.[0]);
     console.log("🔍 Total venues found:", venues?.length);
 
-    // Get coordinates separately using RPC call
-    const venueIds = venues?.map(v => v.id) || [];
-    const coordinatesMap = await getVenueCoordinates(venueIds);
-    
-    // Transform the data to match our interface with coordinates
+    // Transform the data to match our interface (now with direct coordinate columns!)
     const transformedVenues: Venue[] = (venues || []).map((venue: any) => {
-      const coordinates = coordinatesMap[venue.id];
-      console.log("🔍 Processing venue:", venue.name, "coordinates:", coordinates);
+      const location = venue.latitude && venue.longitude 
+        ? { lat: venue.latitude, lng: venue.longitude }
+        : null;
+      
+      console.log("🔍 Processing venue:", venue.name, "coordinates:", location);
 
       return {
         ...venue,
-        location: coordinates || null,
+        location,
       };
     });
 
@@ -201,38 +200,4 @@ export async function getBrands(): Promise<{
   }
 }
 
-// Helper function to get coordinates for venue IDs
-async function getVenueCoordinates(venueIds: string[]): Promise<Record<string, { lat: number; lng: number }>> {
-  if (venueIds.length === 0) return {};
-  
-  try {
-    const supabase = createClient();
-    
-    // Use RPC call to get coordinates - this avoids the query builder issues
-    const { data, error } = await supabase.rpc('get_venue_coordinates', {
-      venue_ids: venueIds
-    });
-    
-    if (error) {
-      console.error("🚨 Error getting coordinates:", error);
-      return {};
-    }
-    
-    // Convert array to map for easy lookup
-    const coordinatesMap: Record<string, { lat: number; lng: number }> = {};
-    data?.forEach((item: any) => {
-      if (item.id && item.latitude && item.longitude) {
-        coordinatesMap[item.id] = {
-          lat: item.latitude,
-          lng: item.longitude,
-        };
-      }
-    });
-    
-    console.log("🔍 Retrieved coordinates for", Object.keys(coordinatesMap).length, "venues");
-    return coordinatesMap;
-  } catch (error) {
-    console.error("🚨 Error in getVenueCoordinates:", error);
-    return {};
-  }
-}
+
