@@ -47,17 +47,12 @@ export async function listVenues(
     const supabase = createClient();
     const { q, city, brand, type, page = 1 } = filters;
 
-    // Start with base query for approved venues only with coordinate extraction
+    // Use regular query but request location as GeoJSON for easier parsing
+    console.log("🔍 Starting venue query with filters:", { q, city, brand, type, page });
+
     let query = supabase
       .from("venues")
-      .select(
-        `
-        *,
-        location_lat:ST_Y(location::geometry),
-        location_lng:ST_X(location::geometry)
-      `,
-        { count: "exact" }
-      )
+      .select("*, location_geojson:ST_AsGeoJSON(location)", { count: "exact" })
       .eq("status", "approved");
 
     // Apply filters
@@ -82,30 +77,54 @@ export async function listVenues(
     const to = from + PAGE_SIZE - 1;
 
     // Execute query with pagination
+    console.log("🔍 Executing query...");
     const {
       data: venues,
       error,
       count,
     } = await query.order("created_at", { ascending: false }).range(from, to);
 
+    console.log("🔍 Query result:", { venues: venues?.length, error, count });
+
     if (error) {
+      console.error("🚨 Supabase query error:", error);
       return { data: null, error: new Error(error.message) };
     }
 
     const totalCount = count || 0;
     const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
+    // Add debugging to see what we're getting from Supabase
+    console.log("🔍 Raw venue data sample:", venues?.[0]);
+    console.log("🔍 Total venues found:", venues?.length);
+    
     // Transform the data to match our interface
-    const transformedVenues: Venue[] = (venues || []).map((venue: any) => ({
-      ...venue,
-      location:
-        venue.location_lat && venue.location_lng
-          ? {
-              lat: venue.location_lat,
-              lng: venue.location_lng,
-            }
-          : null,
-    }));
+    const transformedVenues: Venue[] = (venues || []).map((venue: any) => {
+      console.log("🔍 Processing venue:", venue.name, "location_geojson:", venue.location_geojson);
+      
+      // Parse GeoJSON to extract coordinates
+      let location = null;
+      
+      try {
+        if (venue.location_geojson) {
+          const geoData = JSON.parse(venue.location_geojson);
+          if (geoData.type === "Point" && geoData.coordinates && geoData.coordinates.length >= 2) {
+            location = {
+              lat: geoData.coordinates[1], // latitude
+              lng: geoData.coordinates[0], // longitude
+            };
+            console.log("🔍 Extracted coordinates:", location);
+          }
+        }
+      } catch (error) {
+        console.error("🚨 Error parsing GeoJSON for venue:", venue.name, error);
+      }
+      
+      return {
+        ...venue,
+        location,
+      };
+    });
 
     const result: VenueListResult = {
       venues: transformedVenues,
