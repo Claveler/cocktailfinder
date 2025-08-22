@@ -7,7 +7,14 @@ export async function GET(request: NextRequest) {
   const error = searchParams.get("error");
   const next = searchParams.get("next") ?? "/";
 
-  console.log("Auth callback called with:", { code: !!code, error, origin });
+  console.log("🔐 Auth callback called with:", {
+    code: !!code,
+    codePreview: code?.slice(0, 20) + "...",
+    error,
+    origin,
+    next,
+    fullUrl: request.url,
+  });
 
   // If there's an error in the URL (like expired OTP), redirect to error page
   if (error) {
@@ -18,14 +25,31 @@ export async function GET(request: NextRequest) {
   // If we have a code, try to exchange it for a session
   if (code) {
     const supabase = createClient();
-    const { error: exchangeError } =
+    console.log("🔄 Attempting to exchange code for session...");
+
+    const { data, error: exchangeError } =
       await supabase.auth.exchangeCodeForSession(code);
 
     if (!exchangeError) {
-      console.log("Successfully exchanged code for session");
+      console.log("✅ Successfully exchanged code for session:", {
+        user: !!data.user,
+        session: !!data.session,
+        userEmail: data.user?.email,
+        userMetadata: data.user?.user_metadata,
+      });
+
+      // Verify the session was created
+      const { data: verifyData, error: verifyError } =
+        await supabase.auth.getSession();
+      console.log("🔍 Session verification:", {
+        hasSession: !!verifyData.session,
+        sessionUser: verifyData.session?.user?.email,
+        verifyError: verifyError?.message,
+      });
+
       return NextResponse.redirect(`${origin}${next}`);
     } else {
-      console.log("Error exchanging code:", exchangeError.message);
+      console.log("❌ Error exchanging code:", exchangeError);
     }
   }
 

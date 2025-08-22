@@ -25,20 +25,32 @@ export default function LoginPage() {
   const handleGoogleSignIn = async () => {
     setLoading(true);
     const supabase = createClient();
+    const redirectUrl = `${window.location.origin}/auth/callback`;
+
+    console.log("🔐 Starting Google OAuth signin:", { redirectUrl });
 
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: redirectUrl,
         },
       });
 
+      console.log("🔄 Google OAuth result:", {
+        success: !error,
+        error: error?.message,
+        data: !!data,
+        url: data?.url,
+      });
+
       if (error) {
-        console.error("Error signing in with Google:", error.message);
+        console.error("❌ Error signing in with Google:", error);
+      } else {
+        console.log("✅ Google OAuth initiated successfully");
       }
     } catch (error) {
-      console.error("Error:", error);
+      console.error("❌ Google OAuth error:", error);
     } finally {
       setLoading(false);
     }
@@ -50,22 +62,33 @@ export default function LoginPage() {
 
     setLoading(true);
     const supabase = createClient();
+    const redirectUrl = `${window.location.origin}/auth/callback`;
+
+    console.log("📬 Starting magic link signin:", { email, redirectUrl });
 
     try {
-      const { error } = await supabase.auth.signInWithOtp({
+      const { data, error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: redirectUrl,
         },
       });
 
+      console.log("📬 Magic link result:", {
+        success: !error,
+        error: error?.message,
+        data: !!data,
+        email,
+      });
+
       if (error) {
-        console.error("Error sending magic link:", error.message);
+        console.error("❌ Error sending magic link:", error);
       } else {
+        console.log("✅ Magic link sent successfully to:", email);
         setMagicLinkSent(true);
       }
     } catch (error) {
-      console.error("Error:", error);
+      console.error("❌ Magic link error:", error);
     } finally {
       setLoading(false);
     }
