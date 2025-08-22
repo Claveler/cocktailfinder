@@ -170,5 +170,5 @@ export async function listVenuePhotos(
   }
 }
 
-// Note: Server-side storage functions have been moved to lib/actions/admin.ts 
+// Note: Server-side storage functions have been moved to lib/actions/admin.ts
 // to avoid client/server boundary issues

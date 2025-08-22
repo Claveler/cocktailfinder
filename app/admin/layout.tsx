@@ -12,7 +12,10 @@ export default async function AdminLayout({
 }) {
   // Check authentication and admin role
   const supabase = createClient();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
 
   console.log("🔍 Admin Layout Debug:");
   console.log("- User:", user?.email);
@@ -38,7 +41,9 @@ export default async function AdminLayout({
 
   if (profileError) {
     console.log("❌ Profile error:", profileError);
-    redirect("/?message=Profile not found - Please complete your profile first");
+    redirect(
+      "/?message=Profile not found - Please complete your profile first"
+    );
   }
 
   if (!profile || profile.role !== "admin") {
@@ -59,10 +64,12 @@ export default async function AdminLayout({
             </div>
             <div>
               <h1 className="text-2xl font-bold">Admin Dashboard</h1>
-              <p className="text-muted-foreground">Content moderation and management</p>
+              <p className="text-muted-foreground">
+                Content moderation and management
+              </p>
             </div>
           </div>
-          
+
           <Button asChild variant="outline">
             <Link href="/">
               <Home className="mr-2 h-4 w-4" />

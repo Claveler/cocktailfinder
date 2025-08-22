@@ -35,9 +35,10 @@ export async function GET() {
     // Transform the data to match our interface
     const transformedVenue: Venue = {
       ...randomVenue,
-      location: randomVenue.latitude && randomVenue.longitude 
-        ? { lat: randomVenue.latitude, lng: randomVenue.longitude }
-        : null,
+      location:
+        randomVenue.latitude && randomVenue.longitude
+          ? { lat: randomVenue.latitude, lng: randomVenue.longitude }
+          : null,
     };
 
     return NextResponse.json(transformedVenue);

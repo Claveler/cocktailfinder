@@ -63,12 +63,12 @@ export default function CommentForm({ venueId }: CommentFormProps) {
         onMouseLeave={() => setHoveredRating(0)}
         onClick={() => setRating(index + 1)}
       >
-        <StarIcon 
+        <StarIcon
           className={`h-6 w-6 ${
-            filled 
-              ? "fill-yellow-400 text-yellow-400" 
+            filled
+              ? "fill-yellow-400 text-yellow-400"
               : "text-gray-300 hover:text-yellow-300"
-          }`} 
+          }`}
         />
       </button>
     );
@@ -100,7 +100,7 @@ export default function CommentForm({ venueId }: CommentFormProps) {
         <div className="flex items-center gap-1 mt-1">
           {[...Array(5)].map((_, index) => renderStar(index))}
           <span className="ml-2 text-sm text-muted-foreground">
-            {rating} star{rating !== 1 ? 's' : ''}
+            {rating} star{rating !== 1 ? "s" : ""}
           </span>
         </div>
       </div>
@@ -129,8 +129,8 @@ export default function CommentForm({ venueId }: CommentFormProps) {
       )}
 
       {/* Submit button */}
-      <Button 
-        type="submit" 
+      <Button
+        type="submit"
         disabled={isPending || !content.trim()}
         className="w-full"
       >

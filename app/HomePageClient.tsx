@@ -7,7 +7,10 @@ interface HomePageClientProps {
   delay?: number;
 }
 
-export default function HomePageClient({ children, delay = 0 }: HomePageClientProps) {
+export default function HomePageClient({
+  children,
+  delay = 0,
+}: HomePageClientProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}

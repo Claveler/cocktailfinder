@@ -64,7 +64,9 @@ async function EditsTable() {
             <TableRow key={edit.id}>
               <TableCell>
                 <div>
-                  <div className="font-medium">{edit.venue?.name || "Unknown Venue"}</div>
+                  <div className="font-medium">
+                    {edit.venue?.name || "Unknown Venue"}
+                  </div>
                   <div className="text-sm text-muted-foreground">
                     Edit ID: {edit.id.slice(0, 8)}...
                   </div>
@@ -130,7 +132,8 @@ export default function AdminEditsPage() {
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground">
-            Review and approve suggested edits from community members. Accept useful improvements or reject inappropriate changes.
+            Review and approve suggested edits from community members. Accept
+            useful improvements or reject inappropriate changes.
           </p>
         </CardContent>
       </Card>

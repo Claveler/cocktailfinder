@@ -22,7 +22,7 @@ export default function NavBar() {
   // Close menu on escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+      if (e.key === "Escape") {
         closeMobileMenu();
       }
     };
@@ -35,12 +35,12 @@ export default function NavBar() {
     };
 
     if (isMobileMenuOpen) {
-      document.addEventListener('keydown', handleEscape);
-      window.addEventListener('resize', handleResize);
-      
+      document.addEventListener("keydown", handleEscape);
+      window.addEventListener("resize", handleResize);
+
       return () => {
-        document.removeEventListener('keydown', handleEscape);
-        window.removeEventListener('resize', handleResize);
+        document.removeEventListener("keydown", handleEscape);
+        window.removeEventListener("resize", handleResize);
       };
     }
   }, [isMobileMenuOpen]);
@@ -165,7 +165,11 @@ export default function NavBar() {
 
               {/* Language Toggle - Mobile */}
               <div className="pt-4 border-t">
-                <Button variant="ghost" size="sm" className="w-full justify-start">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-start"
+                >
                   <Globe className="h-4 w-4 mr-2" />
                   <span>EN</span>
                   <Badge variant="secondary" className="ml-2 text-xs">

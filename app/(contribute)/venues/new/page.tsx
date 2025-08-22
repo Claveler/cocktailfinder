@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+// import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -29,6 +29,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { createVenue } from "@/lib/actions/venues";
+import GoogleMapsLinkInput from "@/components/forms/GoogleMapsLinkInput";
+import type { Coordinates } from "@/lib/maps";
 
 const VENUE_TYPES = [
   { value: "bar", label: "Cocktail Bar", icon: Wine },
@@ -44,23 +46,59 @@ const PRICE_RANGES = [
 ];
 
 const COMMON_BRANDS = [
-  "Hennessy", "Bombay Sapphire", "Grey Goose", "Tanqueray", "Kettle One", "Aperol",
-  "Hendricks", "Absolut", "Bacardi", "Captain Morgan", "Jack Daniels", "Johnnie Walker",
-  "Chivas Regal", "Macallan", "Glenfiddich", "Patron", "Don Julio", "Cointreau",
-  "Grand Marnier", "Baileys", "Kahlua", "Amaretto", "Campari", "Vermouth"
+  "Hennessy",
+  "Bombay Sapphire",
+  "Grey Goose",
+  "Tanqueray",
+  "Kettle One",
+  "Aperol",
+  "Hendricks",
+  "Absolut",
+  "Bacardi",
+  "Captain Morgan",
+  "Jack Daniels",
+  "Johnnie Walker",
+  "Chivas Regal",
+  "Macallan",
+  "Glenfiddich",
+  "Patron",
+  "Don Julio",
+  "Cointreau",
+  "Grand Marnier",
+  "Baileys",
+  "Kahlua",
+  "Amaretto",
+  "Campari",
+  "Vermouth",
 ];
 
 const COMMON_AMBIANCE = [
-  "speakeasy", "intimate", "molecular", "rooftop", "outdoor", "live music",
-  "dancing", "quiet", "romantic", "casual", "upscale", "vintage", "modern",
-  "industrial", "cozy", "trendy", "classic", "sophisticated", "lively"
+  "speakeasy",
+  "intimate",
+  "molecular",
+  "rooftop",
+  "outdoor",
+  "live music",
+  "dancing",
+  "quiet",
+  "romantic",
+  "casual",
+  "upscale",
+  "vintage",
+  "modern",
+  "industrial",
+  "cozy",
+  "trendy",
+  "classic",
+  "sophisticated",
+  "lively",
 ];
 
 export default function NewVenuePage() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  
+
   // Form state
   const [formData, setFormData] = useState({
     name: "",
@@ -71,8 +109,9 @@ export default function NewVenuePage() {
     latitude: "",
     longitude: "",
     price_range: "",
+    google_maps_url: "",
   });
-  
+
   const [brands, setBrands] = useState<string[]>([]);
   const [newBrand, setNewBrand] = useState("");
   const [ambiance, setAmbiance] = useState<string[]>([]);
@@ -80,40 +119,52 @@ export default function NewVenuePage() {
   const [photos, setPhotos] = useState<File[]>([]);
 
   const handleInputChange = (field: keyof typeof formData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleCoordinatesExtracted = (
+    coordinates: Coordinates,
+    originalUrl?: string
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      latitude: coordinates.lat.toString(),
+      longitude: coordinates.lng.toString(),
+      google_maps_url: originalUrl || "",
+    }));
   };
 
   const addBrand = (brand: string) => {
     const trimmed = brand.trim();
     if (trimmed && !brands.includes(trimmed)) {
-      setBrands(prev => [...prev, trimmed]);
+      setBrands((prev) => [...prev, trimmed]);
     }
   };
 
   const removeBrand = (brand: string) => {
-    setBrands(prev => prev.filter(b => b !== brand));
+    setBrands((prev) => prev.filter((b) => b !== brand));
   };
 
   const addAmbiance = (amb: string) => {
     const trimmed = amb.trim();
     if (trimmed && !ambiance.includes(trimmed)) {
-      setAmbiance(prev => [...prev, trimmed]);
+      setAmbiance((prev) => [...prev, trimmed]);
     }
   };
 
   const removeAmbiance = (amb: string) => {
-    setAmbiance(prev => prev.filter(a => a !== amb));
+    setAmbiance((prev) => prev.filter((a) => a !== amb));
   };
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     // Limit to 10 photos max
     const newPhotos = files.slice(0, 10 - photos.length);
-    setPhotos(prev => [...prev, ...newPhotos]);
+    setPhotos((prev) => [...prev, ...newPhotos]);
   };
 
   const removePhoto = (index: number) => {
-    setPhotos(prev => prev.filter((_, i) => i !== index));
+    setPhotos((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -121,7 +172,13 @@ export default function NewVenuePage() {
     setError(null);
 
     // Basic validation
-    if (!formData.name || !formData.type || !formData.address || !formData.city || !formData.country) {
+    if (
+      !formData.name ||
+      !formData.type ||
+      !formData.address ||
+      !formData.city ||
+      !formData.country
+    ) {
       setError("Please fill in all required fields");
       return;
     }
@@ -133,7 +190,7 @@ export default function NewVenuePage() {
 
     const lat = parseFloat(formData.latitude);
     const lng = parseFloat(formData.longitude);
-    
+
     if (isNaN(lat) || isNaN(lng)) {
       setError("Please provide valid numeric coordinates");
       return;
@@ -142,23 +199,23 @@ export default function NewVenuePage() {
     startTransition(async () => {
       try {
         const submitFormData = new FormData();
-        
+
         // Add basic fields
         Object.entries(formData).forEach(([key, value]) => {
           submitFormData.append(key, value);
         });
-        
+
         // Add arrays as JSON
         submitFormData.append("brands", JSON.stringify(brands));
         submitFormData.append("ambiance", JSON.stringify(ambiance));
-        
+
         // Add photos
-        photos.forEach(photo => {
+        photos.forEach((photo) => {
           submitFormData.append("photos", photo);
         });
 
         const result = await createVenue(submitFormData);
-        
+
         if (result.success) {
           router.push(`/venues/new/success?venueId=${result.venueId}`);
         } else {
@@ -175,12 +232,15 @@ export default function NewVenuePage() {
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       {/* Header */}
       <div className="mb-8">
-        <Link href="/venues" className="text-primary hover:underline text-sm mb-2 block">
+        <Link
+          href="/venues"
+          className="text-primary hover:underline text-sm mb-2 block"
+        >
           ← Back to Venues
         </Link>
         <h1 className="text-3xl font-bold mb-2">Submit a New Venue</h1>
         <p className="text-muted-foreground">
-          Help build our community by adding venues where you can enjoy Piscola.
+          Help build our community by adding venues where you can enjoy pisco.
         </p>
       </div>
 
@@ -207,12 +267,15 @@ export default function NewVenuePage() {
               </div>
               <div>
                 <Label htmlFor="type">Venue Type *</Label>
-                <Select value={formData.type} onValueChange={(value) => handleInputChange("type", value)}>
+                <Select
+                  value={formData.type}
+                  onValueChange={(value) => handleInputChange("type", value)}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select venue type" />
                   </SelectTrigger>
                   <SelectContent>
-                    {VENUE_TYPES.map(type => (
+                    {VENUE_TYPES.map((type) => (
                       <SelectItem key={type.value} value={type.value}>
                         <div className="flex items-center gap-2">
                           <type.icon className="h-4 w-4" />
@@ -269,36 +332,66 @@ export default function NewVenuePage() {
               Location Coordinates
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="latitude">Latitude *</Label>
-                <Input
-                  id="latitude"
-                  type="number"
-                  step="any"
-                  value={formData.latitude}
-                  onChange={(e) => handleInputChange("latitude", e.target.value)}
-                  placeholder="e.g., 51.5074"
-                  required
-                />
+          <CardContent className="space-y-6">
+            {/* Google Maps Link Input */}
+            <GoogleMapsLinkInput
+              onCoordinatesExtracted={handleCoordinatesExtracted}
+              currentCoordinates={
+                formData.latitude && formData.longitude
+                  ? {
+                      lat: parseFloat(formData.latitude),
+                      lng: parseFloat(formData.longitude),
+                    }
+                  : undefined
+              }
+              disabled={isPending}
+            />
+
+            <Separator />
+
+            {/* Manual Coordinate Entry (as fallback) */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Label className="text-sm font-medium">Manual Entry</Label>
+                <Badge variant="outline" className="text-xs">
+                  Advanced
+                </Badge>
               </div>
-              <div>
-                <Label htmlFor="longitude">Longitude *</Label>
-                <Input
-                  id="longitude"
-                  type="number"
-                  step="any"
-                  value={formData.longitude}
-                  onChange={(e) => handleInputChange("longitude", e.target.value)}
-                  placeholder="e.g., -0.1278"
-                  required
-                />
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="latitude">Latitude *</Label>
+                  <Input
+                    id="latitude"
+                    type="number"
+                    step="any"
+                    value={formData.latitude}
+                    onChange={(e) =>
+                      handleInputChange("latitude", e.target.value)
+                    }
+                    placeholder="e.g., 51.5074"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="longitude">Longitude *</Label>
+                  <Input
+                    id="longitude"
+                    type="number"
+                    step="any"
+                    value={formData.longitude}
+                    onChange={(e) =>
+                      handleInputChange("longitude", e.target.value)
+                    }
+                    placeholder="e.g., -0.1278"
+                    required
+                  />
+                </div>
               </div>
+              <p className="text-sm text-muted-foreground">
+                💡 Prefer using the Google Maps link above for easier and more
+                accurate location entry.
+              </p>
             </div>
-            <p className="text-sm text-muted-foreground">
-              💡 Tip: You can find coordinates by searching the venue on Google Maps and clicking on the location.
-            </p>
           </CardContent>
         </Card>
 
@@ -311,12 +404,17 @@ export default function NewVenuePage() {
             {/* Price Range */}
             <div>
               <Label htmlFor="price_range">Price Range</Label>
-              <Select value={formData.price_range} onValueChange={(value) => handleInputChange("price_range", value)}>
+              <Select
+                value={formData.price_range}
+                onValueChange={(value) =>
+                  handleInputChange("price_range", value)
+                }
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select price range" />
                 </SelectTrigger>
                 <SelectContent>
-                  {PRICE_RANGES.map(range => (
+                  {PRICE_RANGES.map((range) => (
                     <SelectItem key={range.value} value={range.value}>
                       {range.label}
                     </SelectItem>
@@ -337,7 +435,7 @@ export default function NewVenuePage() {
                     onChange={(e) => setNewBrand(e.target.value)}
                     placeholder="Add a brand..."
                     onKeyPress={(e) => {
-                      if (e.key === 'Enter') {
+                      if (e.key === "Enter") {
                         e.preventDefault();
                         addBrand(newBrand);
                         setNewBrand("");
@@ -355,17 +453,23 @@ export default function NewVenuePage() {
                     <Plus className="h-4 w-4" />
                   </Button>
                 </div>
-                
+
                 {/* Common brands */}
                 <div>
-                  <p className="text-sm text-muted-foreground mb-2">Common brands:</p>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Common brands:
+                  </p>
                   <div className="flex flex-wrap gap-2">
-                    {COMMON_BRANDS.map(brand => (
+                    {COMMON_BRANDS.map((brand) => (
                       <Badge
                         key={brand}
                         variant={brands.includes(brand) ? "default" : "outline"}
                         className="cursor-pointer"
-                        onClick={() => brands.includes(brand) ? removeBrand(brand) : addBrand(brand)}
+                        onClick={() =>
+                          brands.includes(brand)
+                            ? removeBrand(brand)
+                            : addBrand(brand)
+                        }
                       >
                         {brand}
                       </Badge>
@@ -378,8 +482,12 @@ export default function NewVenuePage() {
                   <div>
                     <p className="text-sm font-medium mb-2">Selected brands:</p>
                     <div className="flex flex-wrap gap-2">
-                      {brands.map(brand => (
-                        <Badge key={brand} variant="default" className="flex items-center gap-1">
+                      {brands.map((brand) => (
+                        <Badge
+                          key={brand}
+                          variant="default"
+                          className="flex items-center gap-1"
+                        >
                           {brand}
                           <X
                             className="h-3 w-3 cursor-pointer"
@@ -405,7 +513,7 @@ export default function NewVenuePage() {
                     onChange={(e) => setNewAmbiance(e.target.value)}
                     placeholder="Add ambiance tag..."
                     onKeyPress={(e) => {
-                      if (e.key === 'Enter') {
+                      if (e.key === "Enter") {
                         e.preventDefault();
                         addAmbiance(newAmbiance);
                         setNewAmbiance("");
@@ -423,17 +531,23 @@ export default function NewVenuePage() {
                     <Plus className="h-4 w-4" />
                   </Button>
                 </div>
-                
+
                 {/* Common ambiance */}
                 <div>
-                  <p className="text-sm text-muted-foreground mb-2">Common tags:</p>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Common tags:
+                  </p>
                   <div className="flex flex-wrap gap-2">
-                    {COMMON_AMBIANCE.map(amb => (
+                    {COMMON_AMBIANCE.map((amb) => (
                       <Badge
                         key={amb}
                         variant={ambiance.includes(amb) ? "default" : "outline"}
                         className="cursor-pointer"
-                        onClick={() => ambiance.includes(amb) ? removeAmbiance(amb) : addAmbiance(amb)}
+                        onClick={() =>
+                          ambiance.includes(amb)
+                            ? removeAmbiance(amb)
+                            : addAmbiance(amb)
+                        }
                       >
                         {amb}
                       </Badge>
@@ -446,8 +560,12 @@ export default function NewVenuePage() {
                   <div>
                     <p className="text-sm font-medium mb-2">Selected tags:</p>
                     <div className="flex flex-wrap gap-2">
-                      {ambiance.map(amb => (
-                        <Badge key={amb} variant="default" className="flex items-center gap-1">
+                      {ambiance.map((amb) => (
+                        <Badge
+                          key={amb}
+                          variant="default"
+                          className="flex items-center gap-1"
+                        >
                           {amb}
                           <X
                             className="h-3 w-3 cursor-pointer"
@@ -489,7 +607,9 @@ export default function NewVenuePage() {
 
             {photos.length > 0 && (
               <div>
-                <p className="text-sm font-medium mb-2">Selected photos ({photos.length}/10):</p>
+                <p className="text-sm font-medium mb-2">
+                  Selected photos ({photos.length}/10):
+                </p>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {photos.map((photo, index) => (
                     <div key={index} className="relative">
@@ -530,16 +650,18 @@ export default function NewVenuePage() {
           <CardContent className="pt-6">
             <div className="space-y-4">
               <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <h4 className="font-medium text-blue-800 mb-1">Review Process</h4>
+                <h4 className="font-medium text-blue-800 mb-1">
+                  Review Process
+                </h4>
                 <p className="text-blue-700 text-sm">
-                  Your submission will be reviewed by our team before appearing publicly. 
-                  We typically review submissions within 24-48 hours.
+                  Your submission will be reviewed by our team before appearing
+                  publicly. We typically review submissions within 24-48 hours.
                 </p>
               </div>
-              
-              <Button 
-                type="submit" 
-                size="lg" 
+
+              <Button
+                type="submit"
+                size="lg"
                 className="w-full"
                 disabled={isPending}
               >

@@ -8,13 +8,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { 
-  Check, 
-  X, 
-  MoreHorizontal, 
+import {
+  Check,
+  X,
+  MoreHorizontal,
   Loader2,
   ExternalLink,
-  Eye
+  Eye,
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -76,7 +76,7 @@ export default function EditActions({ edit }: EditActionsProps) {
           <Check className="h-4 w-4" />
         )}
       </Button>
-      
+
       <Button
         size="sm"
         variant="destructive"

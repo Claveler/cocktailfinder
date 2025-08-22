@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import CommentForm from "./CommentForm";
 import PhotoGallery from "./PhotoGallery";
+import { getVenueGoogleMapsUrl } from "@/lib/maps";
 
 interface VenuePageProps {
   params: {
@@ -49,16 +50,25 @@ function VenueDetailSkeleton() {
 }
 
 // Star rating display component
-function StarRating({ rating, size = "sm" }: { rating: number; size?: "sm" | "lg" }) {
+function StarRating({
+  rating,
+  size = "sm",
+}: {
+  rating: number;
+  size?: "sm" | "lg";
+}) {
   const stars = [];
   const fullStars = Math.floor(rating);
   const hasHalfStar = rating % 1 !== 0;
-  
+
   const starSize = size === "lg" ? "h-5 w-5" : "h-4 w-4";
 
   for (let i = 0; i < fullStars; i++) {
     stars.push(
-      <StarIcon key={i} className={`${starSize} fill-yellow-400 text-yellow-400`} />
+      <StarIcon
+        key={i}
+        className={`${starSize} fill-yellow-400 text-yellow-400`}
+      />
     );
   }
 
@@ -111,18 +121,20 @@ function CommentItem({ comment }: { comment: any }) {
 export default async function VenuePage({ params }: VenuePageProps) {
   // Get current user for access control
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   // Check if user is admin
   let isAdmin = false;
   if (user) {
     const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
       .single();
-    
-    isAdmin = profile?.role === 'admin';
+
+    isAdmin = profile?.role === "admin";
   }
 
   // Fetch venue data
@@ -132,10 +144,8 @@ export default async function VenuePage({ params }: VenuePageProps) {
     notFound();
   }
 
-  // Generate Google Maps URL
-  const googleMapsUrl = venue.location
-    ? `https://www.google.com/maps?q=${venue.location.lat},${venue.location.lng}`
-    : `https://www.google.com/maps/search/${encodeURIComponent(venue.address)}`;
+  // Generate Google Maps URL (prefers stored URL, falls back to coordinates)
+  const googleMapsUrl = getVenueGoogleMapsUrl(venue);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -165,7 +175,11 @@ export default async function VenuePage({ params }: VenuePageProps) {
             /* Multiple Photos - Show Gallery as Hero */
             <div className="relative aspect-[3/1] w-full bg-gray-50 rounded-lg overflow-hidden">
               <div className="absolute inset-0 flex items-center">
-                <PhotoGallery photos={venue.photos} venueName={venue.name} showTitle={false} />
+                <PhotoGallery
+                  photos={venue.photos}
+                  venueName={venue.name}
+                  showTitle={false}
+                />
               </div>
             </div>
           )}
@@ -179,7 +193,7 @@ export default async function VenuePage({ params }: VenuePageProps) {
             <h1 className="text-3xl font-bold mb-2">{venue.name}</h1>
             <div className="flex items-center gap-4 text-muted-foreground">
               <Badge variant="secondary" className="capitalize">
-                {venue.type.replace('_', ' ')}
+                {venue.type.replace("_", " ")}
               </Badge>
               {venue.price_range && (
                 <span className="font-medium">{venue.price_range}</span>
@@ -188,14 +202,13 @@ export default async function VenuePage({ params }: VenuePageProps) {
                 <div className="flex items-center gap-2">
                   <StarRating rating={venue.averageRating} />
                   <span className="text-sm">
-                    {venue.averageRating.toFixed(1)} ({venue.totalComments} reviews)
+                    {venue.averageRating.toFixed(1)} ({venue.totalComments}{" "}
+                    reviews)
                   </span>
                 </div>
               )}
             </div>
           </div>
-          
-
 
           {/* Admin Edit Button */}
           {isAdmin && (
@@ -259,8 +272,6 @@ export default async function VenuePage({ params }: VenuePageProps) {
                   </div>
                 </div>
               )}
-
-
 
               {/* Added by */}
               {venue.profile?.full_name && (
@@ -334,7 +345,9 @@ export default async function VenuePage({ params }: VenuePageProps) {
             <CardContent className="space-y-4">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Type</span>
-                <span className="capitalize">{venue.type.replace('_', ' ')}</span>
+                <span className="capitalize">
+                  {venue.type.replace("_", " ")}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">City</span>
@@ -352,8 +365,10 @@ export default async function VenuePage({ params }: VenuePageProps) {
               )}
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Status</span>
-                <Badge 
-                  variant={venue.status === 'approved' ? 'default' : 'secondary'}
+                <Badge
+                  variant={
+                    venue.status === "approved" ? "default" : "secondary"
+                  }
                   className="capitalize"
                 >
                   {venue.status}
@@ -367,7 +382,11 @@ export default async function VenuePage({ params }: VenuePageProps) {
             <CardContent className="pt-6">
               <div className="space-y-3">
                 <Button asChild className="w-full">
-                  <a href={googleMapsUrl} target="_blank" rel="noopener noreferrer">
+                  <a
+                    href={googleMapsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     <MapPin className="mr-2 h-4 w-4" />
                     View on Map
                   </a>

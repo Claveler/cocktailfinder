@@ -5,7 +5,13 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,6 +21,8 @@ import { updateVenueAction } from "@/lib/actions/admin";
 import { uploadPhoto, deletePhoto } from "@/lib/storage";
 import { toast } from "sonner";
 import type { VenueWithComments } from "@/lib/venues";
+import GoogleMapsLinkInput from "@/components/forms/GoogleMapsLinkInput";
+import type { Coordinates } from "@/lib/maps";
 
 interface VenueEditFormProps {
   venue: VenueWithComments;
@@ -42,7 +50,7 @@ const VENUE_STATUS = [
 export default function VenueEditForm({ venue }: VenueEditFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // Form state
   const [formData, setFormData] = useState({
     name: venue.name,
@@ -56,10 +64,13 @@ export default function VenueEditForm({ venue }: VenueEditFormProps) {
     price_range: venue.price_range || "",
     ambiance: venue.ambiance,
     status: venue.status,
+    google_maps_url: venue.google_maps_url || "",
   });
 
   // Photo management state
-  const [currentPhotos, setCurrentPhotos] = useState<string[]>(venue.photos || []);
+  const [currentPhotos, setCurrentPhotos] = useState<string[]>(
+    venue.photos || []
+  );
   const [photosToDelete, setPhotosToDelete] = useState<string[]>([]);
   const [newPhotos, setNewPhotos] = useState<File[]>([]);
   const [uploadingPhotos, setUploadingPhotos] = useState(false);
@@ -70,71 +81,90 @@ export default function VenueEditForm({ venue }: VenueEditFormProps) {
 
   const addBrand = () => {
     if (newBrand.trim() && !formData.brands.includes(newBrand.trim())) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        brands: [...prev.brands, newBrand.trim()]
+        brands: [...prev.brands, newBrand.trim()],
       }));
       setNewBrand("");
     }
   };
 
   const removeBrand = (brandToRemove: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      brands: prev.brands.filter(brand => brand !== brandToRemove)
+      brands: prev.brands.filter((brand) => brand !== brandToRemove),
     }));
   };
 
   const addAmbiance = () => {
     if (newAmbiance.trim() && !formData.ambiance.includes(newAmbiance.trim())) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        ambiance: [...prev.ambiance, newAmbiance.trim()]
+        ambiance: [...prev.ambiance, newAmbiance.trim()],
       }));
       setNewAmbiance("");
     }
   };
 
   const removeAmbiance = (ambianceToRemove: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      ambiance: prev.ambiance.filter(amb => amb !== ambianceToRemove)
+      ambiance: prev.ambiance.filter((amb) => amb !== ambianceToRemove),
+    }));
+  };
+
+  const handleCoordinatesExtracted = (
+    coordinates: Coordinates,
+    originalUrl?: string
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      latitude: coordinates.lat,
+      longitude: coordinates.lng,
+      google_maps_url: originalUrl || prev.google_maps_url,
     }));
   };
 
   // Photo management functions
-  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files) {
-      const newFiles = Array.from(files).slice(0, 5); // Limit to 5 new photos
-      setNewPhotos(prev => [...prev, ...newFiles].slice(0, 5));
-    }
-  }, []);
+  const handleFileSelect = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const files = e.target.files;
+      if (files) {
+        const newFiles = Array.from(files).slice(0, 5); // Limit to 5 new photos
+        setNewPhotos((prev) => [...prev, ...newFiles].slice(0, 5));
+      }
+    },
+    []
+  );
 
   const removeNewPhoto = useCallback((index: number) => {
-    setNewPhotos(prev => prev.filter((_, i) => i !== index));
+    setNewPhotos((prev) => prev.filter((_, i) => i !== index));
   }, []);
 
   const markPhotoForDeletion = useCallback((photoUrl: string) => {
-    setPhotosToDelete(prev => [...prev, photoUrl]);
-    setCurrentPhotos(prev => prev.filter(photo => photo !== photoUrl));
+    setPhotosToDelete((prev) => [...prev, photoUrl]);
+    setCurrentPhotos((prev) => prev.filter((photo) => photo !== photoUrl));
   }, []);
 
   const restorePhoto = useCallback((photoUrl: string) => {
-    setPhotosToDelete(prev => prev.filter(url => url !== photoUrl));
-    setCurrentPhotos(prev => [...prev, photoUrl]);
+    setPhotosToDelete((prev) => prev.filter((url) => url !== photoUrl));
+    setCurrentPhotos((prev) => [...prev, photoUrl]);
   }, []);
 
-  const handleImageError = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
-    const img = e.currentTarget;
-    img.style.display = 'none';
-    if (img.parentElement) {
-      const placeholder = document.createElement('div');
-      placeholder.className = 'w-full h-full flex items-center justify-center bg-gray-200 text-gray-500 text-xs';
-      placeholder.textContent = 'Image failed to load';
-      img.parentElement.appendChild(placeholder);
-    }
-  }, []);
+  const handleImageError = useCallback(
+    (e: React.SyntheticEvent<HTMLImageElement>) => {
+      const img = e.currentTarget;
+      img.style.display = "none";
+      if (img.parentElement) {
+        const placeholder = document.createElement("div");
+        placeholder.className =
+          "w-full h-full flex items-center justify-center bg-gray-200 text-gray-500 text-xs";
+        placeholder.textContent = "Image failed to load";
+        img.parentElement.appendChild(placeholder);
+      }
+    },
+    []
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -148,7 +178,7 @@ export default function VenueEditForm({ venue }: VenueEditFormProps) {
         for (const photoUrl of photosToDelete) {
           try {
             // Extract path from URL for deletion
-            const urlParts = photoUrl.split('/venue-photos/');
+            const urlParts = photoUrl.split("/venue-photos/");
             if (urlParts.length === 2) {
               const path = urlParts[1];
               await deletePhoto(path);
@@ -161,10 +191,10 @@ export default function VenueEditForm({ venue }: VenueEditFormProps) {
       }
 
       // Handle new photo uploads
-      let uploadedPhotoUrls: string[] = [];
+      const uploadedPhotoUrls: string[] = [];
       if (newPhotos.length > 0) {
         toast.info(`Uploading ${newPhotos.length} new photo(s)...`);
-        
+
         for (const file of newPhotos) {
           try {
             const uploadResult = await uploadPhoto(file, venue.id);
@@ -193,7 +223,7 @@ export default function VenueEditForm({ venue }: VenueEditFormProps) {
       };
 
       const result = await updateVenueAction(venue.id, venueUpdateData);
-      
+
       if (result.success) {
         toast.success("Venue updated successfully!");
         router.push(`/venues/${venue.id}`);
@@ -219,16 +249,23 @@ export default function VenueEditForm({ venue }: VenueEditFormProps) {
           <Input
             id="name"
             value={formData.name}
-            onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, name: e.target.value }))
+            }
             required
           />
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="type">Type *</Label>
-          <Select 
-            value={formData.type} 
-            onValueChange={(value) => setFormData(prev => ({ ...prev, type: value }))}
+          <Select
+            value={formData.type}
+            onValueChange={(value) =>
+              setFormData((prev) => ({
+                ...prev,
+                type: value as "bar" | "pub" | "liquor_store",
+              }))
+            }
           >
             <SelectTrigger>
               <SelectValue placeholder="Select venue type" />
@@ -248,13 +285,15 @@ export default function VenueEditForm({ venue }: VenueEditFormProps) {
       <Separator />
       <div className="space-y-4">
         <h3 className="text-lg font-semibold">Location</h3>
-        
+
         <div className="space-y-2">
           <Label htmlFor="address">Address *</Label>
           <Textarea
             id="address"
             value={formData.address}
-            onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, address: e.target.value }))
+            }
             rows={2}
             required
           />
@@ -266,7 +305,9 @@ export default function VenueEditForm({ venue }: VenueEditFormProps) {
             <Input
               id="city"
               value={formData.city}
-              onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, city: e.target.value }))
+              }
               required
             />
           </div>
@@ -276,33 +317,70 @@ export default function VenueEditForm({ venue }: VenueEditFormProps) {
             <Input
               id="country"
               value={formData.country}
-              onChange={(e) => setFormData(prev => ({ ...prev, country: e.target.value }))}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, country: e.target.value }))
+              }
               required
             />
           </div>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="latitude">Latitude</Label>
-            <Input
-              id="latitude"
-              type="number"
-              step="any"
-              value={formData.latitude}
-              onChange={(e) => setFormData(prev => ({ ...prev, latitude: parseFloat(e.target.value) || 0 }))}
-            />
-          </div>
+        {/* Google Maps Link Input */}
+        <GoogleMapsLinkInput
+          onCoordinatesExtracted={handleCoordinatesExtracted}
+          currentCoordinates={
+            formData.latitude && formData.longitude
+              ? {
+                  lat: formData.latitude,
+                  lng: formData.longitude,
+                }
+              : undefined
+          }
+          disabled={isSubmitting}
+        />
 
-          <div className="space-y-2">
-            <Label htmlFor="longitude">Longitude</Label>
-            <Input
-              id="longitude"
-              type="number"
-              step="any"
-              value={formData.longitude}
-              onChange={(e) => setFormData(prev => ({ ...prev, longitude: parseFloat(e.target.value) || 0 }))}
-            />
+        <Separator />
+
+        {/* Manual Coordinate Entry (as fallback) */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Label className="text-sm font-medium">Manual Entry</Label>
+            <Badge variant="outline" className="text-xs">
+              Advanced
+            </Badge>
+          </div>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="latitude">Latitude</Label>
+              <Input
+                id="latitude"
+                type="number"
+                step="any"
+                value={formData.latitude}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    latitude: parseFloat(e.target.value) || 0,
+                  }))
+                }
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="longitude">Longitude</Label>
+              <Input
+                id="longitude"
+                type="number"
+                step="any"
+                value={formData.longitude}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    longitude: parseFloat(e.target.value) || 0,
+                  }))
+                }
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -311,12 +389,14 @@ export default function VenueEditForm({ venue }: VenueEditFormProps) {
       <Separator />
       <div className="space-y-4">
         <h3 className="text-lg font-semibold">Details</h3>
-        
+
         <div className="space-y-2">
           <Label htmlFor="price_range">Price Range</Label>
-          <Select 
-            value={formData.price_range} 
-            onValueChange={(value) => setFormData(prev => ({ ...prev, price_range: value }))}
+          <Select
+            value={formData.price_range}
+            onValueChange={(value) =>
+              setFormData((prev) => ({ ...prev, price_range: value }))
+            }
           >
             <SelectTrigger>
               <SelectValue placeholder="Select price range" />
@@ -339,7 +419,9 @@ export default function VenueEditForm({ venue }: VenueEditFormProps) {
               value={newBrand}
               onChange={(e) => setNewBrand(e.target.value)}
               placeholder="Add a brand"
-              onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addBrand())}
+              onKeyPress={(e) =>
+                e.key === "Enter" && (e.preventDefault(), addBrand())
+              }
             />
             <Button type="button" onClick={addBrand} size="sm">
               <Plus className="h-4 w-4" />
@@ -348,7 +430,11 @@ export default function VenueEditForm({ venue }: VenueEditFormProps) {
           {formData.brands.length > 0 && (
             <div className="flex flex-wrap gap-2 mt-2">
               {formData.brands.map((brand) => (
-                <Badge key={brand} variant="secondary" className="flex items-center gap-1">
+                <Badge
+                  key={brand}
+                  variant="secondary"
+                  className="flex items-center gap-1"
+                >
                   {brand}
                   <button
                     type="button"
@@ -371,7 +457,9 @@ export default function VenueEditForm({ venue }: VenueEditFormProps) {
               value={newAmbiance}
               onChange={(e) => setNewAmbiance(e.target.value)}
               placeholder="Add ambiance tag"
-              onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addAmbiance())}
+              onKeyPress={(e) =>
+                e.key === "Enter" && (e.preventDefault(), addAmbiance())
+              }
             />
             <Button type="button" onClick={addAmbiance} size="sm">
               <Plus className="h-4 w-4" />
@@ -380,7 +468,11 @@ export default function VenueEditForm({ venue }: VenueEditFormProps) {
           {formData.ambiance.length > 0 && (
             <div className="flex flex-wrap gap-2 mt-2">
               {formData.ambiance.map((amb) => (
-                <Badge key={amb} variant="outline" className="flex items-center gap-1">
+                <Badge
+                  key={amb}
+                  variant="outline"
+                  className="flex items-center gap-1"
+                >
                   {amb}
                   <button
                     type="button"
@@ -400,7 +492,7 @@ export default function VenueEditForm({ venue }: VenueEditFormProps) {
       <Separator />
       <div className="space-y-4">
         <h3 className="text-lg font-semibold">Photo Management</h3>
-        
+
         {/* Current Photos */}
         {currentPhotos.length > 0 && (
           <div className="space-y-2">
@@ -488,7 +580,9 @@ export default function VenueEditForm({ venue }: VenueEditFormProps) {
                     <X className="h-3 w-3" />
                   </Button>
                   <div className="absolute bottom-1 left-1 bg-black bg-opacity-75 text-white text-xs px-1 rounded">
-                    {file.name.length > 15 ? file.name.substring(0, 12) + '...' : file.name}
+                    {file.name.length > 15
+                      ? file.name.substring(0, 12) + "..."
+                      : file.name}
                   </div>
                 </div>
               ))}
@@ -523,12 +617,17 @@ export default function VenueEditForm({ venue }: VenueEditFormProps) {
       <Separator />
       <div className="space-y-4">
         <h3 className="text-lg font-semibold">Admin Settings</h3>
-        
+
         <div className="space-y-2">
           <Label htmlFor="status">Status</Label>
-          <Select 
-            value={formData.status} 
-            onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}
+          <Select
+            value={formData.status}
+            onValueChange={(value) =>
+              setFormData((prev) => ({
+                ...prev,
+                status: value as "pending" | "approved" | "rejected",
+              }))
+            }
           >
             <SelectTrigger>
               <SelectValue placeholder="Select status" />
@@ -546,8 +645,8 @@ export default function VenueEditForm({ venue }: VenueEditFormProps) {
 
       {/* Action Buttons */}
       <div className="flex gap-4 pt-4">
-        <Button 
-          type="submit" 
+        <Button
+          type="submit"
           disabled={isSubmitting}
           className="flex-1 sm:flex-none"
         >
@@ -563,9 +662,9 @@ export default function VenueEditForm({ venue }: VenueEditFormProps) {
             </>
           )}
         </Button>
-        
-        <Button 
-          type="button" 
+
+        <Button
+          type="button"
           variant="outline"
           onClick={() => router.back()}
           disabled={isSubmitting}

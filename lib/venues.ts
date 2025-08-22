@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { logger } from "@/lib/logger";
 
 export interface Venue {
   id: string;
@@ -19,6 +20,7 @@ export interface Venue {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  google_maps_url: string | null;
 }
 
 export interface VenueFilters {
@@ -54,6 +56,9 @@ export interface VenueWithComments extends Venue {
   comments: Comment[];
   averageRating: number | null;
   totalComments: number;
+  profile?: {
+    full_name: string | null;
+  } | null;
 }
 
 const PAGE_SIZE = 20;
@@ -66,17 +71,11 @@ export async function listVenues(
     const { q, city, brand, type, page = 1 } = filters;
 
     // Use database view that handles coordinate extraction
-    console.log("🔍 Starting venue query with filters:", {
-      q,
-      city,
-      brand,
-      type,
-      page,
-    });
+    logger.debug("Starting venue query", { q, city, brand, type, page });
 
     let query = supabase
       .from("venues")
-      .select("*, latitude, longitude", { count: "exact" })
+      .select("*, latitude, longitude, google_maps_url", { count: "exact" })
       .eq("status", "approved");
 
     // Apply filters
@@ -101,34 +100,30 @@ export async function listVenues(
     const to = from + PAGE_SIZE - 1;
 
     // Execute query with pagination
-    console.log("🔍 Executing query...");
     const {
       data: venues,
       error,
       count,
     } = await query.order("created_at", { ascending: false }).range(from, to);
 
-    console.log("🔍 Query result:", { venues: venues?.length, error, count });
-
     if (error) {
-      console.error("🚨 Supabase query error:", error);
+      logger.error("Supabase query error", { error, filters: { q, city, brand, type, page } });
       return { data: null, error: new Error(error.message) };
     }
 
     const totalCount = count || 0;
     const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
-    // Add debugging to see what we're getting from Supabase
-    console.log("🔍 Raw venue data sample:", venues?.[0]);
-    console.log("🔍 Total venues found:", venues?.length);
+    logger.debug("Query completed", { venueCount: venues?.length, totalCount });
 
     // Transform the data to match our interface (now with direct coordinate columns!)
     const transformedVenues: Venue[] = (venues || []).map((venue: any) => {
-      const location = venue.latitude && venue.longitude 
-        ? { lat: venue.latitude, lng: venue.longitude }
-        : null;
-      
-      console.log("🔍 Processing venue:", venue.name, "coordinates:", location);
+      const location =
+        venue.latitude && venue.longitude
+          ? { lat: venue.latitude, lng: venue.longitude }
+          : null;
+
+
 
       return {
         ...venue,
@@ -147,7 +142,7 @@ export async function listVenues(
 
     return { data: result, error: null };
   } catch (error) {
-    console.error("Error listing venues:", error);
+    logger.error("Error listing venues", { error });
     return {
       data: null,
       error: error instanceof Error ? error : new Error("Unknown error"),
@@ -174,7 +169,9 @@ export async function getCities(): Promise<{
     }
 
     // Get unique cities
-    const cities = Array.from(new Set(data?.map((item) => item.city) || [])).sort();
+    const cities = Array.from(
+      new Set(data?.map((item) => item.city) || [])
+    ).sort();
 
     return { data: cities, error: null };
   } catch (error) {
@@ -230,12 +227,15 @@ export async function getVenueById(
     // Fetch venue with profile information
     const { data: venue, error: venueError } = await supabase
       .from("venues")
-      .select(`
+      .select(
+        `
         *,
         latitude,
         longitude,
+        google_maps_url,
         profile:created_by(full_name)
-      `)
+      `
+      )
       .eq("id", id)
       .single();
 
@@ -249,9 +249,8 @@ export async function getVenueById(
     }
 
     // Access control: only show approved venues unless user owns it
-    const canAccess = 
-      venue.status === "approved" || 
-      (userId && venue.created_by === userId);
+    const canAccess =
+      venue.status === "approved" || (userId && venue.created_by === userId);
 
     if (!canAccess) {
       return { data: null, error: new Error("Venue not found") };
@@ -260,18 +259,21 @@ export async function getVenueById(
     // Transform venue data
     const transformedVenue: Venue = {
       ...venue,
-      location: venue.latitude && venue.longitude 
-        ? { lat: venue.latitude, lng: venue.longitude }
-        : null,
+      location:
+        venue.latitude && venue.longitude
+          ? { lat: venue.latitude, lng: venue.longitude }
+          : null,
     };
 
     // Fetch comments for this venue
     const { data: comments, error: commentsError } = await supabase
       .from("comments")
-      .select(`
+      .select(
+        `
         *,
         profile:user_id(full_name)
-      `)
+      `
+      )
       .eq("venue_id", id)
       .order("created_at", { ascending: false });
 
@@ -280,16 +282,19 @@ export async function getVenueById(
       // Don't fail the whole request for comments error
     }
 
-    const transformedComments: Comment[] = (comments || []).map((comment: any) => ({
-      ...comment,
-      profile: comment.profile
-    }));
+    const transformedComments: Comment[] = (comments || []).map(
+      (comment: any) => ({
+        ...comment,
+        profile: comment.profile,
+      })
+    );
 
     // Calculate average rating
-    const ratings = transformedComments.map(c => c.rating);
-    const averageRating = ratings.length > 0 
-      ? ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length
-      : null;
+    const ratings = transformedComments.map((c) => c.rating);
+    const averageRating =
+      ratings.length > 0
+        ? ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length
+        : null;
 
     const result: VenueWithComments = {
       ...transformedVenue,
@@ -298,7 +303,13 @@ export async function getVenueById(
       totalComments: transformedComments.length,
     };
 
-    console.log("🔍 Venue fetched successfully:", result.name, "with", result.totalComments, "comments");
+    console.log(
+      "🔍 Venue fetched successfully:",
+      result.name,
+      "with",
+      result.totalComments,
+      "comments"
+    );
     return { data: result, error: null };
   } catch (error) {
     console.error("Error getting venue by ID:", error);
@@ -328,10 +339,12 @@ export async function addComment(
         content: content.trim(),
         rating: Math.max(1, Math.min(5, rating)), // Ensure rating is between 1-5
       })
-      .select(`
+      .select(
+        `
         *,
         profile:user_id(full_name)
-      `)
+      `
+      )
       .single();
 
     if (error) {
@@ -341,7 +354,7 @@ export async function addComment(
 
     const transformedComment: Comment = {
       ...comment,
-      profile: comment.profile
+      profile: comment.profile,
     };
 
     console.log("💬 Comment added successfully");
@@ -354,5 +367,3 @@ export async function addComment(
     };
   }
 }
-
-

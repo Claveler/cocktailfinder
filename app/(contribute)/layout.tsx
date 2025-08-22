@@ -8,7 +8,9 @@ export default async function ContributeLayout({
 }) {
   // Check if user is authenticated
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
     redirect("/login?message=Please sign in to submit a venue");

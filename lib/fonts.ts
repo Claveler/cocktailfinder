@@ -1,5 +1,12 @@
 import localFont from "next/font/local";
-import { Inter, Raleway, Poppins, Open_Sans, Roboto, Lato } from "next/font/google";
+import {
+  Inter,
+  Raleway,
+  Poppins,
+  Open_Sans,
+  Roboto,
+  Lato,
+} from "next/font/google";
 
 // Local fonts (Geist)
 const geistSans = localFont({
@@ -64,7 +71,14 @@ type FontConfig = {
 };
 
 // 🎨 CHANGE THIS TO TEST DIFFERENT FONTS
-const CURRENT_FONT: "geist" | "inter" | "raleway" | "poppins" | "openSans" | "roboto" | "lato" = "geist";
+const CURRENT_FONT:
+  | "geist"
+  | "inter"
+  | "raleway"
+  | "poppins"
+  | "openSans"
+  | "roboto"
+  | "lato" = "geist";
 
 const fontConfigs: Record<typeof CURRENT_FONT, FontConfig> = {
   geist: {
@@ -82,7 +96,7 @@ const fontConfigs: Record<typeof CURRENT_FONT, FontConfig> = {
   raleway: {
     primary: raleway,
     mono: geistMono,
-    cssVariable: "--font-raleway", 
+    cssVariable: "--font-raleway",
     tailwindClass: "font-sans",
   },
   poppins: {

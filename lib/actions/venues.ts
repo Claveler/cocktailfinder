@@ -22,10 +22,13 @@ export interface CreateVenueData {
 export async function createVenue(formData: FormData) {
   try {
     const supabase = createClient();
-    
+
     // Check authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
     if (authError || !user) {
       throw new Error("You must be logged in to submit a venue");
     }
@@ -41,14 +44,15 @@ export async function createVenue(formData: FormData) {
     const latitude = parseFloat(formData.get("latitude") as string);
     const longitude = parseFloat(formData.get("longitude") as string);
     const price_range = formData.get("price_range") as string;
-    
+    const google_maps_url = formData.get("google_maps_url") as string;
+
     // Parse arrays from JSON strings
-    const brands = JSON.parse(formData.get("brands") as string || "[]");
-    const ambiance = JSON.parse(formData.get("ambiance") as string || "[]");
-    
+    const brands = JSON.parse((formData.get("brands") as string) || "[]");
+    const ambiance = JSON.parse((formData.get("ambiance") as string) || "[]");
+
     // Get uploaded files
     const photoFiles = formData.getAll("photos") as File[];
-    const validPhotoFiles = photoFiles.filter(file => file.size > 0);
+    const validPhotoFiles = photoFiles.filter((file) => file.size > 0);
 
     // Validate required fields
     if (!name || !type || !address || !city || !country) {
@@ -59,8 +63,15 @@ export async function createVenue(formData: FormData) {
       throw new Error("Please provide valid coordinates");
     }
 
-    if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
-      throw new Error("Please provide valid latitude (-90 to 90) and longitude (-180 to 180)");
+    if (
+      latitude < -90 ||
+      latitude > 90 ||
+      longitude < -180 ||
+      longitude > 180
+    ) {
+      throw new Error(
+        "Please provide valid latitude (-90 to 90) and longitude (-180 to 180)"
+      );
     }
 
     // Create venue in database first (without photos)
@@ -80,6 +91,7 @@ export async function createVenue(formData: FormData) {
         photos: [], // Will update after photo upload
         status: "pending",
         created_by: user.id,
+        google_maps_url: google_maps_url?.trim() || null,
       })
       .select()
       .single();
@@ -92,21 +104,24 @@ export async function createVenue(formData: FormData) {
     console.log("🏗️ Venue created with ID:", venue.id);
 
     // Upload photos if any
-    let photoUrls: string[] = [];
+    const photoUrls: string[] = [];
     if (validPhotoFiles.length > 0) {
       console.log("📸 Uploading", validPhotoFiles.length, "photos...");
-      
+
       for (let i = 0; i < validPhotoFiles.length; i++) {
         const file = validPhotoFiles[i];
         try {
-          const { data: uploadResult, error: uploadError } = await uploadPhoto(file, venue.id);
-          
+          const { data: uploadResult, error: uploadError } = await uploadPhoto(
+            file,
+            venue.id
+          );
+
           if (uploadError) {
             console.error("🚨 Error uploading photo", i + 1, ":", uploadError);
             // Continue with other photos instead of failing completely
             continue;
           }
-          
+
           if (uploadResult?.publicUrl) {
             photoUrls.push(uploadResult.publicUrl);
             console.log("📸 Photo", i + 1, "uploaded successfully");
@@ -134,22 +149,22 @@ export async function createVenue(formData: FormData) {
     }
 
     console.log("✅ Venue creation completed successfully");
-    
+
     // Revalidate relevant pages
     revalidatePath("/venues");
-    
-    return { 
-      success: true, 
-      venueId: venue.id,
-      message: "Venue submitted successfully! It will be reviewed before appearing publicly."
-    };
 
+    return {
+      success: true,
+      venueId: venue.id,
+      message:
+        "Venue submitted successfully! It will be reviewed before appearing publicly.",
+    };
   } catch (error) {
     console.error("🚨 Error in createVenue:", error);
-    
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : "Failed to create venue" 
+
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to create venue",
     };
   }
 }

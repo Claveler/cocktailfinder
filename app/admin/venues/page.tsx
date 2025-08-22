@@ -74,18 +74,21 @@ async function VenuesTable() {
               </TableCell>
               <TableCell>
                 <Badge variant="outline" className="capitalize">
-                  {venue.type.replace('_', ' ')}
+                  {venue.type.replace("_", " ")}
                 </Badge>
               </TableCell>
               <TableCell>
                 <div className="flex items-start gap-2">
                   <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
                   <div className="text-sm">
-                    <div>{venue.city}, {venue.country}</div>
+                    <div>
+                      {venue.city}, {venue.country}
+                    </div>
                     <div className="text-muted-foreground">{venue.address}</div>
                     {venue.location && (
                       <div className="text-xs text-muted-foreground">
-                        {venue.location.lat.toFixed(4)}, {venue.location.lng.toFixed(4)}
+                        {venue.location.lat.toFixed(4)},{" "}
+                        {venue.location.lng.toFixed(4)}
                       </div>
                     )}
                   </div>
@@ -110,24 +113,28 @@ async function VenuesTable() {
                     <div>
                       <span className="text-muted-foreground">Brands:</span>{" "}
                       {venue.brands.slice(0, 2).join(", ")}
-                      {venue.brands.length > 2 && ` +${venue.brands.length - 2} more`}
+                      {venue.brands.length > 2 &&
+                        ` +${venue.brands.length - 2} more`}
                     </div>
                   )}
                   {venue.ambiance.length > 0 && (
                     <div>
                       <span className="text-muted-foreground">Ambiance:</span>{" "}
                       {venue.ambiance.slice(0, 2).join(", ")}
-                      {venue.ambiance.length > 2 && ` +${venue.ambiance.length - 2} more`}
+                      {venue.ambiance.length > 2 &&
+                        ` +${venue.ambiance.length - 2} more`}
                     </div>
                   )}
                   {venue.price_range && (
                     <div>
-                      <span className="text-muted-foreground">Price:</span> {venue.price_range}
+                      <span className="text-muted-foreground">Price:</span>{" "}
+                      {venue.price_range}
                     </div>
                   )}
                   {venue.photos.length > 0 && (
                     <div>
-                      <span className="text-muted-foreground">Photos:</span> {venue.photos.length}
+                      <span className="text-muted-foreground">Photos:</span>{" "}
+                      {venue.photos.length}
                     </div>
                   )}
                 </div>
@@ -156,7 +163,8 @@ export default function AdminVenuesPage() {
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground">
-            Review and moderate venue submissions. Approve quality venues or reject inappropriate content.
+            Review and moderate venue submissions. Approve quality venues or
+            reject inappropriate content.
           </p>
         </CardContent>
       </Card>

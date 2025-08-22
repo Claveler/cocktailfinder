@@ -25,13 +25,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { 
-  Check, 
-  X, 
-  Edit, 
-  MoreHorizontal, 
+import {
+  Check,
+  X,
+  Edit,
+  MoreHorizontal,
   Loader2,
-  ExternalLink
+  ExternalLink,
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -120,8 +120,14 @@ export default function VenueActions({ venue }: VenueActionsProps) {
         city: editForm.city.trim(),
         country: editForm.country.trim(),
         price_range: editForm.price_range || null,
-        brands: editForm.brands.split(",").map(b => b.trim()).filter(Boolean),
-        ambiance: editForm.ambiance.split(",").map(a => a.trim()).filter(Boolean),
+        brands: editForm.brands
+          .split(",")
+          .map((b) => b.trim())
+          .filter(Boolean),
+        ambiance: editForm.ambiance
+          .split(",")
+          .map((a) => a.trim())
+          .filter(Boolean),
       };
 
       // Add coordinates if provided
@@ -160,7 +166,7 @@ export default function VenueActions({ venue }: VenueActionsProps) {
           <Check className="h-4 w-4" />
         )}
       </Button>
-      
+
       <Button
         size="sm"
         variant="destructive"
@@ -193,7 +199,7 @@ export default function VenueActions({ venue }: VenueActionsProps) {
               <DialogHeader>
                 <DialogTitle>Edit Venue: {venue.name}</DialogTitle>
               </DialogHeader>
-              
+
               <div className="space-y-4 py-4">
                 {/* Basic Info */}
                 <div className="grid grid-cols-2 gap-4">
@@ -202,17 +208,27 @@ export default function VenueActions({ venue }: VenueActionsProps) {
                     <Input
                       id="edit-name"
                       value={editForm.name}
-                      onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
+                      onChange={(e) =>
+                        setEditForm((prev) => ({
+                          ...prev,
+                          name: e.target.value,
+                        }))
+                      }
                     />
                   </div>
                   <div>
                     <Label htmlFor="edit-type">Type</Label>
-                    <Select value={editForm.type} onValueChange={(value) => setEditForm(prev => ({ ...prev, type: value as any }))}>
+                    <Select
+                      value={editForm.type}
+                      onValueChange={(value) =>
+                        setEditForm((prev) => ({ ...prev, type: value as any }))
+                      }
+                    >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {VENUE_TYPES.map(type => (
+                        {VENUE_TYPES.map((type) => (
                           <SelectItem key={type.value} value={type.value}>
                             {type.label}
                           </SelectItem>
@@ -228,7 +244,12 @@ export default function VenueActions({ venue }: VenueActionsProps) {
                   <Input
                     id="edit-address"
                     value={editForm.address}
-                    onChange={(e) => setEditForm(prev => ({ ...prev, address: e.target.value }))}
+                    onChange={(e) =>
+                      setEditForm((prev) => ({
+                        ...prev,
+                        address: e.target.value,
+                      }))
+                    }
                   />
                 </div>
 
@@ -238,7 +259,12 @@ export default function VenueActions({ venue }: VenueActionsProps) {
                     <Input
                       id="edit-city"
                       value={editForm.city}
-                      onChange={(e) => setEditForm(prev => ({ ...prev, city: e.target.value }))}
+                      onChange={(e) =>
+                        setEditForm((prev) => ({
+                          ...prev,
+                          city: e.target.value,
+                        }))
+                      }
                     />
                   </div>
                   <div>
@@ -246,7 +272,12 @@ export default function VenueActions({ venue }: VenueActionsProps) {
                     <Input
                       id="edit-country"
                       value={editForm.country}
-                      onChange={(e) => setEditForm(prev => ({ ...prev, country: e.target.value }))}
+                      onChange={(e) =>
+                        setEditForm((prev) => ({
+                          ...prev,
+                          country: e.target.value,
+                        }))
+                      }
                     />
                   </div>
                 </div>
@@ -260,7 +291,12 @@ export default function VenueActions({ venue }: VenueActionsProps) {
                       type="number"
                       step="any"
                       value={editForm.latitude}
-                      onChange={(e) => setEditForm(prev => ({ ...prev, latitude: e.target.value }))}
+                      onChange={(e) =>
+                        setEditForm((prev) => ({
+                          ...prev,
+                          latitude: e.target.value,
+                        }))
+                      }
                     />
                   </div>
                   <div>
@@ -270,7 +306,12 @@ export default function VenueActions({ venue }: VenueActionsProps) {
                       type="number"
                       step="any"
                       value={editForm.longitude}
-                      onChange={(e) => setEditForm(prev => ({ ...prev, longitude: e.target.value }))}
+                      onChange={(e) =>
+                        setEditForm((prev) => ({
+                          ...prev,
+                          longitude: e.target.value,
+                        }))
+                      }
                     />
                   </div>
                 </div>
@@ -278,13 +319,18 @@ export default function VenueActions({ venue }: VenueActionsProps) {
                 {/* Price Range */}
                 <div>
                   <Label htmlFor="edit-price">Price Range</Label>
-                  <Select value={editForm.price_range} onValueChange={(value) => setEditForm(prev => ({ ...prev, price_range: value }))}>
+                  <Select
+                    value={editForm.price_range}
+                    onValueChange={(value) =>
+                      setEditForm((prev) => ({ ...prev, price_range: value }))
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select price range" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="">None</SelectItem>
-                      {PRICE_RANGES.map(range => (
+                      {PRICE_RANGES.map((range) => (
                         <SelectItem key={range.value} value={range.value}>
                           {range.label}
                         </SelectItem>
@@ -299,25 +345,40 @@ export default function VenueActions({ venue }: VenueActionsProps) {
                   <Textarea
                     id="edit-brands"
                     value={editForm.brands}
-                    onChange={(e) => setEditForm(prev => ({ ...prev, brands: e.target.value }))}
+                    onChange={(e) =>
+                      setEditForm((prev) => ({
+                        ...prev,
+                        brands: e.target.value,
+                      }))
+                    }
                     rows={2}
                   />
                 </div>
 
                 {/* Ambiance */}
                 <div>
-                  <Label htmlFor="edit-ambiance">Ambiance (comma-separated)</Label>
+                  <Label htmlFor="edit-ambiance">
+                    Ambiance (comma-separated)
+                  </Label>
                   <Textarea
                     id="edit-ambiance"
                     value={editForm.ambiance}
-                    onChange={(e) => setEditForm(prev => ({ ...prev, ambiance: e.target.value }))}
+                    onChange={(e) =>
+                      setEditForm((prev) => ({
+                        ...prev,
+                        ambiance: e.target.value,
+                      }))
+                    }
                     rows={2}
                   />
                 </div>
 
                 {/* Actions */}
                 <div className="flex justify-end gap-2 pt-4">
-                  <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+                  <Button
+                    variant="outline"
+                    onClick={() => setEditDialogOpen(false)}
+                  >
                     Cancel
                   </Button>
                   <Button onClick={handleEdit} disabled={isPending}>
@@ -334,7 +395,7 @@ export default function VenueActions({ venue }: VenueActionsProps) {
               </div>
             </DialogContent>
           </Dialog>
-          
+
           <DropdownMenuItem asChild>
             <Link href={`/venues/${venue.id}`} target="_blank">
               <ExternalLink className="mr-2 h-4 w-4" />

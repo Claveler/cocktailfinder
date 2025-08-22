@@ -2,14 +2,14 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { 
-  CheckCircle, 
-  Clock, 
-  Eye, 
-  MessageCircle, 
+import {
+  CheckCircle,
+  Clock,
+  Eye,
+  MessageCircle,
   ArrowRight,
   Home,
-  Search
+  Search,
 } from "lucide-react";
 
 interface SuccessPageProps {
@@ -43,7 +43,10 @@ function SuccessContent({ venueId }: { venueId?: string }) {
         {venueId && (
           <div className="p-3 bg-gray-50 rounded-lg">
             <p className="text-sm text-muted-foreground">
-              Submission ID: <code className="font-mono bg-white px-2 py-1 rounded">{venueId}</code>
+              Submission ID:{" "}
+              <code className="font-mono bg-white px-2 py-1 rounded">
+                {venueId}
+              </code>
             </p>
           </div>
         )}
@@ -66,7 +69,8 @@ function SuccessContent({ venueId }: { venueId?: string }) {
               <div>
                 <h3 className="font-medium">Review Process</h3>
                 <p className="text-sm text-muted-foreground">
-                  Our team will review your submission within 24-48 hours to ensure accuracy and quality.
+                  Our team will review your submission within 24-48 hours to
+                  ensure accuracy and quality.
                 </p>
               </div>
             </div>
@@ -78,7 +82,8 @@ function SuccessContent({ venueId }: { venueId?: string }) {
               <div>
                 <h3 className="font-medium">Approval & Publication</h3>
                 <p className="text-sm text-muted-foreground">
-                  Once approved, your venue will appear in search results and be visible to all users.
+                  Once approved, your venue will appear in search results and be
+                  visible to all users.
                 </p>
               </div>
             </div>
@@ -105,11 +110,26 @@ function SuccessContent({ venueId }: { venueId?: string }) {
         </CardHeader>
         <CardContent>
           <div className="space-y-2 text-sm text-muted-foreground">
-            <p>• <strong>Accuracy:</strong> We verify location details and basic information</p>
-            <p>• <strong>Quality:</strong> Photos should be clear and represent the venue well</p>
-            <p>• <strong>Completeness:</strong> All required fields should be properly filled</p>
-            <p>• <strong>Uniqueness:</strong> We check that the venue isn't already listed</p>
-            <p>• <strong>Guidelines:</strong> Content must follow our community standards</p>
+            <p>
+              • <strong>Accuracy:</strong> We verify location details and basic
+              information
+            </p>
+            <p>
+              • <strong>Quality:</strong> Photos should be clear and represent
+              the venue well
+            </p>
+            <p>
+              • <strong>Completeness:</strong> All required fields should be
+              properly filled
+            </p>
+            <p>
+              • <strong>Uniqueness:</strong> We check that the venue isn't
+              already listed
+            </p>
+            <p>
+              • <strong>Guidelines:</strong> Content must follow our community
+              standards
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -123,7 +143,7 @@ function SuccessContent({ venueId }: { venueId?: string }) {
               Browse Venues
             </Link>
           </Button>
-          
+
           <Button asChild variant="outline" size="lg">
             <Link href="/">
               <Home className="mr-2 h-4 w-4" />
@@ -149,8 +169,8 @@ function SuccessContent({ venueId }: { venueId?: string }) {
             🙏 Thank You for Contributing!
           </h3>
           <p className="text-blue-700 text-sm">
-            Your submission helps fellow Piscola enthusiasts discover amazing venues. 
-            We'll notify you once your venue is approved and live.
+            Your submission helps fellow Piscola enthusiasts discover amazing
+            venues. We'll notify you once your venue is approved and live.
           </p>
         </div>
       </div>
@@ -158,18 +178,22 @@ function SuccessContent({ venueId }: { venueId?: string }) {
   );
 }
 
-export default function VenueSubmissionSuccess({ searchParams }: SuccessPageProps) {
+export default function VenueSubmissionSuccess({
+  searchParams,
+}: SuccessPageProps) {
   return (
-    <Suspense fallback={
-      <div className="container mx-auto px-4 py-12 max-w-2xl">
-        <div className="text-center">
-          <div className="h-20 w-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle className="h-12 w-12 text-gray-400" />
+    <Suspense
+      fallback={
+        <div className="container mx-auto px-4 py-12 max-w-2xl">
+          <div className="text-center">
+            <div className="h-20 w-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle className="h-12 w-12 text-gray-400" />
+            </div>
+            <h1 className="text-3xl font-bold mb-2">Loading...</h1>
           </div>
-          <h1 className="text-3xl font-bold mb-2">Loading...</h1>
         </div>
-      </div>
-    }>
+      }
+    >
       <SuccessContent venueId={searchParams.venueId} />
     </Suspense>
   );

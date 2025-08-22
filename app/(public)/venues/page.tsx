@@ -33,16 +33,20 @@ import type { Venue as MapVenue } from "@/components/maps/Map";
 
 // Helper function to calculate map center based on venue locations
 function calculateMapCenter(venues: any[]): [number, number] {
-  const venuesWithLocation = venues.filter(venue => venue.location);
-  
+  const venuesWithLocation = venues.filter((venue) => venue.location);
+
   if (venuesWithLocation.length === 0) {
     // Default to London if no venues have coordinates
     return [51.5074, -0.1278];
   }
-  
-  const avgLat = venuesWithLocation.reduce((sum, venue) => sum + venue.location.lat, 0) / venuesWithLocation.length;
-  const avgLng = venuesWithLocation.reduce((sum, venue) => sum + venue.location.lng, 0) / venuesWithLocation.length;
-  
+
+  const avgLat =
+    venuesWithLocation.reduce((sum, venue) => sum + venue.location.lat, 0) /
+    venuesWithLocation.length;
+  const avgLng =
+    venuesWithLocation.reduce((sum, venue) => sum + venue.location.lng, 0) /
+    venuesWithLocation.length;
+
   return [avgLat, avgLng];
 }
 
@@ -264,11 +268,11 @@ export default async function VenuesPage({ searchParams }: VenuesPageProps) {
 
   // Current view
   const isMapView = searchParams.view === "map";
-  
+
   // Toggle view URLs
   const mapViewUrl = new URLSearchParams(urlParams);
   mapViewUrl.set("view", "map");
-  
+
   const listViewUrl = new URLSearchParams(urlParams);
   listViewUrl.delete("view");
 
@@ -283,7 +287,13 @@ export default async function VenuesPage({ searchParams }: VenuesPageProps) {
           </p>
         </div>
         <Button asChild variant="outline">
-          <Link href={isMapView ? `/venues?${listViewUrl.toString()}` : `/venues?${mapViewUrl.toString()}`}>
+          <Link
+            href={
+              isMapView
+                ? `/venues?${listViewUrl.toString()}`
+                : `/venues?${mapViewUrl.toString()}`
+            }
+          >
             {isMapView ? (
               <>
                 <List className="mr-2 h-4 w-4" />
@@ -362,12 +372,12 @@ export default async function VenuesPage({ searchParams }: VenuesPageProps) {
                   <CardContent className="p-0">
                     <Map
                       venues={venueData.venues
-                        .filter(venue => venue.location)
-                        .map(venue => ({
+                        .filter((venue) => venue.location)
+                        .map((venue) => ({
                           id: venue.id,
                           name: venue.name,
                           location: venue.location!,
-                          status: venue.status as "approved"
+                          status: venue.status as "approved",
                         }))}
                       height="600px"
                       center={calculateMapCenter(venueData.venues)}

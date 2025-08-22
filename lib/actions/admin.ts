@@ -6,7 +6,9 @@ import { createClient } from "@/lib/supabase/server";
 export async function checkAdminRole(): Promise<boolean> {
   try {
     const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
     if (!user) return false;
 
@@ -31,7 +33,7 @@ export async function approveVenue(venueId: string) {
     }
 
     const supabase = createClient();
-    
+
     const { error } = await supabase
       .from("venues")
       .update({ status: "approved" })
@@ -45,7 +47,7 @@ export async function approveVenue(venueId: string) {
     console.log("✅ Venue approved:", venueId);
     revalidatePath("/admin/venues");
     revalidatePath("/venues");
-    
+
     return { success: true, message: "Venue approved successfully" };
   } catch (error) {
     console.error("Error in approveVenue:", error);
@@ -61,7 +63,7 @@ export async function rejectVenue(venueId: string) {
     }
 
     const supabase = createClient();
-    
+
     const { error } = await supabase
       .from("venues")
       .update({ status: "rejected" })
@@ -74,7 +76,7 @@ export async function rejectVenue(venueId: string) {
 
     console.log("❌ Venue rejected:", venueId);
     revalidatePath("/admin/venues");
-    
+
     return { success: true, message: "Venue rejected successfully" };
   } catch (error) {
     console.error("Error in rejectVenue:", error);
@@ -82,18 +84,21 @@ export async function rejectVenue(venueId: string) {
   }
 }
 
-export async function updateVenue(venueId: string, updates: {
-  name?: string;
-  type?: "bar" | "pub" | "liquor_store";
-  address?: string;
-  city?: string;
-  country?: string;
-  latitude?: number;
-  longitude?: number;
-  brands?: string[];
-  price_range?: string;
-  ambiance?: string[];
-}) {
+export async function updateVenue(
+  venueId: string,
+  updates: {
+    name?: string;
+    type?: "bar" | "pub" | "liquor_store";
+    address?: string;
+    city?: string;
+    country?: string;
+    latitude?: number;
+    longitude?: number;
+    brands?: string[];
+    price_range?: string;
+    ambiance?: string[];
+  }
+) {
   try {
     const isAdmin = await checkAdminRole();
     if (!isAdmin) {
@@ -101,7 +106,7 @@ export async function updateVenue(venueId: string, updates: {
     }
 
     const supabase = createClient();
-    
+
     // Convert coordinates to PostGIS if provided
     const venueUpdates: any = { ...updates };
     if (updates.latitude !== undefined && updates.longitude !== undefined) {
@@ -124,7 +129,7 @@ export async function updateVenue(venueId: string, updates: {
     console.log("📝 Venue updated:", venueId);
     revalidatePath("/admin/venues");
     revalidatePath("/venues");
-    
+
     return { success: true, message: "Venue updated successfully" };
   } catch (error) {
     console.error("Error in updateVenue:", error);
@@ -133,20 +138,24 @@ export async function updateVenue(venueId: string, updates: {
 }
 
 // Admin venue update action with full edit capabilities including status
-export async function updateVenueAction(venueId: string, formData: {
-  name: string;
-  type: "bar" | "pub" | "liquor_store";
-  address: string;
-  city: string;
-  country: string;
-  latitude: number;
-  longitude: number;
-  brands: string[];
-  price_range: string;
-  ambiance: string[];
-  status: "pending" | "approved" | "rejected";
-  photos?: string[];
-}) {
+export async function updateVenueAction(
+  venueId: string,
+  formData: {
+    name: string;
+    type: "bar" | "pub" | "liquor_store";
+    address: string;
+    city: string;
+    country: string;
+    latitude: number;
+    longitude: number;
+    brands: string[];
+    price_range: string;
+    ambiance: string[];
+    status: "pending" | "approved" | "rejected";
+    photos?: string[];
+    google_maps_url?: string;
+  }
+) {
   try {
     const isAdmin = await checkAdminRole();
     if (!isAdmin) {
@@ -154,7 +163,7 @@ export async function updateVenueAction(venueId: string, formData: {
     }
 
     const supabase = createClient();
-    
+
     // Prepare the update object
     const venueUpdates: any = {
       name: formData.name,
@@ -167,6 +176,7 @@ export async function updateVenueAction(venueId: string, formData: {
       ambiance: formData.ambiance,
       status: formData.status,
       updated_at: new Date().toISOString(),
+      google_maps_url: formData.google_maps_url?.trim() || null,
     };
 
     // Include photos if provided
@@ -190,13 +200,13 @@ export async function updateVenueAction(venueId: string, formData: {
     }
 
     console.log("📝 Venue updated via admin edit:", venueId);
-    
+
     // Revalidate relevant paths
     revalidatePath("/admin/venues");
     revalidatePath("/venues");
     revalidatePath(`/venues/${venueId}`);
     revalidatePath(`/admin/venues/${venueId}/edit`);
-    
+
     return { success: true, message: "Venue updated successfully" };
   } catch (error) {
     console.error("Error in updateVenueAction:", error);
@@ -212,15 +222,18 @@ export async function getPendingVenues() {
     }
 
     const supabase = createClient();
-    
+
     const { data: venues, error } = await supabase
       .from("venues")
-      .select(`
+      .select(
+        `
         *,
         latitude,
         longitude,
+        google_maps_url,
         profile:created_by(full_name)
-      `)
+      `
+      )
       .eq("status", "pending")
       .order("created_at", { ascending: false });
 
@@ -230,12 +243,14 @@ export async function getPendingVenues() {
     }
 
     // Transform data to include coordinates
-    const transformedVenues = venues?.map(venue => ({
-      ...venue,
-      location: venue.latitude && venue.longitude 
-        ? { lat: venue.latitude, lng: venue.longitude }
-        : null,
-    })) || [];
+    const transformedVenues =
+      venues?.map((venue) => ({
+        ...venue,
+        location:
+          venue.latitude && venue.longitude
+            ? { lat: venue.latitude, lng: venue.longitude }
+            : null,
+      })) || [];
 
     return { data: transformedVenues, error: null };
   } catch (error) {
@@ -252,14 +267,16 @@ export async function getSuggestedEdits() {
     }
 
     const supabase = createClient();
-    
+
     const { data: edits, error } = await supabase
       .from("suggested_edits")
-      .select(`
+      .select(
+        `
         *,
         venue:venue_id(name),
         profile:user_id(full_name)
-      `)
+      `
+      )
       .eq("status", "pending")
       .order("created_at", { ascending: false });
 
@@ -283,7 +300,7 @@ export async function acceptSuggestedEdit(editId: string) {
     }
 
     const supabase = createClient();
-    
+
     // Get the suggested edit
     const { data: edit, error: editError } = await supabase
       .from("suggested_edits")
@@ -320,7 +337,7 @@ export async function acceptSuggestedEdit(editId: string) {
     console.log("✅ Suggested edit accepted:", editId);
     revalidatePath("/admin/edits");
     revalidatePath("/venues");
-    
+
     return { success: true, message: "Suggested edit accepted and applied" };
   } catch (error) {
     console.error("Error in acceptSuggestedEdit:", error);
@@ -336,7 +353,7 @@ export async function rejectSuggestedEdit(editId: string) {
     }
 
     const supabase = createClient();
-    
+
     const { error } = await supabase
       .from("suggested_edits")
       .update({ status: "rejected" })
@@ -349,7 +366,7 @@ export async function rejectSuggestedEdit(editId: string) {
 
     console.log("❌ Suggested edit rejected:", editId);
     revalidatePath("/admin/edits");
-    
+
     return { success: true, message: "Suggested edit rejected" };
   } catch (error) {
     console.error("Error in rejectSuggestedEdit:", error);

@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { MapPin, Search } from "lucide-react";
 import Map, { type Venue } from "@/components/maps/Map";
 import VenueCard from "@/components/venues/VenueCard";
-import HomePageClient from "./HomePageClient";
+import HomePageClient from "@/app/HomePageClient";
 import { createClient } from "@/lib/supabase/server";
 import type { Venue as VenueType } from "@/lib/venues";
 
@@ -12,7 +12,7 @@ import type { Venue as VenueType } from "@/lib/venues";
 async function getRandomVenues(count: number = 3): Promise<VenueType[]> {
   try {
     const supabase = createClient();
-    
+
     const { data: venues, error } = await supabase
       .from("venues")
       .select("*, latitude, longitude")
@@ -35,9 +35,10 @@ async function getRandomVenues(count: number = 3): Promise<VenueType[]> {
     // Transform to match our interface
     return selected.map((venue: any) => ({
       ...venue,
-      location: venue.latitude && venue.longitude 
-        ? { lat: venue.latitude, lng: venue.longitude }
-        : null,
+      location:
+        venue.latitude && venue.longitude
+          ? { lat: venue.latitude, lng: venue.longitude }
+          : null,
     }));
   } catch (error) {
     console.error("Unexpected error fetching random venues:", error);
@@ -48,7 +49,7 @@ async function getRandomVenues(count: number = 3): Promise<VenueType[]> {
 export default async function Home() {
   // Fetch random venues for featured section
   const featuredVenues = await getRandomVenues(3);
-  
+
   // Sample venue data for map preview
   const sampleVenues: Venue[] = [
     {

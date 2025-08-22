@@ -1,7 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
@@ -22,13 +28,13 @@ interface ColorConfig {
 }
 
 const DEFAULT_COLORS: ColorConfig = {
-  primary: "#d32117",      // Logo red
-  foreground: "#301718",   // Logo brown
-  background: "#ffffff",   // White
-  secondary: "#f5f2f2",    // Light brown tint
-  accent: "#d32117",       // Logo red
-  muted: "#faf9f9",        // Very light brown
-  border: "#e5dede",       // Light brown border
+  primary: "#d32117", // Logo red
+  foreground: "#301718", // Logo brown
+  background: "#ffffff", // White
+  secondary: "#f5f2f2", // Light brown tint
+  accent: "#d32117", // Logo red
+  muted: "#faf9f9", // Very light brown
+  border: "#e5dede", // Light brown border
 };
 
 export default function ThemeCustomizer() {
@@ -41,15 +47,15 @@ export default function ThemeCustomizer() {
   const fetchRandomVenue = async () => {
     setIsLoadingVenue(true);
     try {
-      const response = await fetch('/api/venues/random');
+      const response = await fetch("/api/venues/random");
       if (response.ok) {
         const venue = await response.json();
         setSampleVenue(venue);
       } else {
-        console.error('Failed to fetch random venue');
+        console.error("Failed to fetch random venue");
       }
     } catch (error) {
-      console.error('Error fetching random venue:', error);
+      console.error("Error fetching random venue:", error);
     } finally {
       setIsLoadingVenue(false);
     }
@@ -91,9 +97,15 @@ export default function ThemeCustomizer() {
       s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
 
       switch (max) {
-        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-        case g: h = (b - r) / d + 2; break;
-        case b: h = (r - g) / d + 4; break;
+        case r:
+          h = (g - b) / d + (g < b ? 6 : 0);
+          break;
+        case g:
+          h = (b - r) / d + 2;
+          break;
+        case b:
+          h = (r - g) / d + 4;
+          break;
       }
       h /= 6;
     }
@@ -104,7 +116,7 @@ export default function ThemeCustomizer() {
   // Apply colors to CSS custom properties
   const applyColors = (colorConfig: ColorConfig) => {
     const root = document.documentElement;
-    
+
     root.style.setProperty("--primary", hexToHsl(colorConfig.primary));
     root.style.setProperty("--foreground", hexToHsl(colorConfig.foreground));
     root.style.setProperty("--background", hexToHsl(colorConfig.background));
@@ -114,36 +126,54 @@ export default function ThemeCustomizer() {
     root.style.setProperty("--border", hexToHsl(colorConfig.border));
     root.style.setProperty("--input", hexToHsl(colorConfig.muted));
     root.style.setProperty("--ring", hexToHsl(colorConfig.primary));
-    
+
     // Update card colors
     root.style.setProperty("--card", hexToHsl(colorConfig.background));
-    root.style.setProperty("--card-foreground", hexToHsl(colorConfig.foreground));
-    
-    // Update popover colors  
+    root.style.setProperty(
+      "--card-foreground",
+      hexToHsl(colorConfig.foreground)
+    );
+
+    // Update popover colors
     root.style.setProperty("--popover", hexToHsl(colorConfig.background));
-    root.style.setProperty("--popover-foreground", hexToHsl(colorConfig.foreground));
-    
+    root.style.setProperty(
+      "--popover-foreground",
+      hexToHsl(colorConfig.foreground)
+    );
+
     // Update foreground colors
-    root.style.setProperty("--primary-foreground", hexToHsl(colorConfig.background));
-    root.style.setProperty("--secondary-foreground", hexToHsl(colorConfig.foreground));
-    root.style.setProperty("--accent-foreground", hexToHsl(colorConfig.background));
-    root.style.setProperty("--muted-foreground", hexToHsl(colorConfig.foreground));
+    root.style.setProperty(
+      "--primary-foreground",
+      hexToHsl(colorConfig.background)
+    );
+    root.style.setProperty(
+      "--secondary-foreground",
+      hexToHsl(colorConfig.foreground)
+    );
+    root.style.setProperty(
+      "--accent-foreground",
+      hexToHsl(colorConfig.background)
+    );
+    root.style.setProperty(
+      "--muted-foreground",
+      hexToHsl(colorConfig.foreground)
+    );
   };
 
   const handleColorChange = (colorKey: keyof ColorConfig, value: string) => {
     const newColors = { ...colors, [colorKey]: value };
     setColors(newColors);
-    
+
     // Apply colors immediately for live preview (now safe!)
     applyColors(newColors);
   };
 
   const saveColors = () => {
     setIsApplying(true);
-    
+
     // Save colors to localStorage (colors already applied for live preview)
     localStorage.setItem("piscola-theme-colors", JSON.stringify(colors));
-    
+
     // Simulate API call delay
     setTimeout(() => {
       setIsApplying(false);
@@ -163,8 +193,8 @@ export default function ThemeCustomizer() {
     onChange: (value: string) => void,
     description?: string
   ) => {
-    const colorInputId = `color-${label.toLowerCase().replace(/\s+/g, '-')}`;
-    const textInputId = `text-${label.toLowerCase().replace(/\s+/g, '-')}`;
+    const colorInputId = `color-${label.toLowerCase().replace(/\s+/g, "-")}`;
+    const textInputId = `text-${label.toLowerCase().replace(/\s+/g, "-")}`;
 
     return (
       <div className="space-y-2" key={label}>
@@ -180,11 +210,11 @@ export default function ThemeCustomizer() {
             type="color"
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            style={{ width: '64px', height: '40px' }}
+            style={{ width: "64px", height: "40px" }}
             className="border border-border rounded cursor-pointer"
             title={`Select ${label.toLowerCase()}`}
           />
-          
+
           <Input
             id={textInputId}
             type="text"
@@ -197,11 +227,18 @@ export default function ThemeCustomizer() {
             }}
             onKeyDown={(e) => {
               const allowedKeys = [
-                'Backspace', 'Delete', 'Tab', 'Escape', 'Enter',
-                'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'
+                "Backspace",
+                "Delete",
+                "Tab",
+                "Escape",
+                "Enter",
+                "ArrowLeft",
+                "ArrowRight",
+                "ArrowUp",
+                "ArrowDown",
               ];
               const isHexChar = /[0-9A-Fa-f#]/.test(e.key);
-              
+
               if (!allowedKeys.includes(e.key) && !isHexChar) {
                 e.preventDefault();
               }
@@ -210,8 +247,8 @@ export default function ThemeCustomizer() {
             className="font-mono text-sm flex-1"
             maxLength={7}
           />
-          
-          <div 
+
+          <div
             className="w-10 h-10 rounded-md border border-border shadow-sm flex-shrink-0"
             style={{ backgroundColor: value }}
             title={`Preview: ${value}`}
@@ -241,9 +278,9 @@ export default function ThemeCustomizer() {
               <h4 className="text-sm font-medium text-muted-foreground">
                 Real Venue Card (from /venues)
               </h4>
-              <Button 
-                size="sm" 
-                variant="outline" 
+              <Button
+                size="sm"
+                variant="outline"
                 onClick={fetchRandomVenue}
                 disabled={isLoadingVenue}
                 className="text-xs"
@@ -252,7 +289,7 @@ export default function ThemeCustomizer() {
                 {isLoadingVenue ? "Loading..." : "Another Example"}
               </Button>
             </div>
-            
+
             {isLoadingVenue ? (
               <Card className="w-full max-w-none">
                 <div className="aspect-[4/3] bg-muted animate-pulse" />
@@ -270,9 +307,9 @@ export default function ThemeCustomizer() {
               <Card className="w-full max-w-none p-8 text-center text-muted-foreground">
                 <Shuffle className="h-8 w-8 mx-auto mb-2 opacity-50" />
                 <p className="text-sm">No sample venue available</p>
-                <Button 
-                  size="sm" 
-                  variant="outline" 
+                <Button
+                  size="sm"
+                  variant="outline"
                   onClick={fetchRandomVenue}
                   className="mt-2"
                 >
@@ -284,7 +321,9 @@ export default function ThemeCustomizer() {
 
           {/* Mock Navigation & Buttons */}
           <div className="space-y-3">
-            <h4 className="text-sm font-medium text-muted-foreground">Navigation & Actions</h4>
+            <h4 className="text-sm font-medium text-muted-foreground">
+              Navigation & Actions
+            </h4>
             <div className="flex flex-wrap gap-3">
               <Button>Add Venue</Button>
               <Button variant="outline">View on Map</Button>
@@ -295,12 +334,15 @@ export default function ThemeCustomizer() {
 
           {/* Mock Content Section */}
           <div className="space-y-3">
-            <h4 className="text-sm font-medium text-muted-foreground">Content Areas</h4>
+            <h4 className="text-sm font-medium text-muted-foreground">
+              Content Areas
+            </h4>
             <div className="grid gap-4 md:grid-cols-2">
               <Card className="p-4">
                 <h5 className="font-medium mb-2">Venue Details</h5>
                 <p className="text-sm text-muted-foreground">
-                  This shows how text appears on cards and content areas throughout the site.
+                  This shows how text appears on cards and content areas
+                  throughout the site.
                 </p>
               </Card>
               <div className="space-y-2">
@@ -309,7 +351,10 @@ export default function ThemeCustomizer() {
                   <Badge variant="secondary">Rating: 4.5</Badge>
                 </div>
                 <div className="p-3 bg-muted rounded-md">
-                  <p className="text-sm">Background and muted areas use these colors for subtle emphasis.</p>
+                  <p className="text-sm">
+                    Background and muted areas use these colors for subtle
+                    emphasis.
+                  </p>
                 </div>
               </div>
             </div>
@@ -322,7 +367,8 @@ export default function ThemeCustomizer() {
         <CardHeader>
           <CardTitle>Color Configuration</CardTitle>
           <CardDescription>
-            Customize the main colors of your application with live preview. Click "Save Changes" to persist your selections.
+            Customize the main colors of your application with live preview.
+            Click "Save Changes" to persist your selections.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -333,7 +379,7 @@ export default function ThemeCustomizer() {
               (value) => handleColorChange("primary", value),
               "Main brand color (buttons, links, highlights)"
             )}
-            
+
             {createColorPicker(
               "Foreground Color",
               colors.foreground,
@@ -387,7 +433,7 @@ export default function ThemeCustomizer() {
           <Save className="h-4 w-4 mr-2" />
           {isApplying ? "Saving..." : "Save Changes"}
         </Button>
-        
+
         <Button variant="outline" onClick={resetToDefault}>
           <RotateCcw className="h-4 w-4 mr-2" />
           Reset to Logo Colors
@@ -401,13 +447,33 @@ export default function ThemeCustomizer() {
         </CardHeader>
         <CardContent>
           <div className="grid gap-2 text-sm font-mono">
-            <div>Primary: <span className="text-primary">{colors.primary}</span></div>
-            <div>Foreground: <span style={{color: colors.foreground}}>{colors.foreground}</span></div>
+            <div>
+              Primary: <span className="text-primary">{colors.primary}</span>
+            </div>
+            <div>
+              Foreground:{" "}
+              <span style={{ color: colors.foreground }}>
+                {colors.foreground}
+              </span>
+            </div>
             <div>Background: {colors.background}</div>
-            <div>Secondary: <span style={{color: colors.secondary}}>{colors.secondary}</span></div>
-            <div>Accent: <span style={{color: colors.accent}}>{colors.accent}</span></div>
-            <div>Muted: <span style={{color: colors.muted}}>{colors.muted}</span></div>
-            <div>Border: <span style={{color: colors.border}}>{colors.border}</span></div>
+            <div>
+              Secondary:{" "}
+              <span style={{ color: colors.secondary }}>
+                {colors.secondary}
+              </span>
+            </div>
+            <div>
+              Accent:{" "}
+              <span style={{ color: colors.accent }}>{colors.accent}</span>
+            </div>
+            <div>
+              Muted: <span style={{ color: colors.muted }}>{colors.muted}</span>
+            </div>
+            <div>
+              Border:{" "}
+              <span style={{ color: colors.border }}>{colors.border}</span>
+            </div>
           </div>
         </CardContent>
       </Card>

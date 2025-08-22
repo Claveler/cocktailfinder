@@ -28,23 +28,26 @@ function EditVenueLoading() {
 
 export default async function EditVenuePage({ params }: EditVenuePageProps) {
   const supabase = createClient();
-  
+
   // Check if user is authenticated and is admin
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
-  
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
   if (userError || !user) {
-    redirect('/login');
+    redirect("/login");
   }
 
   // Check if user is admin
   const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
     .single();
 
-  if (!profile || profile.role !== 'admin') {
-    redirect('/venues');
+  if (!profile || profile.role !== "admin") {
+    redirect("/venues");
   }
 
   // Fetch venue data
@@ -67,12 +70,10 @@ export default async function EditVenuePage({ params }: EditVenuePageProps) {
           </Button>
           <div className="text-sm text-muted-foreground">|</div>
           <Button asChild variant="ghost" size="sm">
-            <Link href="/admin/venues">
-              Admin Dashboard
-            </Link>
+            <Link href="/admin/venues">Admin Dashboard</Link>
           </Button>
         </div>
-        
+
         <div>
           <h1 className="text-3xl font-bold mb-2">Edit Venue</h1>
           <p className="text-muted-foreground">
