@@ -37,7 +37,16 @@ export default function PhotoGallery({ photos, venueName, showTitle = true }: Ph
 
   // Global mouse up event for drag functionality
   useEffect(() => {
-    const handleGlobalMouseUp = () => setIsDragging(false);
+    const handleGlobalMouseUp = (e: MouseEvent) => {
+      // Only handle if this mouseup is related to our gallery
+      const target = e.target as HTMLElement;
+      const isGalleryRelated = target.closest('[data-photo-gallery]');
+      
+      // Always stop dragging for safety, but don't interfere with other components
+      if (isDragging) {
+        setIsDragging(false);
+      }
+    };
     
     if (isDragging) {
       document.addEventListener('mouseup', handleGlobalMouseUp);
@@ -142,7 +151,7 @@ export default function PhotoGallery({ photos, venueName, showTitle = true }: Ph
   }
 
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full" data-photo-gallery>
       {showTitle && <h4 className="font-semibold mb-2">Photos ({photos.length})</h4>}
       <div className="relative w-full h-full">
         {/* Photo Gallery Container with Arrows */}

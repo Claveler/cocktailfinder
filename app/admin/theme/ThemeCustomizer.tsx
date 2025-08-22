@@ -7,7 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Palette, RotateCcw, Save } from "lucide-react";
+import { Palette, RotateCcw, Save, Shuffle } from "lucide-react";
+import VenueCard from "@/components/venues/VenueCard";
+import type { Venue } from "@/lib/venues";
 
 interface ColorConfig {
   primary: string;
@@ -32,6 +34,26 @@ const DEFAULT_COLORS: ColorConfig = {
 export default function ThemeCustomizer() {
   const [colors, setColors] = useState<ColorConfig>(DEFAULT_COLORS);
   const [isApplying, setIsApplying] = useState(false);
+  const [sampleVenue, setSampleVenue] = useState<Venue | null>(null);
+  const [isLoadingVenue, setIsLoadingVenue] = useState(true);
+
+  // Fetch random venue for preview
+  const fetchRandomVenue = async () => {
+    setIsLoadingVenue(true);
+    try {
+      const response = await fetch('/api/venues/random');
+      if (response.ok) {
+        const venue = await response.json();
+        setSampleVenue(venue);
+      } else {
+        console.error('Failed to fetch random venue');
+      }
+    } catch (error) {
+      console.error('Error fetching random venue:', error);
+    } finally {
+      setIsLoadingVenue(false);
+    }
+  };
 
   // Load saved colors from localStorage on mount
   useEffect(() => {
@@ -45,6 +67,11 @@ export default function ThemeCustomizer() {
         console.error("Error loading saved colors:", error);
       }
     }
+  }, []);
+
+  // Load random venue on mount
+  useEffect(() => {
+    fetchRandomVenue();
   }, []);
 
   // Convert hex to HSL
@@ -106,11 +133,15 @@ export default function ThemeCustomizer() {
   const handleColorChange = (colorKey: keyof ColorConfig, value: string) => {
     const newColors = { ...colors, [colorKey]: value };
     setColors(newColors);
+    
+    // Apply colors immediately for live preview (now safe!)
     applyColors(newColors);
   };
 
   const saveColors = () => {
     setIsApplying(true);
+    
+    // Save colors to localStorage (colors already applied for live preview)
     localStorage.setItem("piscola-theme-colors", JSON.stringify(colors));
     
     // Simulate API call delay
@@ -125,46 +156,70 @@ export default function ThemeCustomizer() {
     localStorage.removeItem("piscola-theme-colors");
   };
 
-  const ColorPicker = ({ 
-    label, 
-    value, 
-    onChange, 
-    description 
-  }: { 
-    label: string; 
-    value: string; 
-    onChange: (value: string) => void;
-    description?: string;
-  }) => (
-    <div className="space-y-2">
-      <Label htmlFor={label} className="text-sm font-medium">
-        {label}
-      </Label>
-      {description && (
-        <p className="text-xs text-muted-foreground">{description}</p>
-      )}
-      <div className="flex items-center space-x-3">
-        <Input
-          id={label}
-          type="color"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="w-16 h-10 p-1 border rounded-md cursor-pointer"
-        />
-        <Input
-          type="text"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder="#000000"
-          className="font-mono text-sm"
-        />
-        <div 
-          className="w-10 h-10 rounded-md border border-border shadow-sm"
-          style={{ backgroundColor: value }}
-        />
+  // Helper function to create working color picker (inline version)
+  const createColorPicker = (
+    label: string,
+    value: string,
+    onChange: (value: string) => void,
+    description?: string
+  ) => {
+    const colorInputId = `color-${label.toLowerCase().replace(/\s+/g, '-')}`;
+    const textInputId = `text-${label.toLowerCase().replace(/\s+/g, '-')}`;
+
+    return (
+      <div className="space-y-2" key={label}>
+        <Label htmlFor={colorInputId} className="text-sm font-medium">
+          {label}
+        </Label>
+        {description && (
+          <p className="text-xs text-muted-foreground">{description}</p>
+        )}
+        <div className="flex items-center space-x-3">
+          <input
+            id={colorInputId}
+            type="color"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            style={{ width: '64px', height: '40px' }}
+            className="border border-border rounded cursor-pointer"
+            title={`Select ${label.toLowerCase()}`}
+          />
+          
+          <Input
+            id={textInputId}
+            type="text"
+            value={value}
+            onChange={(e) => {
+              const newValue = e.target.value;
+              if (newValue.match(/^#[0-9A-Fa-f]{0,6}$/)) {
+                onChange(newValue);
+              }
+            }}
+            onKeyDown={(e) => {
+              const allowedKeys = [
+                'Backspace', 'Delete', 'Tab', 'Escape', 'Enter',
+                'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'
+              ];
+              const isHexChar = /[0-9A-Fa-f#]/.test(e.key);
+              
+              if (!allowedKeys.includes(e.key) && !isHexChar) {
+                e.preventDefault();
+              }
+            }}
+            placeholder="#000000"
+            className="font-mono text-sm flex-1"
+            maxLength={7}
+          />
+          
+          <div 
+            className="w-10 h-10 rounded-md border border-border shadow-sm flex-shrink-0"
+            style={{ backgroundColor: value }}
+            title={`Preview: ${value}`}
+          />
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -173,29 +228,91 @@ export default function ThemeCustomizer() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Palette className="h-5 w-5" />
-            Color Preview
+            Live Preview
           </CardTitle>
           <CardDescription>
-            See how your color choices look with live preview
+            See how your colors affect real components from your site
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="grid gap-4">
-            {/* Sample UI Elements */}
-            <div className="flex items-center gap-4">
-              <Button>Primary Button</Button>
-              <Button variant="secondary">Secondary Button</Button>
-              <Button variant="outline">Outline Button</Button>
-              <Badge>Badge</Badge>
+        <CardContent className="space-y-6">
+          {/* Real Venue Card */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h4 className="text-sm font-medium text-muted-foreground">
+                Real Venue Card (from /venues)
+              </h4>
+              <Button 
+                size="sm" 
+                variant="outline" 
+                onClick={fetchRandomVenue}
+                disabled={isLoadingVenue}
+                className="text-xs"
+              >
+                <Shuffle className="h-3 w-3 mr-1" />
+                {isLoadingVenue ? "Loading..." : "Another Example"}
+              </Button>
             </div>
             
-            <Card className="p-4">
-              <h3 className="font-semibold mb-2">Sample Card</h3>
-              <p className="text-muted-foreground mb-3">
-                This is how your cards will look with the selected colors.
-              </p>
-              <Button size="sm">Card Action</Button>
-            </Card>
+            {isLoadingVenue ? (
+              <Card className="w-full max-w-none">
+                <div className="aspect-[4/3] bg-muted animate-pulse" />
+                <div className="p-4 space-y-3">
+                  <div className="h-6 bg-muted animate-pulse rounded" />
+                  <div className="h-4 bg-muted animate-pulse rounded w-3/4" />
+                  <div className="h-4 bg-muted animate-pulse rounded w-1/2" />
+                </div>
+              </Card>
+            ) : sampleVenue ? (
+              <div className="max-w-sm">
+                <VenueCard venue={sampleVenue} />
+              </div>
+            ) : (
+              <Card className="w-full max-w-none p-8 text-center text-muted-foreground">
+                <Shuffle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">No sample venue available</p>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={fetchRandomVenue}
+                  className="mt-2"
+                >
+                  Try Again
+                </Button>
+              </Card>
+            )}
+          </div>
+
+          {/* Mock Navigation & Buttons */}
+          <div className="space-y-3">
+            <h4 className="text-sm font-medium text-muted-foreground">Navigation & Actions</h4>
+            <div className="flex flex-wrap gap-3">
+              <Button>Add Venue</Button>
+              <Button variant="outline">View on Map</Button>
+              <Button variant="secondary">Filter</Button>
+              <Button variant="ghost">Reset</Button>
+            </div>
+          </div>
+
+          {/* Mock Content Section */}
+          <div className="space-y-3">
+            <h4 className="text-sm font-medium text-muted-foreground">Content Areas</h4>
+            <div className="grid gap-4 md:grid-cols-2">
+              <Card className="p-4">
+                <h5 className="font-medium mb-2">Venue Details</h5>
+                <p className="text-sm text-muted-foreground">
+                  This shows how text appears on cards and content areas throughout the site.
+                </p>
+              </Card>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Badge>Status: Active</Badge>
+                  <Badge variant="secondary">Rating: 4.5</Badge>
+                </div>
+                <div className="p-3 bg-muted rounded-md">
+                  <p className="text-sm">Background and muted areas use these colors for subtle emphasis.</p>
+                </div>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -205,62 +322,62 @@ export default function ThemeCustomizer() {
         <CardHeader>
           <CardTitle>Color Configuration</CardTitle>
           <CardDescription>
-            Customize the main colors of your application
+            Customize the main colors of your application with live preview. Click "Save Changes" to persist your selections.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid gap-6 md:grid-cols-2">
-            <ColorPicker
-              label="Primary Color"
-              value={colors.primary}
-              onChange={(value) => handleColorChange("primary", value)}
-              description="Main brand color (buttons, links, highlights)"
-            />
+            {createColorPicker(
+              "Primary Color",
+              colors.primary,
+              (value) => handleColorChange("primary", value),
+              "Main brand color (buttons, links, highlights)"
+            )}
             
-            <ColorPicker
-              label="Foreground Color"
-              value={colors.foreground}
-              onChange={(value) => handleColorChange("foreground", value)}
-              description="Main text color"
-            />
-            
-            <ColorPicker
-              label="Background Color"
-              value={colors.background}
-              onChange={(value) => handleColorChange("background", value)}
-              description="Main background color"
-            />
-            
-            <ColorPicker
-              label="Secondary Color"
-              value={colors.secondary}
-              onChange={(value) => handleColorChange("secondary", value)}
-              description="Secondary elements and surfaces"
-            />
-            
-            <ColorPicker
-              label="Accent Color"
-              value={colors.accent}
-              onChange={(value) => handleColorChange("accent", value)}
-              description="Accent elements and highlights"
-            />
-            
-            <ColorPicker
-              label="Muted Color"
-              value={colors.muted}
-              onChange={(value) => handleColorChange("muted", value)}
-              description="Subtle backgrounds and muted elements"
-            />
+            {createColorPicker(
+              "Foreground Color",
+              colors.foreground,
+              (value) => handleColorChange("foreground", value),
+              "Main text color"
+            )}
+
+            {createColorPicker(
+              "Background Color",
+              colors.background,
+              (value) => handleColorChange("background", value),
+              "Main background color"
+            )}
+
+            {createColorPicker(
+              "Secondary Color",
+              colors.secondary,
+              (value) => handleColorChange("secondary", value),
+              "Secondary elements and surfaces"
+            )}
+
+            {createColorPicker(
+              "Accent Color",
+              colors.accent,
+              (value) => handleColorChange("accent", value),
+              "Accent elements and highlights"
+            )}
+
+            {createColorPicker(
+              "Muted Color",
+              colors.muted,
+              (value) => handleColorChange("muted", value),
+              "Subtle backgrounds and muted elements"
+            )}
           </div>
 
           <Separator />
 
-          <ColorPicker
-            label="Border Color"
-            value={colors.border}
-            onChange={(value) => handleColorChange("border", value)}
-            description="Borders, dividers, and input outlines"
-          />
+          {createColorPicker(
+            "Border Color",
+            colors.border,
+            (value) => handleColorChange("border", value),
+            "Borders, dividers, and input outlines"
+          )}
         </CardContent>
       </Card>
 
