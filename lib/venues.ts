@@ -47,10 +47,17 @@ export async function listVenues(
     const supabase = createClient();
     const { q, city, brand, type, page = 1 } = filters;
 
-    // Start with base query for approved venues only
+    // Start with base query for approved venues only with coordinate extraction
     let query = supabase
       .from("venues")
-      .select("*", { count: "exact" })
+      .select(
+        `
+        *,
+        location_lat:ST_Y(location::geometry),
+        location_lng:ST_X(location::geometry)
+      `,
+        { count: "exact" }
+      )
       .eq("status", "approved");
 
     // Apply filters
@@ -89,14 +96,15 @@ export async function listVenues(
     const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
     // Transform the data to match our interface
-    const transformedVenues: Venue[] = (venues || []).map((venue) => ({
+    const transformedVenues: Venue[] = (venues || []).map((venue: any) => ({
       ...venue,
-      location: venue.location
-        ? {
-            lat: venue.location.coordinates[1],
-            lng: venue.location.coordinates[0],
-          }
-        : null,
+      location:
+        venue.location_lat && venue.location_lng
+          ? {
+              lat: venue.location_lat,
+              lng: venue.location_lng,
+            }
+          : null,
     }));
 
     const result: VenueListResult = {
