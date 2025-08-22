@@ -149,7 +149,7 @@ function SuccessContent({ venueId }: { venueId?: string }) {
             🙏 Thank You for Contributing!
           </h3>
           <p className="text-blue-700 text-sm">
-            Your submission helps fellow cocktail enthusiasts discover amazing venues. 
+            Your submission helps fellow Piscola enthusiasts discover amazing venues. 
             We'll notify you once your venue is approved and live.
           </p>
         </div>

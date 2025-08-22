@@ -53,10 +53,10 @@ export default function Home() {
             transition={{ duration: 0.8 }}
           >
             <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-              Find Amazing Cocktail Venues
+              Find Amazing Piscola Venues
             </h1>
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Discover the best cocktail bars and lounges in your city. From
+              Discover the best venues to enjoy Piscola in your city. From
               speakeasies to rooftop bars, find your perfect drink destination.
             </p>
 

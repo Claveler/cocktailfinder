@@ -1,6 +1,6 @@
 # 🎨 Font Switching Guide
 
-Easy font testing system for CocktailFinder - switch between different Google Fonts with one line change!
+Easy font testing system for Piscola.net - switch between different Google Fonts with one line change!
 
 ## 🚀 How to Switch Fonts
 

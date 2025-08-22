@@ -277,9 +277,9 @@ export default async function VenuesPage({ searchParams }: VenuesPageProps) {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Find Cocktail Venues</h1>
+          <h1 className="text-3xl font-bold mb-2">Find Piscola Venues</h1>
           <p className="text-muted-foreground">
-            Discover the best cocktail bars and lounges near you
+            Discover the best venues to enjoy Piscola near you
           </p>
         </div>
         <Button asChild variant="outline">

@@ -87,7 +87,7 @@ export default function LoginPage() {
             className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors mb-4"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to CocktailFinder
+            Back to Piscola.net
           </Link>
         </div>
 
@@ -95,7 +95,7 @@ export default function LoginPage() {
           <CardHeader className="text-center">
             <CardTitle className="text-2xl">Welcome Back</CardTitle>
             <CardDescription>
-              Sign in to your account to discover amazing cocktail venues
+              Sign in to your account to discover amazing venues
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">

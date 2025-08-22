@@ -6,8 +6,8 @@ import { Toaster } from "sonner";
 import ClientThemeProvider from "@/components/theme/ClientThemeProvider";
 
 export const metadata: Metadata = {
-  title: "CocktailFinder",
-  description: "Find the best cocktail venues in your city",
+  title: "Piscola.net",
+  description: "Find the best venues to enjoy Piscola in your city",
 };
 
 export default function RootLayout({

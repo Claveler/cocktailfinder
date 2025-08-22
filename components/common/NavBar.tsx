@@ -56,9 +56,9 @@ export default function NavBar() {
               <Image
                 src="/assets/Piscola SVG.svg"
                 alt="Piscola Logo"
-                width={120}
-                height={32}
-                className="h-8 w-auto"
+                width={150}
+                height={40}
+                className="h-10 w-auto"
               />
             </Link>
           </div>
@@ -108,9 +108,9 @@ export default function NavBar() {
             <Image
               src="/assets/Piscola SVG.svg"
               alt="Piscola Logo"
-              width={100}
-              height={28}
-              className="h-7 w-auto"
+              width={150}
+              height={40}
+              className="h-10 w-auto"
             />
           </Link>
 

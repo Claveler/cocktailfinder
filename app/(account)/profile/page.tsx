@@ -139,7 +139,7 @@ export default function ProfilePage() {
             className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors mb-4"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to CocktailFinder
+            Back to Piscola.net
           </Link>
           <h1 className="text-3xl font-bold mb-2">Profile</h1>
           <p className="text-muted-foreground">
