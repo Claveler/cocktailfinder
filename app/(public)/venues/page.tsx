@@ -95,12 +95,12 @@ function SearchForm({
           {/* City Filter */}
           <div>
             <Label htmlFor="city">City</Label>
-            <Select name="city" defaultValue={defaultValues.city || ""}>
+            <Select name="city" defaultValue={defaultValues.city || "all"}>
               <SelectTrigger>
                 <SelectValue placeholder="All cities" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All cities</SelectItem>
+                <SelectItem value="all">All cities</SelectItem>
                 {cities.map((city) => (
                   <SelectItem key={city} value={city}>
                     {city}
@@ -113,12 +113,12 @@ function SearchForm({
           {/* Type Filter */}
           <div>
             <Label htmlFor="type">Venue Type</Label>
-            <Select name="type" defaultValue={defaultValues.type || ""}>
+            <Select name="type" defaultValue={defaultValues.type || "all"}>
               <SelectTrigger>
                 <SelectValue placeholder="All types" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All types</SelectItem>
+                <SelectItem value="all">All types</SelectItem>
                 <SelectItem value="bar">Cocktail Bar</SelectItem>
                 <SelectItem value="pub">Pub</SelectItem>
                 <SelectItem value="liquor_store">Liquor Store</SelectItem>
@@ -129,12 +129,12 @@ function SearchForm({
           {/* Brand Filter */}
           <div>
             <Label htmlFor="brand">Brand</Label>
-            <Select name="brand" defaultValue={defaultValues.brand || ""}>
+            <Select name="brand" defaultValue={defaultValues.brand || "all"}>
               <SelectTrigger>
                 <SelectValue placeholder="All brands" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All brands</SelectItem>
+                <SelectItem value="all">All brands</SelectItem>
                 {brands.map((brand) => (
                   <SelectItem key={brand} value={brand}>
                     {brand}
@@ -205,9 +205,9 @@ export default async function VenuesPage({ searchParams }: VenuesPageProps) {
   // Parse search parameters
   const filters: VenueFilters = {
     q: searchParams.q,
-    city: searchParams.city,
-    brand: searchParams.brand,
-    type: searchParams.type,
+    city: searchParams.city === "all" ? undefined : searchParams.city,
+    brand: searchParams.brand === "all" ? undefined : searchParams.brand,
+    type: searchParams.type === "all" ? undefined : (searchParams.type as any),
     page: searchParams.page ? parseInt(searchParams.page) : 1,
   };
 
