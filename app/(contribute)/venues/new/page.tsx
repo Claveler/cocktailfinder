@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 // import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import { uploadPhoto } from "@/lib/storage";
 import {
   Select,
   SelectContent,
@@ -26,11 +28,12 @@ import {
   Building,
   Camera,
   AlertCircle,
+  Link as LinkIcon,
 } from "lucide-react";
 import Link from "next/link";
-import { createVenue } from "@/lib/actions/venues";
+import { createVenue, updateVenuePhotos } from "@/lib/actions/venues";
 import GoogleMapsLinkInput from "@/components/forms/GoogleMapsLinkInput";
-import type { Coordinates } from "@/lib/maps";
+import type { Coordinates, VenueInfo } from "@/lib/maps";
 
 const VENUE_TYPES = [
   { value: "bar", label: "Cocktail Bar", icon: Wine },
@@ -117,6 +120,7 @@ export default function NewVenuePage() {
   const [ambiance, setAmbiance] = useState<string[]>([]);
   const [newAmbiance, setNewAmbiance] = useState("");
   const [photos, setPhotos] = useState<File[]>([]);
+  const [uploadingPhotos, setUploadingPhotos] = useState(false);
 
   const handleInputChange = (field: keyof typeof formData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -124,13 +128,19 @@ export default function NewVenuePage() {
 
   const handleCoordinatesExtracted = (
     coordinates: Coordinates,
-    originalUrl?: string
+    originalUrl?: string,
+    venueInfo?: VenueInfo
   ) => {
     setFormData((prev) => ({
       ...prev,
       latitude: coordinates.lat.toString(),
       longitude: coordinates.lng.toString(),
       google_maps_url: originalUrl || "",
+      // Auto-populate venue information if available
+      name: venueInfo?.name || prev.name,
+      address: venueInfo?.address || prev.address,
+      city: venueInfo?.city || prev.city,
+      country: venueInfo?.country || prev.country,
     }));
   };
 
@@ -198,6 +208,7 @@ export default function NewVenuePage() {
 
     startTransition(async () => {
       try {
+        // First, create the venue to get an ID
         const submitFormData = new FormData();
 
         // Add basic fields
@@ -209,21 +220,56 @@ export default function NewVenuePage() {
         submitFormData.append("brands", JSON.stringify(brands));
         submitFormData.append("ambiance", JSON.stringify(ambiance));
 
-        // Add photos
-        photos.forEach((photo) => {
-          submitFormData.append("photos", photo);
-        });
-
+        // Create venue without photos first
         const result = await createVenue(submitFormData);
 
-        if (result.success) {
-          router.push(`/venues/new/success?venueId=${result.venueId}`);
-        } else {
+        if (!result.success) {
           setError(result.error || "Failed to submit venue");
+          return;
         }
+
+        const venueId = result.venueId;
+
+        // Upload photos if any
+        const photoUrls: string[] = [];
+        if (photos.length > 0) {
+          setUploadingPhotos(true);
+          toast.info(`Uploading ${photos.length} photo(s)...`);
+
+          for (const file of photos) {
+            try {
+              const uploadResult = await uploadPhoto(file, venueId);
+              if (uploadResult.error) {
+                console.error("Upload error:", uploadResult.error);
+                toast.error(`Failed to upload ${file.name}`);
+              } else if (uploadResult.data) {
+                photoUrls.push(uploadResult.data.publicUrl);
+              }
+            } catch (uploadError) {
+              console.error("Upload error:", uploadError);
+              toast.error(`Failed to upload ${file.name}`);
+            }
+          }
+
+          setUploadingPhotos(false);
+
+          // Update venue with photo URLs if any were uploaded
+          if (photoUrls.length > 0) {
+            const updateResult = await updateVenuePhotos(venueId, photoUrls);
+            if (updateResult.success) {
+              toast.success(`${photoUrls.length} photo(s) uploaded successfully!`);
+            } else {
+              toast.error("Failed to save photos to venue");
+              console.error("Photo update error:", updateResult.error);
+            }
+          }
+        }
+
+        router.push(`/venues/new/success?venueId=${venueId}`);
       } catch (error) {
         console.error("Error submitting venue:", error);
         setError("An unexpected error occurred. Please try again.");
+        setUploadingPhotos(false);
       }
     });
   };
@@ -245,13 +291,43 @@ export default function NewVenuePage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-8">
+        {/* Google Maps Link - First Step */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <LinkIcon className="h-5 w-5" />
+              Step 1: Find Your Venue on Google Maps
+            </CardTitle>
+            <p className="text-muted-foreground text-sm">
+              Start by sharing a Google Maps link to automatically populate venue details
+            </p>
+          </CardHeader>
+          <CardContent>
+            <GoogleMapsLinkInput
+              onCoordinatesExtracted={handleCoordinatesExtracted}
+              currentCoordinates={
+                formData.latitude && formData.longitude
+                  ? {
+                      lat: parseFloat(formData.latitude),
+                      lng: parseFloat(formData.longitude),
+                    }
+                  : undefined
+              }
+              disabled={isPending}
+            />
+          </CardContent>
+        </Card>
+
         {/* Basic Information */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Building className="h-5 w-5" />
-              Basic Information
+              Step 2: Venue Details
             </CardTitle>
+            <p className="text-muted-foreground text-sm">
+              Review and complete the venue information below
+            </p>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid md:grid-cols-2 gap-4">
@@ -324,81 +400,64 @@ export default function NewVenuePage() {
           </CardContent>
         </Card>
 
-        {/* Location */}
+        {/* Location Coordinates (Advanced/Manual) */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <MapPin className="h-5 w-5" />
-              Location Coordinates
+              Step 3: Location Coordinates
+              <Badge variant="outline" className="text-xs">
+                Advanced
+              </Badge>
             </CardTitle>
+            <p className="text-muted-foreground text-sm">
+              Coordinates should be automatically populated from the Google Maps link above
+            </p>
           </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Google Maps Link Input */}
-            <GoogleMapsLinkInput
-              onCoordinatesExtracted={handleCoordinatesExtracted}
-              currentCoordinates={
-                formData.latitude && formData.longitude
-                  ? {
-                      lat: parseFloat(formData.latitude),
-                      lng: parseFloat(formData.longitude),
-                    }
-                  : undefined
-              }
-              disabled={isPending}
-            />
-
-            <Separator />
-
-            {/* Manual Coordinate Entry (as fallback) */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <Label className="text-sm font-medium">Manual Entry</Label>
-                <Badge variant="outline" className="text-xs">
-                  Advanced
-                </Badge>
+          <CardContent className="space-y-4">
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="latitude">Latitude *</Label>
+                <Input
+                  id="latitude"
+                  type="number"
+                  step="any"
+                  value={formData.latitude}
+                  onChange={(e) =>
+                    handleInputChange("latitude", e.target.value)
+                  }
+                  placeholder="e.g., 51.5074"
+                  required
+                />
               </div>
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="latitude">Latitude *</Label>
-                  <Input
-                    id="latitude"
-                    type="number"
-                    step="any"
-                    value={formData.latitude}
-                    onChange={(e) =>
-                      handleInputChange("latitude", e.target.value)
-                    }
-                    placeholder="e.g., 51.5074"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="longitude">Longitude *</Label>
-                  <Input
-                    id="longitude"
-                    type="number"
-                    step="any"
-                    value={formData.longitude}
-                    onChange={(e) =>
-                      handleInputChange("longitude", e.target.value)
-                    }
-                    placeholder="e.g., -0.1278"
-                    required
-                  />
-                </div>
+              <div>
+                <Label htmlFor="longitude">Longitude *</Label>
+                <Input
+                  id="longitude"
+                  type="number"
+                  step="any"
+                  value={formData.longitude}
+                  onChange={(e) =>
+                    handleInputChange("longitude", e.target.value)
+                  }
+                  placeholder="e.g., -0.1278"
+                  required
+                />
               </div>
-              <p className="text-sm text-muted-foreground">
-                💡 Prefer using the Google Maps link above for easier and more
-                accurate location entry.
-              </p>
             </div>
+            <p className="text-sm text-muted-foreground">
+              💡 If coordinates are missing, please use the Google Maps link in Step 1 above
+            </p>
           </CardContent>
         </Card>
 
         {/* Details */}
         <Card>
           <CardHeader>
-            <CardTitle>Additional Details</CardTitle>
+            <CardTitle>Step 4: Additional Details</CardTitle>
+            <p className="text-muted-foreground text-sm">
+              Add pricing, brands, and atmosphere information
+            </p>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Price Range */}
@@ -586,8 +645,11 @@ export default function NewVenuePage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Camera className="h-5 w-5" />
-              Photos (Optional)
+              Step 5: Photos (Optional)
             </CardTitle>
+            <p className="text-muted-foreground text-sm">
+              Upload photos to showcase the venue's atmosphere
+            </p>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
@@ -663,12 +725,12 @@ export default function NewVenuePage() {
                 type="submit"
                 size="lg"
                 className="w-full"
-                disabled={isPending}
+                disabled={isPending || uploadingPhotos}
               >
-                {isPending ? (
+                {isPending || uploadingPhotos ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Submitting Venue...
+                    {uploadingPhotos ? "Uploading Photos..." : "Submitting Venue..."}
                   </>
                 ) : (
                   <>

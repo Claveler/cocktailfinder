@@ -84,7 +84,7 @@ export default function VenueActions({ venue }: VenueActionsProps) {
     country: venue.country,
     latitude: venue.location?.lat?.toString() || "",
     longitude: venue.location?.lng?.toString() || "",
-    price_range: venue.price_range || "",
+    price_range: venue.price_range || "none",
     brands: venue.brands.join(", "),
     ambiance: venue.ambiance.join(", "),
   });
@@ -119,7 +119,7 @@ export default function VenueActions({ venue }: VenueActionsProps) {
         address: editForm.address.trim(),
         city: editForm.city.trim(),
         country: editForm.country.trim(),
-        price_range: editForm.price_range || null,
+        price_range: editForm.price_range === "none" ? null : editForm.price_range,
         brands: editForm.brands
           .split(",")
           .map((b) => b.trim())
@@ -329,7 +329,7 @@ export default function VenueActions({ venue }: VenueActionsProps) {
                       <SelectValue placeholder="Select price range" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
+                      <SelectItem value="none">None</SelectItem>
                       {PRICE_RANGES.map((range) => (
                         <SelectItem key={range.value} value={range.value}>
                           {range.label}

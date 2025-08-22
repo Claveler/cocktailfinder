@@ -22,7 +22,7 @@ import { uploadPhoto, deletePhoto } from "@/lib/storage";
 import { toast } from "sonner";
 import type { VenueWithComments } from "@/lib/venues";
 import GoogleMapsLinkInput from "@/components/forms/GoogleMapsLinkInput";
-import type { Coordinates } from "@/lib/maps";
+import type { Coordinates, VenueInfo } from "@/lib/maps";
 
 interface VenueEditFormProps {
   venue: VenueWithComments;
@@ -115,13 +115,19 @@ export default function VenueEditForm({ venue }: VenueEditFormProps) {
 
   const handleCoordinatesExtracted = (
     coordinates: Coordinates,
-    originalUrl?: string
+    originalUrl?: string,
+    venueInfo?: VenueInfo
   ) => {
     setFormData((prev) => ({
       ...prev,
       latitude: coordinates.lat,
       longitude: coordinates.lng,
       google_maps_url: originalUrl || prev.google_maps_url,
+      // Only update venue info if current fields are empty or if user confirms
+      name: venueInfo?.name && !prev.name ? venueInfo.name : prev.name,
+      address: venueInfo?.address && !prev.address ? venueInfo.address : prev.address,
+      city: venueInfo?.city && !prev.city ? venueInfo.city : prev.city,
+      country: venueInfo?.country && !prev.country ? venueInfo.country : prev.country,
     }));
   };
 

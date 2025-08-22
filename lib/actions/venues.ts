@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { uploadPhoto } from "@/lib/storage";
+import { logger } from "@/lib/logger";
 
 export interface CreateVenueData {
   name: string;
@@ -17,6 +17,47 @@ export interface CreateVenueData {
   price_range?: string;
   ambiance: string[];
   photos: File[];
+}
+
+export async function updateVenuePhotos(venueId: string, photoUrls: string[]) {
+  try {
+    const supabase = createClient();
+
+    // Check authentication
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      throw new Error("You must be logged in to update photos");
+    }
+
+    // Update venue with photo URLs
+    const { error: updateError } = await supabase
+      .from("venues")
+      .update({ photos: photoUrls })
+      .eq("id", venueId);
+
+    if (updateError) {
+      logger.error("Error updating venue photos", { error: updateError });
+      throw new Error(`Failed to update photos: ${updateError.message}`);
+    }
+
+    logger.debug(`Updated venue with ${photoUrls.length} photo URLs`);
+
+    return {
+      success: true,
+      message: "Photos updated successfully",
+    };
+  } catch (error) {
+    logger.error("Error in updateVenuePhotos", { error });
+
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to update photos",
+    };
+  }
 }
 
 export async function createVenue(formData: FormData) {
@@ -33,7 +74,7 @@ export async function createVenue(formData: FormData) {
       throw new Error("You must be logged in to submit a venue");
     }
 
-    console.log("🏗️ Creating venue for user:", user.id);
+    logger.debug(`Creating venue for user: ${user.id}`);
 
     // Extract and validate form data
     const name = formData.get("name") as string;
@@ -50,9 +91,7 @@ export async function createVenue(formData: FormData) {
     const brands = JSON.parse((formData.get("brands") as string) || "[]");
     const ambiance = JSON.parse((formData.get("ambiance") as string) || "[]");
 
-    // Get uploaded files
-    const photoFiles = formData.getAll("photos") as File[];
-    const validPhotoFiles = photoFiles.filter((file) => file.size > 0);
+    // Photos are now handled client-side, no need to process them here
 
     // Validate required fields
     if (!name || !type || !address || !city || !country) {
@@ -97,58 +136,11 @@ export async function createVenue(formData: FormData) {
       .single();
 
     if (venueError) {
-      console.error("🚨 Error creating venue:", venueError);
+      logger.error("Error creating venue", { error: venueError });
       throw new Error(`Failed to create venue: ${venueError.message}`);
     }
 
-    console.log("🏗️ Venue created with ID:", venue.id);
-
-    // Upload photos if any
-    const photoUrls: string[] = [];
-    if (validPhotoFiles.length > 0) {
-      console.log("📸 Uploading", validPhotoFiles.length, "photos...");
-
-      for (let i = 0; i < validPhotoFiles.length; i++) {
-        const file = validPhotoFiles[i];
-        try {
-          const { data: uploadResult, error: uploadError } = await uploadPhoto(
-            file,
-            venue.id
-          );
-
-          if (uploadError) {
-            console.error("🚨 Error uploading photo", i + 1, ":", uploadError);
-            // Continue with other photos instead of failing completely
-            continue;
-          }
-
-          if (uploadResult?.publicUrl) {
-            photoUrls.push(uploadResult.publicUrl);
-            console.log("📸 Photo", i + 1, "uploaded successfully");
-          }
-        } catch (error) {
-          console.error("🚨 Error uploading photo", i + 1, ":", error);
-          // Continue with other photos
-        }
-      }
-    }
-
-    // Update venue with photo URLs
-    if (photoUrls.length > 0) {
-      const { error: updateError } = await supabase
-        .from("venues")
-        .update({ photos: photoUrls })
-        .eq("id", venue.id);
-
-      if (updateError) {
-        console.error("🚨 Error updating venue photos:", updateError);
-        // Don't fail the whole operation for photo update error
-      } else {
-        console.log("📸 Updated venue with", photoUrls.length, "photo URLs");
-      }
-    }
-
-    console.log("✅ Venue creation completed successfully");
+    logger.debug("Venue creation completed successfully");
 
     // Revalidate relevant pages
     revalidatePath("/venues");
@@ -160,7 +152,7 @@ export async function createVenue(formData: FormData) {
         "Venue submitted successfully! It will be reviewed before appearing publicly.",
     };
   } catch (error) {
-    console.error("🚨 Error in createVenue:", error);
+    logger.error("Error in createVenue", { error });
 
     return {
       success: false,

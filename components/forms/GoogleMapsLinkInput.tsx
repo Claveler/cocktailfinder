@@ -12,12 +12,13 @@ import {
   isGoogleMapsUrl,
   formatCoordinates,
 } from "@/lib/maps";
-import type { Coordinates } from "@/lib/maps";
+import type { Coordinates, VenueInfo } from "@/lib/maps";
 
 interface GoogleMapsLinkInputProps {
   onCoordinatesExtracted: (
     coordinates: Coordinates,
-    originalUrl?: string
+    originalUrl?: string,
+    venueInfo?: VenueInfo
   ) => void;
   currentCoordinates?: Coordinates;
   disabled?: boolean;
@@ -63,10 +64,24 @@ export default function GoogleMapsLinkInput({
       const result = await parseGoogleMapsUrl(mapsUrl);
 
       if (result.success && result.coordinates) {
-        onCoordinatesExtracted(result.coordinates, mapsUrl);
+        onCoordinatesExtracted(result.coordinates, mapsUrl, result.venueInfo);
+        
+        // Build success message with venue info if available
+        let message = `${isShortUrl ? "Short URL expanded and coordinates extracted" : "Coordinates extracted"}: ${formatCoordinates(result.coordinates)}`;
+        
+        if (result.venueInfo?.name) {
+          message += `\nVenue: ${result.venueInfo.name}`;
+        }
+        if (result.venueInfo?.address) {
+          message += `\nAddress: ${result.venueInfo.address}`;
+        }
+        if (result.venueInfo?.city) {
+          message += `\nCity: ${result.venueInfo.city}`;
+        }
+        
         setStatus({
           type: "success",
-          message: `${isShortUrl ? "Short URL expanded and coordinates extracted" : "Coordinates extracted"}: ${formatCoordinates(result.coordinates)}`,
+          message,
         });
         setMapsUrl(""); // Clear the input after successful extraction
       } else {
@@ -138,7 +153,7 @@ export default function GoogleMapsLinkInput({
         </div>
         <p className="text-sm text-muted-foreground">
           💡 Find your venue on Google Maps, then either share the link or copy
-          the URL from your browser
+          the URL from your browser. We'll automatically extract coordinates and venue details!
         </p>
       </div>
 
