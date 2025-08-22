@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { MapPin, Search } from "lucide-react";
+import Image from "next/image";
 import Map, { type Venue } from "@/components/maps/Map";
 import VenueCard from "@/components/venues/VenueCard";
 import HomePageClient from "@/app/HomePageClient";
@@ -87,29 +88,55 @@ export default async function Home() {
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-primary/5 via-background to-primary/10 py-20 px-4">
-        <div className="container mx-auto text-center">
-          <HomePageClient delay={0}>
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-              A Taste of Chile, Wherever You Are
-            </h1>
-            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Discover the best venues to enjoy pisco in your city. From
-              speakeasies to rooftop bars, find your perfect drink destination.
-            </p>
+      <section className="relative w-full aspect-[4/3] sm:aspect-[2/1] lg:aspect-[3/1] flex items-center overflow-hidden">
+        {/* Full Viewport Background Image */}
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/assets/piscolahero.png"
+            alt="Piscola - Chilean cocktail"
+            fill
+            className="object-cover"
+            priority
+            sizes="100vw"
+          />
+          {/* Simple dark overlay for text legibility */}
+          <div className="absolute inset-0 bg-black/50" />
+          {/* Gradient overlay for better text contrast */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
+        </div>
 
-            {/* Search CTA */}
-            <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto mb-8">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Enter your location..." className="pl-10" />
-              </div>
-              <Button size="lg" className="shrink-0">
-                <MapPin className="mr-2 h-4 w-4" />
-                Find Venues
-              </Button>
+        {/* Content */}
+        <div className="relative z-10 w-full px-4 sm:px-6 lg:px-8">
+          <div className="container mx-auto">
+            <div className="max-w-2xl">
+              <HomePageClient delay={0}>
+                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold mb-3 sm:mb-4 text-white leading-tight">
+                  A Taste of Chile,
+                  <br />
+                  <span className="text-white/90">Wherever You Are</span>
+                </h1>
+                <p className="text-base sm:text-lg lg:text-xl text-white/90 mb-4 sm:mb-6 max-w-xl leading-relaxed">
+                  Discover the best venues to enjoy pisco in your city. From
+                  speakeasies to rooftop bars, find your perfect drink destination.
+                </p>
+
+                {/* Search CTA */}
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 max-w-lg">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                      placeholder="Enter your location..." 
+                      className="pl-10 bg-white/95 backdrop-blur-sm border-white/20 text-foreground h-12" 
+                    />
+                  </div>
+                  <Button size="lg" className="shrink-0 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-6 sm:px-8 h-12">
+                    <MapPin className="mr-2 h-4 w-4" />
+                    Find Venues
+                  </Button>
+                </div>
+              </HomePageClient>
             </div>
-          </HomePageClient>
+          </div>
         </div>
       </section>
 
