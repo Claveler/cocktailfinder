@@ -145,6 +145,7 @@ export async function updateVenueAction(venueId: string, formData: {
   price_range: string;
   ambiance: string[];
   status: "pending" | "approved" | "rejected";
+  photos?: string[];
 }) {
   try {
     const isAdmin = await checkAdminRole();
@@ -167,6 +168,11 @@ export async function updateVenueAction(venueId: string, formData: {
       status: formData.status,
       updated_at: new Date().toISOString(),
     };
+
+    // Include photos if provided
+    if (formData.photos !== undefined) {
+      venueUpdates.photos = formData.photos;
+    }
 
     // Convert coordinates to PostGIS
     if (formData.latitude && formData.longitude) {
@@ -350,3 +356,6 @@ export async function rejectSuggestedEdit(editId: string) {
     return { success: false, error: "An unexpected error occurred" };
   }
 }
+
+// Note: Photo upload/delete functionality uses client-side storage functions
+// to avoid server/client boundary issues with File objects

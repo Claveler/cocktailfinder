@@ -114,25 +114,14 @@ export default async function VenuePage({ params }: VenuePageProps) {
 
   // Check if user is admin
   let isAdmin = false;
-  let adminDebugInfo = null;
   if (user) {
-    const { data: profile, error: profileError } = await supabase
+    const { data: profile } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', user.id)
       .single();
     
     isAdmin = profile?.role === 'admin';
-    adminDebugInfo = {
-      userId: user.id,
-      userEmail: user.email,
-      profile,
-      profileError,
-      isAdmin
-    };
-    
-    // Debug log
-    console.log('Admin check debug:', adminDebugInfo);
   }
 
   // Fetch venue data
@@ -167,10 +156,6 @@ export default async function VenuePage({ params }: VenuePageProps) {
               src={venue.photos[0]}
               alt={venue.name}
               className="w-full h-full object-cover"
-              onError={(e) => {
-                // Hide image if it fails to load
-                (e.target as HTMLElement).style.display = 'none';
-              }}
             />
             {venue.photos.length > 1 && (
               <div className="absolute bottom-4 right-4">
@@ -206,18 +191,7 @@ export default async function VenuePage({ params }: VenuePageProps) {
             </div>
           </div>
           
-          {/* Debug Info - Remove this after testing */}
-          {user && (
-            <div className="mb-4 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs">
-              <strong>Debug:</strong> User: {user.email} | Admin: {isAdmin ? 'YES' : 'NO'}
-              {adminDebugInfo && (
-                <details className="mt-1">
-                  <summary>Details</summary>
-                  <pre className="mt-1 text-xs">{JSON.stringify(adminDebugInfo, null, 2)}</pre>
-                </details>
-              )}
-            </div>
-          )}
+
 
           {/* Admin Edit Button */}
           {isAdmin && (
@@ -290,33 +264,20 @@ export default async function VenuePage({ params }: VenuePageProps) {
                     {venue.photos.map((photo, index) => (
                       <div
                         key={index}
-                        className="aspect-square bg-gray-100 rounded-lg overflow-hidden group cursor-pointer"
-                        onClick={() => {
-                          // Open photo in new tab for full view
-                          window.open(photo, '_blank');
-                        }}
+                        className="aspect-square bg-gray-100 rounded-lg overflow-hidden group"
                       >
-                        <img
-                          src={photo}
-                          alt={`${venue.name} - Photo ${index + 1}`}
-                          className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                          onError={(e) => {
-                            // Fallback to placeholder if image fails to load
-                            const target = e.target as HTMLImageElement;
-                            target.style.display = 'none';
-                            const placeholder = document.createElement('div');
-                            placeholder.className = 'w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 text-gray-500';
-                            placeholder.innerHTML = `
-                              <div class="text-center">
-                                <svg class="w-8 h-8 mx-auto mb-1 opacity-50" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" />
-                                </svg>
-                                <div class="text-xs">Image unavailable</div>
-                              </div>
-                            `;
-                            target.parentElement!.appendChild(placeholder);
-                          }}
-                        />
+                        <a
+                          href={photo}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block w-full h-full"
+                        >
+                          <img
+                            src={photo}
+                            alt={`${venue.name} - Photo ${index + 1}`}
+                            className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                          />
+                        </a>
                       </div>
                     ))}
                   </div>

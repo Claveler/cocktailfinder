@@ -170,18 +170,5 @@ export async function listVenuePhotos(
   }
 }
 
-/**
- * Server-side helper to get storage client (for use in API routes)
- * Import this function only in server components or API routes
- *
- * Example usage in API route:
- * import { getServerStorageClient } from '@/lib/storage';
- * const storage = getServerStorageClient();
- */
-export async function getServerStorageClient() {
-  // Dynamic import to avoid client-side issues
-  const { createClient: createServerClient } = await import(
-    "@/lib/supabase/server"
-  );
-  return createServerClient().storage;
-}
+// Note: Server-side storage functions have been moved to lib/actions/admin.ts 
+// to avoid client/server boundary issues

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,8 +10,9 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Save, Loader2, X, Plus } from "lucide-react";
+import { Save, Loader2, X, Plus, Upload, Trash2, Image } from "lucide-react";
 import { updateVenueAction } from "@/lib/actions/admin";
+import { uploadPhoto, deletePhoto } from "@/lib/storage";
 import { toast } from "sonner";
 import type { VenueWithComments } from "@/lib/venues";
 
@@ -57,6 +58,12 @@ export default function VenueEditForm({ venue }: VenueEditFormProps) {
     status: venue.status,
   });
 
+  // Photo management state
+  const [currentPhotos, setCurrentPhotos] = useState<string[]>(venue.photos || []);
+  const [photosToDelete, setPhotosToDelete] = useState<string[]>([]);
+  const [newPhotos, setNewPhotos] = useState<File[]>([]);
+  const [uploadingPhotos, setUploadingPhotos] = useState(false);
+
   // Brand management
   const [newBrand, setNewBrand] = useState("");
   const [newAmbiance, setNewAmbiance] = useState("");
@@ -95,12 +102,97 @@ export default function VenueEditForm({ venue }: VenueEditFormProps) {
     }));
   };
 
+  // Photo management functions
+  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files) {
+      const newFiles = Array.from(files).slice(0, 5); // Limit to 5 new photos
+      setNewPhotos(prev => [...prev, ...newFiles].slice(0, 5));
+    }
+  }, []);
+
+  const removeNewPhoto = useCallback((index: number) => {
+    setNewPhotos(prev => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const markPhotoForDeletion = useCallback((photoUrl: string) => {
+    setPhotosToDelete(prev => [...prev, photoUrl]);
+    setCurrentPhotos(prev => prev.filter(photo => photo !== photoUrl));
+  }, []);
+
+  const restorePhoto = useCallback((photoUrl: string) => {
+    setPhotosToDelete(prev => prev.filter(url => url !== photoUrl));
+    setCurrentPhotos(prev => [...prev, photoUrl]);
+  }, []);
+
+  const handleImageError = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
+    img.style.display = 'none';
+    if (img.parentElement) {
+      const placeholder = document.createElement('div');
+      placeholder.className = 'w-full h-full flex items-center justify-center bg-gray-200 text-gray-500 text-xs';
+      placeholder.textContent = 'Image failed to load';
+      img.parentElement.appendChild(placeholder);
+    }
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setUploadingPhotos(true);
 
     try {
-      const result = await updateVenueAction(venue.id, formData);
+      // Handle photo deletions first
+      if (photosToDelete.length > 0) {
+        toast.info(`Deleting ${photosToDelete.length} photo(s)...`);
+        for (const photoUrl of photosToDelete) {
+          try {
+            // Extract path from URL for deletion
+            const urlParts = photoUrl.split('/venue-photos/');
+            if (urlParts.length === 2) {
+              const path = urlParts[1];
+              await deletePhoto(path);
+            }
+          } catch (deleteError) {
+            console.warn("Failed to delete photo:", photoUrl, deleteError);
+            // Continue with other deletions
+          }
+        }
+      }
+
+      // Handle new photo uploads
+      let uploadedPhotoUrls: string[] = [];
+      if (newPhotos.length > 0) {
+        toast.info(`Uploading ${newPhotos.length} new photo(s)...`);
+        
+        for (const file of newPhotos) {
+          try {
+            const uploadResult = await uploadPhoto(file, venue.id);
+            if (uploadResult.error) {
+              console.error("Upload error:", uploadResult.error);
+              toast.error(`Failed to upload ${file.name}`);
+            } else if (uploadResult.data) {
+              uploadedPhotoUrls.push(uploadResult.data.publicUrl);
+            }
+          } catch (uploadError) {
+            console.error("Upload error:", uploadError);
+            toast.error(`Failed to upload ${file.name}`);
+          }
+        }
+      }
+
+      setUploadingPhotos(false);
+
+      // Combine remaining current photos with newly uploaded photos
+      const finalPhotos = [...currentPhotos, ...uploadedPhotoUrls];
+
+      // Update venue with all data including photos
+      const venueUpdateData = {
+        ...formData,
+        photos: finalPhotos,
+      };
+
+      const result = await updateVenueAction(venue.id, venueUpdateData);
       
       if (result.success) {
         toast.success("Venue updated successfully!");
@@ -114,6 +206,7 @@ export default function VenueEditForm({ venue }: VenueEditFormProps) {
       toast.error("An unexpected error occurred");
     } finally {
       setIsSubmitting(false);
+      setUploadingPhotos(false);
     }
   };
 
@@ -300,6 +393,129 @@ export default function VenueEditForm({ venue }: VenueEditFormProps) {
               ))}
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Photo Management */}
+      <Separator />
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Photo Management</h3>
+        
+        {/* Current Photos */}
+        {currentPhotos.length > 0 && (
+          <div className="space-y-2">
+            <Label>Current Photos</Label>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {currentPhotos.map((photo, index) => (
+                <div key={photo} className="relative group">
+                  <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                    <img
+                      src={photo}
+                      alt={`Venue photo ${index + 1}`}
+                      className="w-full h-full object-cover"
+                      onError={handleImageError}
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    className="absolute top-1 right-1 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => markPhotoForDeletion(photo)}
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Photos Marked for Deletion */}
+        {photosToDelete.length > 0 && (
+          <div className="space-y-2">
+            <Label className="text-red-600">Photos Marked for Deletion</Label>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {photosToDelete.map((photo, index) => (
+                <div key={photo} className="relative group">
+                  <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden opacity-50">
+                    <img
+                      src={photo}
+                      alt={`Deleted photo ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-red-500 bg-opacity-20 flex items-center justify-center">
+                      <Trash2 className="h-6 w-6 text-red-600" />
+                    </div>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="absolute top-1 right-1 h-6 w-6 p-0"
+                    onClick={() => restorePhoto(photo)}
+                    title="Restore photo"
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* New Photos */}
+        {newPhotos.length > 0 && (
+          <div className="space-y-2">
+            <Label className="text-green-600">New Photos to Upload</Label>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {newPhotos.map((file, index) => (
+                <div key={index} className="relative group">
+                  <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden border-2 border-green-200">
+                    <img
+                      src={URL.createObjectURL(file)}
+                      alt={`New photo ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    className="absolute top-1 right-1 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => removeNewPhoto(index)}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                  <div className="absolute bottom-1 left-1 bg-black bg-opacity-75 text-white text-xs px-1 rounded">
+                    {file.name.length > 15 ? file.name.substring(0, 12) + '...' : file.name}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Upload New Photos */}
+        <div className="space-y-2">
+          <Label htmlFor="photoUpload">Add New Photos</Label>
+          <div className="flex items-center gap-4">
+            <Input
+              id="photoUpload"
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleFileSelect}
+              className="flex-1"
+              disabled={isSubmitting || newPhotos.length >= 5}
+            />
+            <Badge variant="secondary" className="whitespace-nowrap">
+              {newPhotos.length}/5 selected
+            </Badge>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Upload up to 5 photos. Supported formats: JPG, PNG, WEBP
+          </p>
         </div>
       </div>
 
