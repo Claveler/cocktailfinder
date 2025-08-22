@@ -151,7 +151,7 @@ export default async function VenuePage({ params }: VenuePageProps) {
       {/* Hero Image */}
       {venue.photos && venue.photos.length > 0 && (
         <div className="mb-8">
-          <div className="relative aspect-video w-full bg-gray-100 rounded-lg overflow-hidden">
+          <div className="relative aspect-[3/1] w-full bg-gray-100 rounded-lg overflow-hidden">
             <img
               src={venue.photos[0]}
               alt={venue.name}
