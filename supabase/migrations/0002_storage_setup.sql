@@ -62,5 +62,5 @@ FOR DELETE USING (
   )
 );
 
--- Enable RLS on storage.objects (if not already enabled)
-ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
+-- Note: RLS is already enabled on storage.objects by default
+-- If you need to enable it manually, do it via Supabase Dashboard → Storage → Settings
