@@ -47,12 +47,12 @@ export async function listVenues(
     const supabase = createClient();
     const { q, city, brand, type, page = 1 } = filters;
 
-    // Use regular query but request location as GeoJSON for easier parsing
+    // Use simple query without PostGIS functions for now
     console.log("🔍 Starting venue query with filters:", { q, city, brand, type, page });
 
     let query = supabase
       .from("venues")
-      .select("*, location_geojson:ST_AsGeoJSON(location)", { count: "exact" })
+      .select("*", { count: "exact" })
       .eq("status", "approved");
 
     // Apply filters
@@ -98,31 +98,13 @@ export async function listVenues(
     console.log("🔍 Raw venue data sample:", venues?.[0]);
     console.log("🔍 Total venues found:", venues?.length);
     
-    // Transform the data to match our interface
+    // Transform the data to match our interface (without location for now)
     const transformedVenues: Venue[] = (venues || []).map((venue: any) => {
-      console.log("🔍 Processing venue:", venue.name, "location_geojson:", venue.location_geojson);
-      
-      // Parse GeoJSON to extract coordinates
-      let location = null;
-      
-      try {
-        if (venue.location_geojson) {
-          const geoData = JSON.parse(venue.location_geojson);
-          if (geoData.type === "Point" && geoData.coordinates && geoData.coordinates.length >= 2) {
-            location = {
-              lat: geoData.coordinates[1], // latitude
-              lng: geoData.coordinates[0], // longitude
-            };
-            console.log("🔍 Extracted coordinates:", location);
-          }
-        }
-      } catch (error) {
-        console.error("🚨 Error parsing GeoJSON for venue:", venue.name, error);
-      }
+      console.log("🔍 Processing venue:", venue.name);
       
       return {
         ...venue,
-        location,
+        location: null, // Skip location parsing for now - focus on getting venues to display
       };
     });
 
