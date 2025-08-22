@@ -27,15 +27,17 @@ export default function AuthButton() {
   useEffect(() => {
     let mounted = true;
 
-    // Add timeout to prevent infinite loading
+    // Add timeout to prevent infinite loading (backup safety)
     const timeout = setTimeout(() => {
       if (mounted) {
-        console.log("AuthButton timeout - setting to unauthenticated");
+        console.log(
+          "⚠️ AuthButton timeout - setting to unauthenticated (backup safety)"
+        );
         setUser(null);
         setProfile(null);
         setLoading(false);
       }
-    }, 3000); // 3 second timeout
+    }, 10000); // 10 second timeout (longer backup)
 
     // Get initial session
     const getSession = async () => {
@@ -54,15 +56,21 @@ export default function AuthButton() {
         });
 
         if (mounted) {
+          // Clear timeout immediately
+          clearTimeout(timeout);
+
           if (session?.user) {
             setUser(session.user);
-            await handleUserProfile(session.user);
+            setLoading(false); // Show user immediately
+            // Handle profile in background
+            handleUserProfile(session.user).catch((error) => {
+              console.error("Profile handling error (non-blocking):", error);
+            });
           } else {
             setUser(null);
             setProfile(null);
+            setLoading(false);
           }
-          clearTimeout(timeout);
-          setLoading(false);
         }
       } catch (error) {
         console.error("AuthButton error:", error);
@@ -90,15 +98,21 @@ export default function AuthButton() {
       });
 
       if (mounted) {
+        // Clear timeout immediately when we get any auth state change
+        clearTimeout(timeout);
+
         if (session?.user) {
           setUser(session.user);
-          await handleUserProfile(session.user);
+          setLoading(false); // Set loading false immediately for user
+          // Handle profile creation in background without blocking UI
+          handleUserProfile(session.user).catch((error) => {
+            console.error("Profile handling error (non-blocking):", error);
+          });
         } else {
           setUser(null);
           setProfile(null);
+          setLoading(false);
         }
-        clearTimeout(timeout);
-        setLoading(false);
       }
     });
 
