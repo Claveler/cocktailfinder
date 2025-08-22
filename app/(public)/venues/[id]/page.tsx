@@ -149,23 +149,26 @@ export default async function VenuePage({ params }: VenuePageProps) {
         </Button>
       </div>
 
-      {/* Hero Image */}
+      {/* Hero Section - Gallery for multiple photos, single image for one photo */}
       {venue.photos && venue.photos.length > 0 && (
         <div className="mb-8">
-          <div className="relative aspect-[3/1] w-full bg-gray-100 rounded-lg overflow-hidden">
-            <img
-              src={venue.photos[0]}
-              alt={venue.name}
-              className="w-full h-full object-cover"
-            />
-            {venue.photos.length > 1 && (
-              <div className="absolute bottom-4 right-4">
-                <Badge variant="secondary" className="bg-black/70 text-white">
-                  +{venue.photos.length - 1} more photos
-                </Badge>
+          {venue.photos.length === 1 ? (
+            /* Single Hero Image */
+            <div className="relative aspect-[3/1] w-full bg-gray-100 rounded-lg overflow-hidden">
+              <img
+                src={venue.photos[0]}
+                alt={venue.name}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ) : (
+            /* Multiple Photos - Show Gallery as Hero */
+            <div className="relative aspect-[3/1] w-full bg-gray-50 rounded-lg overflow-hidden">
+              <div className="absolute inset-0 flex items-center">
+                <PhotoGallery photos={venue.photos} venueName={venue.name} showTitle={false} />
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -257,8 +260,7 @@ export default async function VenuePage({ params }: VenuePageProps) {
                 </div>
               )}
 
-              {/* Photo Gallery */}
-              <PhotoGallery photos={venue.photos} venueName={venue.name} />
+
 
               {/* Added by */}
               {venue.profile?.full_name && (
