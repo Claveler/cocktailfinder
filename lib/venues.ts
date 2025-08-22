@@ -104,13 +104,18 @@ export async function listVenues(
     console.log("🔍 Raw venue data sample:", venues?.[0]);
     console.log("🔍 Total venues found:", venues?.length);
 
-    // Transform the data to match our interface (back to working version)
+    // Get coordinates separately using RPC call
+    const venueIds = venues?.map(v => v.id) || [];
+    const coordinatesMap = await getVenueCoordinates(venueIds);
+    
+    // Transform the data to match our interface with coordinates
     const transformedVenues: Venue[] = (venues || []).map((venue: any) => {
-      console.log("🔍 Processing venue:", venue.name);
+      const coordinates = coordinatesMap[venue.id];
+      console.log("🔍 Processing venue:", venue.name, "coordinates:", coordinates);
 
       return {
         ...venue,
-        location: null, // Back to null until we fix coordinate extraction
+        location: coordinates || null,
       };
     });
 
@@ -193,5 +198,41 @@ export async function getBrands(): Promise<{
       data: null,
       error: error instanceof Error ? error : new Error("Unknown error"),
     };
+  }
+}
+
+// Helper function to get coordinates for venue IDs
+async function getVenueCoordinates(venueIds: string[]): Promise<Record<string, { lat: number; lng: number }>> {
+  if (venueIds.length === 0) return {};
+  
+  try {
+    const supabase = createClient();
+    
+    // Use RPC call to get coordinates - this avoids the query builder issues
+    const { data, error } = await supabase.rpc('get_venue_coordinates', {
+      venue_ids: venueIds
+    });
+    
+    if (error) {
+      console.error("🚨 Error getting coordinates:", error);
+      return {};
+    }
+    
+    // Convert array to map for easy lookup
+    const coordinatesMap: Record<string, { lat: number; lng: number }> = {};
+    data?.forEach((item: any) => {
+      if (item.id && item.latitude && item.longitude) {
+        coordinatesMap[item.id] = {
+          lat: item.latitude,
+          lng: item.longitude,
+        };
+      }
+    });
+    
+    console.log("🔍 Retrieved coordinates for", Object.keys(coordinatesMap).length, "venues");
+    return coordinatesMap;
+  } catch (error) {
+    console.error("🚨 Error in getVenueCoordinates:", error);
+    return {};
   }
 }
