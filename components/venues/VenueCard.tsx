@@ -60,7 +60,49 @@ export default function VenueCard({
 
   return (
     <Link href={`/venues/${venue.id}`} className="block">
-      <Card className="hover:shadow-lg transition-shadow duration-200 cursor-pointer">
+      <Card className="hover:shadow-lg transition-shadow duration-200 cursor-pointer overflow-hidden">
+        {/* Venue Image */}
+        <div className="relative aspect-video w-full bg-gray-100">
+          {venue.photos && venue.photos.length > 0 ? (
+            <img
+              src={venue.photos[0]}
+              alt={venue.name}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                // Fallback to placeholder if image fails to load
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+                target.parentElement!.innerHTML = `
+                  <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+                    <div class="text-center text-gray-500">
+                      <svg class="w-12 h-12 mx-auto mb-2 opacity-50" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" />
+                      </svg>
+                      <div class="text-sm">Image unavailable</div>
+                    </div>
+                  </div>
+                `;
+              }}
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+              <div className="text-center text-gray-500">
+                <Wine className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                <div className="text-sm">No photo available</div>
+              </div>
+            </div>
+          )}
+          
+          {/* Photo count badge */}
+          {venue.photos && venue.photos.length > 1 && (
+            <div className="absolute top-2 right-2">
+              <Badge variant="secondary" className="text-xs bg-black/70 text-white">
+                +{venue.photos.length - 1} more
+              </Badge>
+            </div>
+          )}
+        </div>
+        
         <CardContent className="p-6">
         {/* Header */}
         <div className="flex items-start justify-between mb-4">
@@ -147,12 +189,7 @@ export default function VenueCard({
           </div>
         )}
 
-        {/* Photo count */}
-        {venue.photos && venue.photos.length > 0 && (
-          <div className="text-xs text-muted-foreground">
-            📸 {venue.photos.length} photo{venue.photos.length !== 1 ? "s" : ""}
-          </div>
-        )}
+
 
         {/* Rating placeholder */}
         <div className="flex items-center justify-between mt-4 pt-4 border-t">

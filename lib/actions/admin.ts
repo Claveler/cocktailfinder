@@ -132,6 +132,72 @@ export async function updateVenue(venueId: string, updates: {
   }
 }
 
+// Admin venue update action with full edit capabilities including status
+export async function updateVenueAction(venueId: string, formData: {
+  name: string;
+  type: "bar" | "pub" | "liquor_store";
+  address: string;
+  city: string;
+  country: string;
+  latitude: number;
+  longitude: number;
+  brands: string[];
+  price_range: string;
+  ambiance: string[];
+  status: "pending" | "approved" | "rejected";
+}) {
+  try {
+    const isAdmin = await checkAdminRole();
+    if (!isAdmin) {
+      return { success: false, error: "Admin privileges required" };
+    }
+
+    const supabase = createClient();
+    
+    // Prepare the update object
+    const venueUpdates: any = {
+      name: formData.name,
+      type: formData.type,
+      address: formData.address,
+      city: formData.city,
+      country: formData.country,
+      brands: formData.brands,
+      price_range: formData.price_range || null,
+      ambiance: formData.ambiance,
+      status: formData.status,
+      updated_at: new Date().toISOString(),
+    };
+
+    // Convert coordinates to PostGIS
+    if (formData.latitude && formData.longitude) {
+      venueUpdates.location = `POINT(${formData.longitude} ${formData.latitude})`;
+    }
+
+    const { error } = await supabase
+      .from("venues")
+      .update(venueUpdates)
+      .eq("id", venueId);
+
+    if (error) {
+      console.error("Error updating venue:", error);
+      return { success: false, error: "Failed to update venue" };
+    }
+
+    console.log("📝 Venue updated via admin edit:", venueId);
+    
+    // Revalidate relevant paths
+    revalidatePath("/admin/venues");
+    revalidatePath("/venues");
+    revalidatePath(`/venues/${venueId}`);
+    revalidatePath(`/admin/venues/${venueId}/edit`);
+    
+    return { success: true, message: "Venue updated successfully" };
+  } catch (error) {
+    console.error("Error in updateVenueAction:", error);
+    return { success: false, error: "An unexpected error occurred" };
+  }
+}
+
 export async function getPendingVenues() {
   try {
     const isAdmin = await checkAdminRole();

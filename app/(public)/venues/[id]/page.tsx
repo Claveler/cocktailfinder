@@ -16,6 +16,7 @@ import {
   MessageCircle,
   ArrowLeft,
   StarIcon,
+  Edit,
 } from "lucide-react";
 import CommentForm from "./CommentForm";
 
@@ -111,6 +112,29 @@ export default async function VenuePage({ params }: VenuePageProps) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
+  // Check if user is admin
+  let isAdmin = false;
+  let adminDebugInfo = null;
+  if (user) {
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+    
+    isAdmin = profile?.role === 'admin';
+    adminDebugInfo = {
+      userId: user.id,
+      userEmail: user.email,
+      profile,
+      profileError,
+      isAdmin
+    };
+    
+    // Debug log
+    console.log('Admin check debug:', adminDebugInfo);
+  }
+
   // Fetch venue data
   const { data: venue, error } = await getVenueById(params.id, user?.id);
 
@@ -135,6 +159,30 @@ export default async function VenuePage({ params }: VenuePageProps) {
         </Button>
       </div>
 
+      {/* Hero Image */}
+      {venue.photos && venue.photos.length > 0 && (
+        <div className="mb-8">
+          <div className="relative aspect-video w-full bg-gray-100 rounded-lg overflow-hidden">
+            <img
+              src={venue.photos[0]}
+              alt={venue.name}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                // Hide image if it fails to load
+                (e.target as HTMLElement).style.display = 'none';
+              }}
+            />
+            {venue.photos.length > 1 && (
+              <div className="absolute bottom-4 right-4">
+                <Badge variant="secondary" className="bg-black/70 text-white">
+                  +{venue.photos.length - 1} more photos
+                </Badge>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Venue Header */}
       <div className="mb-8">
         <div className="flex items-start justify-between mb-4">
@@ -157,6 +205,31 @@ export default async function VenuePage({ params }: VenuePageProps) {
               )}
             </div>
           </div>
+          
+          {/* Debug Info - Remove this after testing */}
+          {user && (
+            <div className="mb-4 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs">
+              <strong>Debug:</strong> User: {user.email} | Admin: {isAdmin ? 'YES' : 'NO'}
+              {adminDebugInfo && (
+                <details className="mt-1">
+                  <summary>Details</summary>
+                  <pre className="mt-1 text-xs">{JSON.stringify(adminDebugInfo, null, 2)}</pre>
+                </details>
+              )}
+            </div>
+          )}
+
+          {/* Admin Edit Button */}
+          {isAdmin && (
+            <div className="flex gap-2">
+              <Button asChild variant="outline" size="sm">
+                <Link href={`/admin/venues/${venue.id}/edit`}>
+                  <Edit className="mr-2 h-4 w-4" />
+                  Edit Venue
+                </Link>
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Address with Google Maps link */}
@@ -209,19 +282,61 @@ export default async function VenuePage({ params }: VenuePageProps) {
                 </div>
               )}
 
-              {/* Photo Gallery Placeholder */}
-              {venue.photos.length > 0 && (
+              {/* Photo Gallery */}
+              {venue.photos.length > 0 ? (
                 <div>
-                  <h4 className="font-semibold mb-2">Photos</h4>
+                  <h4 className="font-semibold mb-2">Photos ({venue.photos.length})</h4>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     {venue.photos.map((photo, index) => (
                       <div
                         key={index}
-                        className="aspect-square bg-gray-100 rounded-lg flex items-center justify-center"
+                        className="aspect-square bg-gray-100 rounded-lg overflow-hidden group cursor-pointer"
+                        onClick={() => {
+                          // Open photo in new tab for full view
+                          window.open(photo, '_blank');
+                        }}
                       >
-                        <span className="text-gray-500 text-sm">Photo {index + 1}</span>
+                        <img
+                          src={photo}
+                          alt={`${venue.name} - Photo ${index + 1}`}
+                          className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                          onError={(e) => {
+                            // Fallback to placeholder if image fails to load
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            const placeholder = document.createElement('div');
+                            placeholder.className = 'w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 text-gray-500';
+                            placeholder.innerHTML = `
+                              <div class="text-center">
+                                <svg class="w-8 h-8 mx-auto mb-1 opacity-50" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" />
+                                </svg>
+                                <div class="text-xs">Image unavailable</div>
+                              </div>
+                            `;
+                            target.parentElement!.appendChild(placeholder);
+                          }}
+                        />
                       </div>
                     ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Click on any photo to view full size
+                  </p>
+                </div>
+              ) : (
+                <div>
+                  <h4 className="font-semibold mb-2">Photos</h4>
+                  <div className="aspect-video bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center">
+                    <div className="text-center text-gray-500">
+                      <svg className="w-16 h-16 mx-auto mb-4 opacity-50" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                      </svg>
+                      <div className="text-sm">No photos available</div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        Be the first to share photos of this venue!
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
