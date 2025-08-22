@@ -47,8 +47,14 @@ export async function listVenues(
     const supabase = createClient();
     const { q, city, brand, type, page = 1 } = filters;
 
-    // Use simple query without PostGIS functions for now
-    console.log("🔍 Starting venue query with filters:", { q, city, brand, type, page });
+    // Use database view that handles coordinate extraction
+    console.log("🔍 Starting venue query with filters:", {
+      q,
+      city,
+      brand,
+      type,
+      page,
+    });
 
     let query = supabase
       .from("venues")
@@ -97,14 +103,14 @@ export async function listVenues(
     // Add debugging to see what we're getting from Supabase
     console.log("🔍 Raw venue data sample:", venues?.[0]);
     console.log("🔍 Total venues found:", venues?.length);
-    
-    // Transform the data to match our interface (without location for now)
+
+    // Transform the data to match our interface (back to working version)
     const transformedVenues: Venue[] = (venues || []).map((venue: any) => {
       console.log("🔍 Processing venue:", venue.name);
-      
+
       return {
         ...venue,
-        location: null, // Skip location parsing for now - focus on getting venues to display
+        location: null, // Back to null until we fix coordinate extraction
       };
     });
 
