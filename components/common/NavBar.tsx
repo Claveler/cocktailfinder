@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Wine, MapPin, Plus, Globe, Menu, X } from "lucide-react";
+import { MapPin, Plus, Globe, Menu, X } from "lucide-react";
 import AuthButton from "./AuthButton";
 import { useState, useEffect } from "react";
 
@@ -51,9 +52,14 @@ export default function NavBar() {
         <div className="hidden lg:grid lg:grid-cols-3 lg:items-center h-full">
           {/* Left Section - Logo */}
           <div className="flex justify-start">
-            <Link href="/" className="flex items-center space-x-2">
-              <Wine className="h-6 w-6 text-primary" />
-              <span className="font-bold text-xl">CocktailFinder</span>
+            <Link href="/" className="flex items-center">
+              <Image
+                src="/assets/Piscola SVG.svg"
+                alt="Piscola Logo"
+                width={120}
+                height={32}
+                className="h-8 w-auto"
+              />
             </Link>
           </div>
 
@@ -98,9 +104,14 @@ export default function NavBar() {
         {/* Mobile Layout - Traditional Flex */}
         <div className="flex lg:hidden h-full items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
-            <Wine className="h-6 w-6 text-primary" />
-            <span className="font-bold text-xl">CocktailFinder</span>
+          <Link href="/" className="flex items-center">
+            <Image
+              src="/assets/Piscola SVG.svg"
+              alt="Piscola Logo"
+              width={100}
+              height={28}
+              className="h-7 w-auto"
+            />
           </Link>
 
           {/* Mobile Right Actions */}
