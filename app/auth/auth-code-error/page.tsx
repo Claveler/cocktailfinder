@@ -27,7 +27,8 @@ export default function AuthCodeError() {
         <CardContent className="space-y-4">
           <div className="text-center space-y-2">
             <p className="text-sm text-muted-foreground">
-              The authentication link may have expired or is invalid. This can happen if:
+              The authentication link may have expired or is invalid. This can
+              happen if:
             </p>
             <ul className="text-sm text-muted-foreground text-left list-disc list-inside space-y-1">
               <li>The link is older than 1 hour</li>
@@ -35,12 +36,10 @@ export default function AuthCodeError() {
               <li>There was a network error</li>
             </ul>
           </div>
-          
+
           <div className="space-y-2">
             <Button asChild className="w-full">
-              <Link href="/login">
-                Try Signing In Again
-              </Link>
+              <Link href="/login">Try Signing In Again</Link>
             </Button>
             <Button variant="outline" asChild className="w-full">
               <Link href="/">

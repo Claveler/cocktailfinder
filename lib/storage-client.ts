@@ -1,6 +1,11 @@
 import { createClient } from "@/lib/supabase/client";
 
 /**
+ * Client-only storage helpers for browser use
+ * These functions work only in client components
+ */
+
+/**
  * Get the public URL for a file in the venue-photos bucket
  * @param path - The file path in the bucket (e.g., "user-id/venue-id/filename.jpg")
  * @returns Public URL string
@@ -154,20 +159,4 @@ export async function listVenuePhotos(
   } catch (error) {
     return { data: null, error: error as Error };
   }
-}
-
-/**
- * Server-side helper to get storage client (for use in API routes)
- * Import this function only in server components or API routes
- *
- * Example usage in API route:
- * import { getServerStorageClient } from '@/lib/storage';
- * const storage = getServerStorageClient();
- */
-export async function getServerStorageClient() {
-  // Dynamic import to avoid client-side issues
-  const { createClient: createServerClient } = await import(
-    "@/lib/supabase/server"
-  );
-  return createServerClient().storage;
 }
