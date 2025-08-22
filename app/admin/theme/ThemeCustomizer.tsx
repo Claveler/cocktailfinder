@@ -1,0 +1,299 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Palette, RotateCcw, Save } from "lucide-react";
+
+interface ColorConfig {
+  primary: string;
+  foreground: string;
+  background: string;
+  secondary: string;
+  accent: string;
+  muted: string;
+  border: string;
+}
+
+const DEFAULT_COLORS: ColorConfig = {
+  primary: "#d32117",      // Logo red
+  foreground: "#301718",   // Logo brown
+  background: "#ffffff",   // White
+  secondary: "#f5f2f2",    // Light brown tint
+  accent: "#d32117",       // Logo red
+  muted: "#faf9f9",        // Very light brown
+  border: "#e5dede",       // Light brown border
+};
+
+export default function ThemeCustomizer() {
+  const [colors, setColors] = useState<ColorConfig>(DEFAULT_COLORS);
+  const [isApplying, setIsApplying] = useState(false);
+
+  // Load saved colors from localStorage on mount
+  useEffect(() => {
+    const savedColors = localStorage.getItem("piscola-theme-colors");
+    if (savedColors) {
+      try {
+        const parsed = JSON.parse(savedColors);
+        setColors(parsed);
+        applyColors(parsed);
+      } catch (error) {
+        console.error("Error loading saved colors:", error);
+      }
+    }
+  }, []);
+
+  // Convert hex to HSL
+  const hexToHsl = (hex: string): string => {
+    const r = parseInt(hex.slice(1, 3), 16) / 255;
+    const g = parseInt(hex.slice(3, 5), 16) / 255;
+    const b = parseInt(hex.slice(5, 7), 16) / 255;
+
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    let h = 0;
+    let s = 0;
+    const l = (max + min) / 2;
+
+    if (max !== min) {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+
+      switch (max) {
+        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+        case g: h = (b - r) / d + 2; break;
+        case b: h = (r - g) / d + 4; break;
+      }
+      h /= 6;
+    }
+
+    return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
+  };
+
+  // Apply colors to CSS custom properties
+  const applyColors = (colorConfig: ColorConfig) => {
+    const root = document.documentElement;
+    
+    root.style.setProperty("--primary", hexToHsl(colorConfig.primary));
+    root.style.setProperty("--foreground", hexToHsl(colorConfig.foreground));
+    root.style.setProperty("--background", hexToHsl(colorConfig.background));
+    root.style.setProperty("--secondary", hexToHsl(colorConfig.secondary));
+    root.style.setProperty("--accent", hexToHsl(colorConfig.accent));
+    root.style.setProperty("--muted", hexToHsl(colorConfig.muted));
+    root.style.setProperty("--border", hexToHsl(colorConfig.border));
+    root.style.setProperty("--input", hexToHsl(colorConfig.muted));
+    root.style.setProperty("--ring", hexToHsl(colorConfig.primary));
+    
+    // Update card colors
+    root.style.setProperty("--card", hexToHsl(colorConfig.background));
+    root.style.setProperty("--card-foreground", hexToHsl(colorConfig.foreground));
+    
+    // Update popover colors  
+    root.style.setProperty("--popover", hexToHsl(colorConfig.background));
+    root.style.setProperty("--popover-foreground", hexToHsl(colorConfig.foreground));
+    
+    // Update foreground colors
+    root.style.setProperty("--primary-foreground", hexToHsl(colorConfig.background));
+    root.style.setProperty("--secondary-foreground", hexToHsl(colorConfig.foreground));
+    root.style.setProperty("--accent-foreground", hexToHsl(colorConfig.background));
+    root.style.setProperty("--muted-foreground", hexToHsl(colorConfig.foreground));
+  };
+
+  const handleColorChange = (colorKey: keyof ColorConfig, value: string) => {
+    const newColors = { ...colors, [colorKey]: value };
+    setColors(newColors);
+    applyColors(newColors);
+  };
+
+  const saveColors = () => {
+    setIsApplying(true);
+    localStorage.setItem("piscola-theme-colors", JSON.stringify(colors));
+    
+    // Simulate API call delay
+    setTimeout(() => {
+      setIsApplying(false);
+    }, 500);
+  };
+
+  const resetToDefault = () => {
+    setColors(DEFAULT_COLORS);
+    applyColors(DEFAULT_COLORS);
+    localStorage.removeItem("piscola-theme-colors");
+  };
+
+  const ColorPicker = ({ 
+    label, 
+    value, 
+    onChange, 
+    description 
+  }: { 
+    label: string; 
+    value: string; 
+    onChange: (value: string) => void;
+    description?: string;
+  }) => (
+    <div className="space-y-2">
+      <Label htmlFor={label} className="text-sm font-medium">
+        {label}
+      </Label>
+      {description && (
+        <p className="text-xs text-muted-foreground">{description}</p>
+      )}
+      <div className="flex items-center space-x-3">
+        <Input
+          id={label}
+          type="color"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-16 h-10 p-1 border rounded-md cursor-pointer"
+        />
+        <Input
+          type="text"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="#000000"
+          className="font-mono text-sm"
+        />
+        <div 
+          className="w-10 h-10 rounded-md border border-border shadow-sm"
+          style={{ backgroundColor: value }}
+        />
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="space-y-6">
+      {/* Preview Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Palette className="h-5 w-5" />
+            Color Preview
+          </CardTitle>
+          <CardDescription>
+            See how your color choices look with live preview
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4">
+            {/* Sample UI Elements */}
+            <div className="flex items-center gap-4">
+              <Button>Primary Button</Button>
+              <Button variant="secondary">Secondary Button</Button>
+              <Button variant="outline">Outline Button</Button>
+              <Badge>Badge</Badge>
+            </div>
+            
+            <Card className="p-4">
+              <h3 className="font-semibold mb-2">Sample Card</h3>
+              <p className="text-muted-foreground mb-3">
+                This is how your cards will look with the selected colors.
+              </p>
+              <Button size="sm">Card Action</Button>
+            </Card>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Color Customization */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Color Configuration</CardTitle>
+          <CardDescription>
+            Customize the main colors of your application
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid gap-6 md:grid-cols-2">
+            <ColorPicker
+              label="Primary Color"
+              value={colors.primary}
+              onChange={(value) => handleColorChange("primary", value)}
+              description="Main brand color (buttons, links, highlights)"
+            />
+            
+            <ColorPicker
+              label="Foreground Color"
+              value={colors.foreground}
+              onChange={(value) => handleColorChange("foreground", value)}
+              description="Main text color"
+            />
+            
+            <ColorPicker
+              label="Background Color"
+              value={colors.background}
+              onChange={(value) => handleColorChange("background", value)}
+              description="Main background color"
+            />
+            
+            <ColorPicker
+              label="Secondary Color"
+              value={colors.secondary}
+              onChange={(value) => handleColorChange("secondary", value)}
+              description="Secondary elements and surfaces"
+            />
+            
+            <ColorPicker
+              label="Accent Color"
+              value={colors.accent}
+              onChange={(value) => handleColorChange("accent", value)}
+              description="Accent elements and highlights"
+            />
+            
+            <ColorPicker
+              label="Muted Color"
+              value={colors.muted}
+              onChange={(value) => handleColorChange("muted", value)}
+              description="Subtle backgrounds and muted elements"
+            />
+          </div>
+
+          <Separator />
+
+          <ColorPicker
+            label="Border Color"
+            value={colors.border}
+            onChange={(value) => handleColorChange("border", value)}
+            description="Borders, dividers, and input outlines"
+          />
+        </CardContent>
+      </Card>
+
+      {/* Actions */}
+      <div className="flex items-center gap-4">
+        <Button onClick={saveColors} disabled={isApplying}>
+          <Save className="h-4 w-4 mr-2" />
+          {isApplying ? "Saving..." : "Save Changes"}
+        </Button>
+        
+        <Button variant="outline" onClick={resetToDefault}>
+          <RotateCcw className="h-4 w-4 mr-2" />
+          Reset to Logo Colors
+        </Button>
+      </div>
+
+      {/* Current Colors Info */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Current Color Palette</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-2 text-sm font-mono">
+            <div>Primary: <span className="text-primary">{colors.primary}</span></div>
+            <div>Foreground: <span style={{color: colors.foreground}}>{colors.foreground}</span></div>
+            <div>Background: {colors.background}</div>
+            <div>Secondary: <span style={{color: colors.secondary}}>{colors.secondary}</span></div>
+            <div>Accent: <span style={{color: colors.accent}}>{colors.accent}</span></div>
+            <div>Muted: <span style={{color: colors.muted}}>{colors.muted}</span></div>
+            <div>Border: <span style={{color: colors.border}}>{colors.border}</span></div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

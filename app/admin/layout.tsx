@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Shield, Users, Edit, Home } from "lucide-react";
+import { Shield, Users, Edit, Home, Palette } from "lucide-react";
 
 export default async function AdminLayout({
   children,
@@ -74,7 +74,7 @@ export default async function AdminLayout({
         {/* Navigation */}
         <Card>
           <CardContent className="pt-6">
-            <nav className="flex gap-4">
+            <nav className="flex gap-4 flex-wrap">
               <Button asChild variant="ghost">
                 <Link href="/admin/venues" className="flex items-center gap-2">
                   <Users className="h-4 w-4" />
@@ -85,6 +85,12 @@ export default async function AdminLayout({
                 <Link href="/admin/edits" className="flex items-center gap-2">
                   <Edit className="h-4 w-4" />
                   Suggested Edits
+                </Link>
+              </Button>
+              <Button asChild variant="ghost">
+                <Link href="/admin/theme" className="flex items-center gap-2">
+                  <Palette className="h-4 w-4" />
+                  Theme Colors
                 </Link>
               </Button>
             </nav>
