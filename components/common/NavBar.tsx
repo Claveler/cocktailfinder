@@ -26,7 +26,7 @@ export default function NavBar() {
             <span>Venues</span>
           </Link>
           <Link
-            href="/add-venue"
+            href="/venues/new"
             className="flex items-center space-x-2 text-sm font-medium transition-colors hover:text-primary"
           >
             <Plus className="h-4 w-4" />

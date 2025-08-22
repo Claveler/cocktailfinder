@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Star, Clock, Wine, DollarSign } from "lucide-react";
+import Link from "next/link";
 import type { Venue } from "@/lib/venues";
 
 interface VenueCardProps {
@@ -58,8 +59,9 @@ export default function VenueCard({
   };
 
   return (
-    <Card className="hover:shadow-lg transition-shadow duration-200 cursor-pointer">
-      <CardContent className="p-6">
+    <Link href={`/venues/${venue.id}`} className="block">
+      <Card className="hover:shadow-lg transition-shadow duration-200 cursor-pointer">
+        <CardContent className="p-6">
         {/* Header */}
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1">
@@ -165,7 +167,8 @@ export default function VenueCard({
             Added {new Date(venue.created_at).toLocaleDateString()}
           </div>
         </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </Link>
   );
 }

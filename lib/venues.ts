@@ -38,6 +38,24 @@ export interface VenueListResult {
   hasPrevPage: boolean;
 }
 
+export interface Comment {
+  id: string;
+  venue_id: string;
+  user_id: string;
+  content: string;
+  rating: number;
+  created_at: string;
+  profile?: {
+    full_name: string | null;
+  };
+}
+
+export interface VenueWithComments extends Venue {
+  comments: Comment[];
+  averageRating: number | null;
+  totalComments: number;
+}
+
 const PAGE_SIZE = 20;
 
 export async function listVenues(
@@ -156,7 +174,7 @@ export async function getCities(): Promise<{
     }
 
     // Get unique cities
-    const cities = [...new Set(data?.map((item) => item.city) || [])].sort();
+    const cities = Array.from(new Set(data?.map((item) => item.city) || [])).sort();
 
     return { data: cities, error: null };
   } catch (error) {
@@ -188,11 +206,148 @@ export async function getBrands(): Promise<{
 
     // Flatten and get unique brands
     const allBrands = data?.flatMap((item) => item.brands || []) || [];
-    const uniqueBrands = [...new Set(allBrands)].sort();
+    const uniqueBrands = Array.from(new Set(allBrands)).sort();
 
     return { data: uniqueBrands, error: null };
   } catch (error) {
     console.error("Error getting brands:", error);
+    return {
+      data: null,
+      error: error instanceof Error ? error : new Error("Unknown error"),
+    };
+  }
+}
+
+// Get venue by ID with access control
+export async function getVenueById(
+  id: string,
+  userId?: string
+): Promise<{ data: VenueWithComments | null; error: Error | null }> {
+  try {
+    console.log("🔍 Fetching venue by ID:", id, "for user:", userId);
+    const supabase = createClient();
+
+    // Fetch venue with profile information
+    const { data: venue, error: venueError } = await supabase
+      .from("venues")
+      .select(`
+        *,
+        latitude,
+        longitude,
+        profile:created_by(full_name)
+      `)
+      .eq("id", id)
+      .single();
+
+    if (venueError) {
+      console.error("🚨 Error fetching venue:", venueError);
+      return { data: null, error: new Error(venueError.message) };
+    }
+
+    if (!venue) {
+      return { data: null, error: new Error("Venue not found") };
+    }
+
+    // Access control: only show approved venues unless user owns it
+    const canAccess = 
+      venue.status === "approved" || 
+      (userId && venue.created_by === userId);
+
+    if (!canAccess) {
+      return { data: null, error: new Error("Venue not found") };
+    }
+
+    // Transform venue data
+    const transformedVenue: Venue = {
+      ...venue,
+      location: venue.latitude && venue.longitude 
+        ? { lat: venue.latitude, lng: venue.longitude }
+        : null,
+    };
+
+    // Fetch comments for this venue
+    const { data: comments, error: commentsError } = await supabase
+      .from("comments")
+      .select(`
+        *,
+        profile:user_id(full_name)
+      `)
+      .eq("venue_id", id)
+      .order("created_at", { ascending: false });
+
+    if (commentsError) {
+      console.error("🚨 Error fetching comments:", commentsError);
+      // Don't fail the whole request for comments error
+    }
+
+    const transformedComments: Comment[] = (comments || []).map((comment: any) => ({
+      ...comment,
+      profile: comment.profile
+    }));
+
+    // Calculate average rating
+    const ratings = transformedComments.map(c => c.rating);
+    const averageRating = ratings.length > 0 
+      ? ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length
+      : null;
+
+    const result: VenueWithComments = {
+      ...transformedVenue,
+      comments: transformedComments,
+      averageRating,
+      totalComments: transformedComments.length,
+    };
+
+    console.log("🔍 Venue fetched successfully:", result.name, "with", result.totalComments, "comments");
+    return { data: result, error: null };
+  } catch (error) {
+    console.error("Error getting venue by ID:", error);
+    return {
+      data: null,
+      error: error instanceof Error ? error : new Error("Unknown error"),
+    };
+  }
+}
+
+// Add a comment to a venue
+export async function addComment(
+  venueId: string,
+  userId: string,
+  content: string,
+  rating: number
+): Promise<{ data: Comment | null; error: Error | null }> {
+  try {
+    console.log("💬 Adding comment to venue:", venueId, "by user:", userId);
+    const supabase = createClient();
+
+    const { data: comment, error } = await supabase
+      .from("comments")
+      .insert({
+        venue_id: venueId,
+        user_id: userId,
+        content: content.trim(),
+        rating: Math.max(1, Math.min(5, rating)), // Ensure rating is between 1-5
+      })
+      .select(`
+        *,
+        profile:user_id(full_name)
+      `)
+      .single();
+
+    if (error) {
+      console.error("🚨 Error adding comment:", error);
+      return { data: null, error: new Error(error.message) };
+    }
+
+    const transformedComment: Comment = {
+      ...comment,
+      profile: comment.profile
+    };
+
+    console.log("💬 Comment added successfully");
+    return { data: transformedComment, error: null };
+  } catch (error) {
+    console.error("Error adding comment:", error);
     return {
       data: null,
       error: error instanceof Error ? error : new Error("Unknown error"),
