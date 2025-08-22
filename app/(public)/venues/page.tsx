@@ -25,8 +25,26 @@ import {
   Map as MapIcon,
   ChevronLeft,
   ChevronRight,
+  List,
 } from "lucide-react";
 import Link from "next/link";
+import Map from "@/components/maps/Map";
+import type { Venue as MapVenue } from "@/components/maps/Map";
+
+// Helper function to calculate map center based on venue locations
+function calculateMapCenter(venues: any[]): [number, number] {
+  const venuesWithLocation = venues.filter(venue => venue.location);
+  
+  if (venuesWithLocation.length === 0) {
+    // Default to London if no venues have coordinates
+    return [51.5074, -0.1278];
+  }
+  
+  const avgLat = venuesWithLocation.reduce((sum, venue) => sum + venue.location.lat, 0) / venuesWithLocation.length;
+  const avgLng = venuesWithLocation.reduce((sum, venue) => sum + venue.location.lng, 0) / venuesWithLocation.length;
+  
+  return [avgLat, avgLng];
+}
 
 interface VenuesPageProps {
   searchParams: {
@@ -244,9 +262,15 @@ export default async function VenuesPage({ searchParams }: VenuesPageProps) {
     }
   });
 
-  // Map view URL
+  // Current view
+  const isMapView = searchParams.view === "map";
+  
+  // Toggle view URLs
   const mapViewUrl = new URLSearchParams(urlParams);
   mapViewUrl.set("view", "map");
+  
+  const listViewUrl = new URLSearchParams(urlParams);
+  listViewUrl.delete("view");
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -259,9 +283,18 @@ export default async function VenuesPage({ searchParams }: VenuesPageProps) {
           </p>
         </div>
         <Button asChild variant="outline">
-          <Link href={`/venues?${mapViewUrl.toString()}`}>
-            <MapIcon className="mr-2 h-4 w-4" />
-            Map View
+          <Link href={isMapView ? `/venues?${listViewUrl.toString()}` : `/venues?${mapViewUrl.toString()}`}>
+            {isMapView ? (
+              <>
+                <List className="mr-2 h-4 w-4" />
+                List View
+              </>
+            ) : (
+              <>
+                <MapIcon className="mr-2 h-4 w-4" />
+                Map View
+              </>
+            )}
           </Link>
         </Button>
       </div>
@@ -304,45 +337,86 @@ export default async function VenuesPage({ searchParams }: VenuesPageProps) {
           <SearchForm defaultValues={filters} cities={cities} brands={brands} />
         </div>
 
-        {/* Venue list */}
+        {/* Content area - Map or List */}
         <div className="lg:col-span-3">
-          <Suspense fallback={<VenueListSkeleton />}>
-            {venueData.venues.length === 0 ? (
-              <Card>
-                <CardContent className="p-12 text-center">
-                  <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">
-                    No venues found
-                  </h3>
-                  <p className="text-muted-foreground mb-4">
-                    Try adjusting your search criteria or filters
-                  </p>
-                  <Button asChild variant="outline">
-                    <Link href="/venues">View all venues</Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            ) : (
-              <>
-                <div className="space-y-4 mb-8">
-                  {venueData.venues.map((venue) => (
-                    <VenueCard key={venue.id} venue={venue} />
-                  ))}
-                </div>
+          {isMapView ? (
+            /* Map View */
+            <div className="space-y-6">
+              {venueData.venues.length === 0 ? (
+                <Card>
+                  <CardContent className="p-12 text-center">
+                    <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">
+                      No venues found
+                    </h3>
+                    <p className="text-muted-foreground mb-4">
+                      Try adjusting your search criteria or filters
+                    </p>
+                    <Button asChild variant="outline">
+                      <Link href="/venues">View all venues</Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card>
+                  <CardContent className="p-0">
+                    <Map
+                      venues={venueData.venues
+                        .filter(venue => venue.location)
+                        .map(venue => ({
+                          id: venue.id,
+                          name: venue.name,
+                          location: venue.location!,
+                          status: venue.status as "approved"
+                        }))}
+                      height="600px"
+                      center={calculateMapCenter(venueData.venues)}
+                      zoom={11}
+                    />
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          ) : (
+            /* List View */
+            <Suspense fallback={<VenueListSkeleton />}>
+              {venueData.venues.length === 0 ? (
+                <Card>
+                  <CardContent className="p-12 text-center">
+                    <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">
+                      No venues found
+                    </h3>
+                    <p className="text-muted-foreground mb-4">
+                      Try adjusting your search criteria or filters
+                    </p>
+                    <Button asChild variant="outline">
+                      <Link href="/venues">View all venues</Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : (
+                <>
+                  <div className="space-y-4 mb-8">
+                    {venueData.venues.map((venue) => (
+                      <VenueCard key={venue.id} venue={venue} />
+                    ))}
+                  </div>
 
-                {/* Pagination */}
-                {venueData.totalPages > 1 && (
-                  <Pagination
-                    currentPage={venueData.currentPage}
-                    totalPages={venueData.totalPages}
-                    hasNextPage={venueData.hasNextPage}
-                    hasPrevPage={venueData.hasPrevPage}
-                    searchParams={urlParams}
-                  />
-                )}
-              </>
-            )}
-          </Suspense>
+                  {/* Pagination */}
+                  {venueData.totalPages > 1 && (
+                    <Pagination
+                      currentPage={venueData.currentPage}
+                      totalPages={venueData.totalPages}
+                      hasNextPage={venueData.hasNextPage}
+                      hasPrevPage={venueData.hasPrevPage}
+                      searchParams={urlParams}
+                    />
+                  )}
+                </>
+              )}
+            </Suspense>
+          )}
         </div>
       </div>
     </div>
