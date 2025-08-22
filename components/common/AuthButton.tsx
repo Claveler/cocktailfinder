@@ -229,7 +229,7 @@ export default function AuthButton() {
           </DropdownMenuItem>
           {isAdmin && (
             <DropdownMenuItem asChild>
-              <Link href="/admin" className="cursor-pointer">
+              <Link href="/admin/venues" className="cursor-pointer">
                 <Shield className="mr-2 h-4 w-4" />
                 Admin
               </Link>

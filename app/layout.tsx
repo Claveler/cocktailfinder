@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import NavBar from "@/components/common/NavBar";
 import { primaryFont, monoFont } from "@/lib/fonts";
+import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
   title: "CocktailFinder",
@@ -20,6 +21,7 @@ export default function RootLayout({
       >
         <NavBar />
         <main className="min-h-screen">{children}</main>
+        <Toaster richColors position="top-right" />
       </body>
     </html>
   );
