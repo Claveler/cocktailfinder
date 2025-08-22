@@ -27,30 +27,19 @@ export default function LoginPage() {
     const supabase = createClient();
     const redirectUrl = `${window.location.origin}/auth/callback`;
 
-    console.log("🔐 Starting Google OAuth signin:", { redirectUrl });
-
     try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo: redirectUrl,
         },
       });
 
-      console.log("🔄 Google OAuth result:", {
-        success: !error,
-        error: error?.message,
-        data: !!data,
-        url: data?.url,
-      });
-
       if (error) {
-        console.error("❌ Error signing in with Google:", error);
-      } else {
-        console.log("✅ Google OAuth initiated successfully");
+        console.error("Google OAuth error:", error.message);
       }
     } catch (error) {
-      console.error("❌ Google OAuth error:", error);
+      console.error("Google OAuth error:", error);
     } finally {
       setLoading(false);
     }
@@ -64,31 +53,21 @@ export default function LoginPage() {
     const supabase = createClient();
     const redirectUrl = `${window.location.origin}/auth/callback`;
 
-    console.log("📬 Starting magic link signin:", { email, redirectUrl });
-
     try {
-      const { data, error } = await supabase.auth.signInWithOtp({
+      const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
           emailRedirectTo: redirectUrl,
         },
       });
 
-      console.log("📬 Magic link result:", {
-        success: !error,
-        error: error?.message,
-        data: !!data,
-        email,
-      });
-
       if (error) {
-        console.error("❌ Error sending magic link:", error);
+        console.error("Magic link error:", error.message);
       } else {
-        console.log("✅ Magic link sent successfully to:", email);
         setMagicLinkSent(true);
       }
     } catch (error) {
-      console.error("❌ Magic link error:", error);
+      console.error("Magic link error:", error);
     } finally {
       setLoading(false);
     }

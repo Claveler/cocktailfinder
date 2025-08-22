@@ -30,9 +30,7 @@ export default function AuthButton() {
     // Add timeout to prevent infinite loading (backup safety)
     const timeout = setTimeout(() => {
       if (mounted) {
-        console.log(
-          "⚠️ AuthButton timeout - setting to unauthenticated (backup safety)"
-        );
+        console.warn("Auth timeout - check your connection");
         setUser(null);
         setProfile(null);
         setLoading(false);
@@ -42,18 +40,9 @@ export default function AuthButton() {
     // Get initial session
     const getSession = async () => {
       try {
-        console.log("AuthButton: Getting session...");
         const {
           data: { session },
         } = await supabase.auth.getSession();
-
-        console.log("🔍 AuthButton: Session result:", {
-          hasSession: !!session,
-          hasUser: !!session?.user,
-          userEmail: session?.user?.email,
-          userMetadata: session?.user?.user_metadata,
-          sessionId: session?.access_token?.slice(0, 20) + "...",
-        });
 
         if (mounted) {
           // Clear timeout immediately
@@ -89,13 +78,10 @@ export default function AuthButton() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("🔄 AuthButton: Auth state change:", {
-        event,
-        hasSession: !!session,
-        hasUser: !!session?.user,
-        userEmail: session?.user?.email,
-        timestamp: new Date().toISOString(),
-      });
+      // Auth state change detected
+      if (process.env.NODE_ENV === "development") {
+        console.log("Auth state change:", event, session?.user?.email);
+      }
 
       if (mounted) {
         // Clear timeout immediately when we get any auth state change
@@ -126,42 +112,20 @@ export default function AuthButton() {
 
   const handleUserProfile = async (user: SupabaseUser) => {
     try {
-      console.log("📄 handleUserProfile started for:", user.email);
-
-      // First, try to get existing profile
-      console.log("🔍 Checking for existing profile...");
+      // Try to get existing profile
       const { data: existingProfile, error: profileError } =
         await getCurrentUserProfile();
 
-      console.log("📄 Profile check result:", {
-        hasProfile: !!existingProfile,
-        profileError: profileError?.message,
-        profile: existingProfile,
-      });
-
       if (existingProfile) {
-        console.log("✅ Using existing profile:", existingProfile);
         setProfile(existingProfile);
       } else {
-        // If no profile exists, create one (first-time sign-in)
-        console.log("🆕 Creating new user profile for:", {
-          email: user.email,
-          metadata: user.user_metadata,
-        });
-
+        // Create new profile for first-time sign-in
         const { data: newProfile, error } = await upsertUserProfile(user);
 
-        console.log("📄 Profile creation result:", {
-          success: !!newProfile,
-          error: error?.message,
-          profile: newProfile,
-        });
-
         if (newProfile) {
-          console.log("✅ Profile created successfully:", newProfile);
           setProfile(newProfile);
         } else {
-          console.error("❌ Error creating profile:", error);
+          console.error("Error creating profile:", error);
           // Create a fallback profile so auth doesn't fail
           const fallbackProfile = {
             id: user.id,
@@ -172,12 +136,11 @@ export default function AuthButton() {
             role: "user",
             created_at: new Date().toISOString(),
           };
-          console.log("🛡️ Using fallback profile:", fallbackProfile);
           setProfile(fallbackProfile);
         }
       }
     } catch (error) {
-      console.error("❌ Error in handleUserProfile:", error);
+      console.error("Error in handleUserProfile:", error);
       // Create a fallback profile so auth doesn't completely fail
       const fallbackProfile = {
         id: user.id,
@@ -186,7 +149,6 @@ export default function AuthButton() {
         role: "user",
         created_at: new Date().toISOString(),
       };
-      console.log("🛡️ Using fallback profile due to error:", fallbackProfile);
       setProfile(fallbackProfile);
     }
   };
