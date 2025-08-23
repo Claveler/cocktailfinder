@@ -6,22 +6,12 @@ import {
   type VenueFilters,
 } from "@/lib/venues";
 import VenueCard from "@/components/venues/VenueCard";
+import FloatingSearchBar from "@/components/venues/FloatingSearchBar";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
-  Search,
   MapPin,
-  Filter,
   Map as MapIcon,
   ChevronLeft,
   ChevronRight,
@@ -29,7 +19,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Map from "@/components/maps/Map";
-import type { Venue as MapVenue } from "@/components/maps/Map";
+import VenuesClient from "./VenuesClient";
 
 // Helper function to calculate map center based on venue locations
 function calculateMapCenter(venues: any[]): [number, number] {
@@ -55,7 +45,7 @@ interface VenuesPageProps {
     q?: string;
     city?: string;
     brand?: string;
-    type?: "bar" | "pub" | "liquor_store";
+    type?: "bar" | "pub" | "liquor_store" | "all";
     page?: string;
     view?: "list" | "map";
   };
@@ -66,7 +56,8 @@ function VenueListSkeleton() {
   return (
     <div className="space-y-4">
       {[...Array(6)].map((_, i) => (
-        <Card key={i} className="animate-pulse">
+        <Card key={i} className="animate-pulse overflow-hidden">
+          <div className="aspect-video w-full bg-gray-200"></div>
           <CardContent className="p-6">
             <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
             <div className="h-3 bg-gray-200 rounded w-1/2 mb-4"></div>
@@ -76,103 +67,6 @@ function VenueListSkeleton() {
         </Card>
       ))}
     </div>
-  );
-}
-
-// Client component for search form
-function SearchForm({
-  defaultValues,
-  cities,
-  brands,
-}: {
-  defaultValues: VenueFilters;
-  cities: string[];
-  brands: string[];
-}) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Filter className="h-5 w-5" />
-          Search & Filters
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <form action="/venues" method="get" className="space-y-4">
-          {/* Search Query */}
-          <div>
-            <Label htmlFor="q">Search Venues</Label>
-            <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="q"
-                name="q"
-                placeholder="Enter venue name..."
-                defaultValue={defaultValues.q || ""}
-                className="pl-10"
-              />
-            </div>
-          </div>
-
-          {/* City Filter */}
-          <div>
-            <Label htmlFor="city">City</Label>
-            <Select name="city" defaultValue={defaultValues.city || "all"}>
-              <SelectTrigger>
-                <SelectValue placeholder="All cities" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All cities</SelectItem>
-                {cities.map((city) => (
-                  <SelectItem key={city} value={city}>
-                    {city}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Type Filter */}
-          <div>
-            <Label htmlFor="type">Venue Type</Label>
-            <Select name="type" defaultValue={defaultValues.type || "all"}>
-              <SelectTrigger>
-                <SelectValue placeholder="All types" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All types</SelectItem>
-                <SelectItem value="bar">Cocktail Bar</SelectItem>
-                <SelectItem value="pub">Pub</SelectItem>
-                <SelectItem value="liquor_store">Liquor Store</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Brand Filter */}
-          <div>
-            <Label htmlFor="brand">Brand</Label>
-            <Select name="brand" defaultValue={defaultValues.brand || "all"}>
-              <SelectTrigger>
-                <SelectValue placeholder="All brands" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All brands</SelectItem>
-                {brands.map((brand) => (
-                  <SelectItem key={brand} value={brand}>
-                    {brand}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <Button type="submit" className="w-full">
-            <Search className="mr-2 h-4 w-4" />
-            Search Venues
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
   );
 }
 
@@ -197,7 +91,7 @@ function Pagination({
   };
 
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center justify-between border-t pt-4">
       <div className="text-sm text-muted-foreground">
         Page {currentPage} of {totalPages}
       </div>
@@ -229,7 +123,7 @@ export default async function VenuesPage({ searchParams }: VenuesPageProps) {
     q: searchParams.q,
     city: searchParams.city === "all" ? undefined : searchParams.city,
     brand: searchParams.brand === "all" ? undefined : searchParams.brand,
-    type: searchParams.type === "all" ? undefined : (searchParams.type as any),
+    type: !searchParams.type || searchParams.type === "all" ? undefined : (searchParams.type as "bar" | "pub" | "liquor_store"),
     page: searchParams.page ? parseInt(searchParams.page) : 1,
   };
 
@@ -266,10 +160,10 @@ export default async function VenuesPage({ searchParams }: VenuesPageProps) {
     }
   });
 
-  // Current view
-  const isMapView = searchParams.view === "map";
+  // Current view - for mobile toggle
+  const isMobileMapView = searchParams.view === "map";
 
-  // Toggle view URLs
+  // Toggle view URLs for mobile
   const mapViewUrl = new URLSearchParams(urlParams);
   mapViewUrl.set("view", "map");
 
@@ -277,80 +171,42 @@ export default async function VenuesPage({ searchParams }: VenuesPageProps) {
   listViewUrl.delete("view");
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Find Piscola Venues</h1>
-          <p className="text-muted-foreground">
-            Discover the best venues to enjoy Piscola near you
-          </p>
-        </div>
-        <Button asChild variant="outline">
-          <Link
-            href={
-              isMapView
-                ? `/venues?${listViewUrl.toString()}`
-                : `/venues?${mapViewUrl.toString()}`
-            }
-          >
-            {isMapView ? (
-              <>
-                <List className="mr-2 h-4 w-4" />
-                List View
-              </>
-            ) : (
-              <>
-                <MapIcon className="mr-2 h-4 w-4" />
-                Map View
-              </>
-            )}
-          </Link>
-        </Button>
-      </div>
-
-      {/* Results summary */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground">
-              {venueData.totalCount} venues found
-            </span>
-            {(filters.q || filters.city || filters.brand || filters.type) && (
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">Filters:</span>
-                {filters.q && (
-                  <Badge variant="secondary">Search: {filters.q}</Badge>
+    <div className="min-h-screen bg-background">
+      {/* Mobile Map/List Toggle */}
+      <div className="lg:hidden bg-card border-b">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-end">
+            <Button asChild variant="outline">
+              <Link
+                href={
+                  isMobileMapView
+                    ? `/venues?${listViewUrl.toString()}`
+                    : `/venues?${mapViewUrl.toString()}`
+                }
+              >
+                {isMobileMapView ? (
+                  <>
+                    <List className="mr-2 h-4 w-4" />
+                    List View
+                  </>
+                ) : (
+                  <>
+                    <MapIcon className="mr-2 h-4 w-4" />
+                    Map View
+                  </>
                 )}
-                {filters.city && (
-                  <Badge variant="secondary">City: {filters.city}</Badge>
-                )}
-                {filters.brand && (
-                  <Badge variant="secondary">Brand: {filters.brand}</Badge>
-                )}
-                {filters.type && (
-                  <Badge variant="secondary">Type: {filters.type}</Badge>
-                )}
-                <Button asChild variant="ghost" size="sm">
-                  <Link href="/venues">Clear all</Link>
-                </Button>
-              </div>
-            )}
+              </Link>
+            </Button>
           </div>
         </div>
       </div>
 
-      {/* Main content */}
-      <div className="grid lg:grid-cols-4 gap-8">
-        {/* Filters sidebar */}
-        <div className="lg:col-span-1">
-          <SearchForm defaultValues={filters} cities={cities} brands={brands} />
-        </div>
-
-        {/* Content area - Map or List */}
-        <div className="lg:col-span-3">
-          {isMapView ? (
-            /* Map View */
+      {/* Main Content */}
+      <div className="container mx-auto px-4 pb-32 lg:pb-8">
+        {/* Mobile: Show either list or map */}
+        <div className="lg:hidden mb-6">
+          {isMobileMapView ? (
+            /* Mobile Map View */
             <div className="space-y-6">
               {venueData.venues.length === 0 ? (
                 <Card>
@@ -379,7 +235,7 @@ export default async function VenuesPage({ searchParams }: VenuesPageProps) {
                           location: venue.location!,
                           status: venue.status as "approved",
                         }))}
-                      height="600px"
+                      height="70vh"
                       center={calculateMapCenter(venueData.venues)}
                       zoom={11}
                     />
@@ -388,7 +244,59 @@ export default async function VenuesPage({ searchParams }: VenuesPageProps) {
               )}
             </div>
           ) : (
-            /* List View */
+            /* Mobile List View */
+            <Suspense fallback={<VenueListSkeleton />}>
+              {venueData.venues.length === 0 ? (
+                <Card>
+                  <CardContent className="p-12 text-center">
+                    <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">
+                      No venues found
+                    </h3>
+                    <p className="text-muted-foreground mb-4">
+                      Try adjusting your search criteria or filters
+                    </p>
+                    <Button asChild variant="outline">
+                      <Link href="/venues">View all venues</Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="space-y-4">
+                  {venueData.venues.map((venue) => (
+                    <VenueCard key={venue.id} venue={venue} />
+                  ))}
+
+                  {/* Mobile Pagination */}
+                  {venueData.totalPages > 1 && (
+                    <Pagination
+                      currentPage={venueData.currentPage}
+                      totalPages={venueData.totalPages}
+                      hasNextPage={venueData.hasNextPage}
+                      hasPrevPage={venueData.hasPrevPage}
+                      searchParams={urlParams}
+                    />
+                  )}
+                </div>
+              )}
+            </Suspense>
+          )}
+        </div>
+
+        {/* Desktop: Side-by-side Layout */}
+        <div className="hidden lg:block">
+          {/* Sticky Search Bar */}
+          <div className="sticky top-20 z-50 p-4">
+            <FloatingSearchBar
+              defaultValues={filters}
+              cities={cities}
+              brands={brands}
+              resultCount={venueData.totalCount}
+            />
+          </div>
+
+          {/* Content starts close to search bar */}
+          <div style={{ paddingTop: 'calc(2rem)' }}>
             <Suspense fallback={<VenueListSkeleton />}>
               {venueData.venues.length === 0 ? (
                 <Card>
@@ -407,26 +315,34 @@ export default async function VenuesPage({ searchParams }: VenuesPageProps) {
                 </Card>
               ) : (
                 <>
-                  <div className="space-y-4 mb-8">
-                    {venueData.venues.map((venue) => (
-                      <VenueCard key={venue.id} venue={venue} />
-                    ))}
-                  </div>
-
-                  {/* Pagination */}
-                  {venueData.totalPages > 1 && (
-                    <Pagination
-                      currentPage={venueData.currentPage}
-                      totalPages={venueData.totalPages}
-                      hasNextPage={venueData.hasNextPage}
-                      hasPrevPage={venueData.hasPrevPage}
-                      searchParams={urlParams}
-                    />
-                  )}
+                  {/* Interactive Venues and Map */}
+                  <VenuesClient 
+                    venues={venueData.venues}
+                    initialCenter={calculateMapCenter(venueData.venues)}
+                    pagination={venueData.totalPages > 1 ? (
+                      <Pagination
+                        currentPage={venueData.currentPage}
+                        totalPages={venueData.totalPages}
+                        hasNextPage={venueData.hasNextPage}
+                        hasPrevPage={venueData.hasPrevPage}
+                        searchParams={urlParams}
+                      />
+                    ) : undefined}
+                  />
                 </>
               )}
             </Suspense>
-          )}
+          </div>
+        </div>
+
+        {/* Mobile Floating Search Bar */}
+        <div className="lg:hidden">
+          <FloatingSearchBar
+            defaultValues={filters}
+            cities={cities}
+            brands={brands}
+            resultCount={venueData.totalCount}
+          />
         </div>
       </div>
     </div>

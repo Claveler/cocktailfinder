@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -12,6 +12,18 @@ import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
 
 import type { Venue } from "./Map";
+
+// Component to update map view when props change
+function MapUpdater({ center, zoom }: { center: [number, number]; zoom: number }) {
+  const map = useMap();
+  
+  useEffect(() => {
+    console.log("MapUpdater: Updating map view to:", center, "zoom:", zoom);
+    map.setView(center, zoom);
+  }, [map, center, zoom]);
+  
+  return null;
+}
 
 interface MapComponentProps {
   venues: Venue[];
@@ -41,6 +53,8 @@ export default function MapComponent({
       style={{ height: "100%", width: "100%" }}
       className="z-0"
     >
+      <MapUpdater center={center} zoom={zoom} />
+      
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
