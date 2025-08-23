@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { MapPin, Search } from "lucide-react";
 import Image from "next/image";
 import { type Venue } from "@/components/maps/BasicMap";
-import LocationMap from "@/components/maps/LocationMap";
+import LocationMapWrapper from "@/components/maps/LocationMapWrapper";
 import VenueCard from "@/components/venues/VenueCard";
 import HomePageClient from "@/app/HomePageClient";
 import { createClient } from "@/lib/supabase/server";
@@ -150,7 +150,7 @@ export default async function Home() {
 
           {/* Interactive Map with User Location */}
           <div className="mb-8">
-            <LocationMap
+            <LocationMapWrapper
               venues={sampleVenues}
               height="384px" // h-96 equivalent
               fallbackCenter={[40.7589, -73.9851]} // NYC center as fallback

@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import VenueCard from "@/components/venues/VenueCard";
-import BasicMap from "@/components/maps/BasicMap";
+import BasicMapWrapper from "@/components/maps/BasicMapWrapper";
 import { Card, CardContent } from "@/components/ui/card";
 import type { Venue } from "@/lib/venues";
 
@@ -54,7 +54,7 @@ export default function VenuesClient({ venues, initialCenter, pagination }: Venu
           }}
         >
           <CardContent className="p-0 h-full">
-            <BasicMap
+            <BasicMapWrapper
               venues={venues
                 .filter((venue: any) => venue.location)
                 .map((venue: any) => ({

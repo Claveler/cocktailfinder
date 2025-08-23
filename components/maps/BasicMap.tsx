@@ -6,10 +6,7 @@ import MarkerClusterGroup from "react-leaflet-cluster";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-// Import Leaflet marker icons
-import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
-import markerIcon from "leaflet/dist/images/marker-icon.png";
-import markerShadow from "leaflet/dist/images/marker-shadow.png";
+// Leaflet marker icons will be imported dynamically in useEffect
 
 // Venue type definition
 export interface Venue {
@@ -50,27 +47,49 @@ function LeafletMapComponent({
   zoom: number;
 }) {
   useEffect(() => {
-    // Fix for default markers not showing in production builds
-    delete (L.Icon.Default.prototype as any)._getIconUrl;
-    L.Icon.Default.mergeOptions({
-      iconUrl: markerIcon.src,
-      iconRetinaUrl: markerIcon2x.src,
-      shadowUrl: markerShadow.src,
-    });
+    // Ensure this only runs on the client side
+    if (typeof window === 'undefined') return;
+    
+    // Dynamic imports for marker icons to avoid SSR issues
+    const setupMarkerIcons = async () => {
+      const [
+        { default: markerIcon },
+        { default: markerIcon2x },
+        { default: markerShadow }
+      ] = await Promise.all([
+        import("leaflet/dist/images/marker-icon.png"),
+        import("leaflet/dist/images/marker-icon-2x.png"),
+        import("leaflet/dist/images/marker-shadow.png")
+      ]);
+
+      // Fix for default markers not showing in production builds
+      delete (L.Icon.Default.prototype as any)._getIconUrl;
+      L.Icon.Default.mergeOptions({
+        iconUrl: markerIcon.src,
+        iconRetinaUrl: markerIcon2x.src,
+        shadowUrl: markerShadow.src,
+      });
+    };
+
+    setupMarkerIcons().catch(console.error);
   }, []);
 
-  // Create custom icon for user location
-  const userLocationIcon = new L.Icon({
-    iconUrl: 'data:image/svg+xml;base64,' + btoa(`
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#3B82F6" width="30" height="30">
-        <circle cx="12" cy="12" r="10" fill="#3B82F6" stroke="white" stroke-width="2"/>
-        <circle cx="12" cy="12" r="4" fill="white"/>
-      </svg>
-    `),
-    iconSize: [30, 30],
-    iconAnchor: [15, 15],
-    popupAnchor: [0, -15],
-  });
+  // Create custom icon for user location (client-side only)
+  const userLocationIcon = useMemo(() => {
+    if (typeof window === 'undefined') return null;
+    
+    return new L.Icon({
+      iconUrl: 'data:image/svg+xml;base64,' + btoa(`
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#3B82F6" width="30" height="30">
+          <circle cx="12" cy="12" r="10" fill="#3B82F6" stroke="white" stroke-width="2"/>
+          <circle cx="12" cy="12" r="4" fill="white"/>
+        </svg>
+      `),
+      iconSize: [30, 30],
+      iconAnchor: [15, 15],
+      popupAnchor: [0, -15],
+    });
+  }, []);
 
   return (
     <MapContainer
@@ -87,7 +106,7 @@ function LeafletMapComponent({
       />
 
       {/* User location marker (outside cluster group) */}
-      {venues
+      {userLocationIcon && venues
         .filter((venue) => venue.id === "user-location")
         .map((venue) => (
           <Marker

@@ -27,6 +27,12 @@ export default function LocationMap({
   const [isErrorDismissed, setIsErrorDismissed] = useState(false);
 
   useEffect(() => {
+    // Ensure this only runs on the client side
+    if (typeof window === 'undefined') {
+      setIsLoading(false);
+      return;
+    }
+
     // Check if geolocation is supported
     if (!navigator.geolocation) {
       setLocationError("Geolocation is not supported by this browser");
