@@ -65,32 +65,36 @@ export default function ThemeCustomizer() {
     }
   };
 
-  // Load saved colors from localStorage on mount
+  // Load global theme from server on mount
   useEffect(() => {
-    const savedColors = localStorage.getItem("piscola-theme-colors");
-    if (savedColors) {
+    const loadGlobalTheme = async () => {
       try {
-        const parsed = JSON.parse(savedColors);
-        
-        // Handle backward compatibility for new color properties
-        const colorsWithDefaults = {
-          ...DEFAULT_COLORS,
-          ...parsed,
-          // If card color doesn't exist, use background (old behavior)
-          card: parsed.card || parsed.background || DEFAULT_COLORS.card,
-          // If textAccent doesn't exist, use default white
-          textAccent: parsed.textAccent || DEFAULT_COLORS.textAccent,
-        };
-        
-        setColors(colorsWithDefaults);
-        applyColors(colorsWithDefaults);
+        const response = await fetch('/api/theme');
+        if (response.ok) {
+          const themeData = await response.json();
+          
+          // Handle backward compatibility for new color properties
+          const colorsWithDefaults = {
+            ...DEFAULT_COLORS,
+            ...themeData.colors,
+            // Ensure all properties exist
+            card: themeData.colors?.card || DEFAULT_COLORS.card,
+            textAccent: themeData.colors?.textAccent || DEFAULT_COLORS.textAccent,
+          };
+          
+          setColors(colorsWithDefaults);
+          applyColors(colorsWithDefaults);
+        } else {
+          console.error("Failed to load global theme, using defaults");
+          applyColors(DEFAULT_COLORS);
+        }
       } catch (error) {
-        console.error("Error loading saved colors:", error);
+        console.error("Error loading global theme:", error);
+        applyColors(DEFAULT_COLORS);
       }
-    } else {
-      // Apply default colors on first load
-      applyColors(DEFAULT_COLORS);
-    }
+    };
+    
+    loadGlobalTheme();
   }, []);
 
   // Load random venue on mount
@@ -187,22 +191,72 @@ export default function ThemeCustomizer() {
     applyColors(newColors);
   };
 
-  const saveColors = () => {
+  const saveColors = async () => {
     setIsApplying(true);
 
-    // Save colors to localStorage (colors already applied for live preview)
-    localStorage.setItem("piscola-theme-colors", JSON.stringify(colors));
+    try {
+      const response = await fetch('/api/theme', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          colors,
+          name: 'Admin Custom Theme'
+        }),
+      });
 
-    // Simulate API call delay
-    setTimeout(() => {
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Theme saved successfully:', result);
+        
+        // Force page reload to apply server-side changes
+        window.location.reload();
+      } else {
+        const errorData = await response.json();
+        console.error('Failed to save theme:', errorData);
+        alert('Failed to save theme: ' + (errorData.error || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Error saving theme:', error);
+      alert('Failed to save theme. Please try again.');
+    } finally {
       setIsApplying(false);
-    }, 500);
+    }
   };
 
-  const resetToDefault = () => {
-    setColors(DEFAULT_COLORS);
-    applyColors(DEFAULT_COLORS);
-    localStorage.removeItem("piscola-theme-colors");
+  const resetToDefault = async () => {
+    setIsApplying(true);
+    
+    try {
+      const response = await fetch('/api/theme', {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Theme reset successfully:', result);
+        
+        // Update local state and UI
+        setColors(DEFAULT_COLORS);
+        applyColors(DEFAULT_COLORS);
+        
+        // Force page reload to apply server-side changes
+        window.location.reload();
+      } else {
+        const errorData = await response.json();
+        console.error('Failed to reset theme:', errorData);
+        
+        // Show more user-friendly error message
+        const errorMessage = errorData.error || `HTTP ${response.status}: Unknown error`;
+        alert(`Failed to reset theme: ${errorMessage}`);
+      }
+    } catch (error) {
+      console.error('Error resetting theme:', error);
+      alert('Failed to reset theme. Please try again.');
+    } finally {
+      setIsApplying(false);
+    }
   };
 
   // Helper function to create working color picker (inline version)

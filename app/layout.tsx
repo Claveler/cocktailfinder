@@ -3,7 +3,7 @@ import "./globals.css";
 import NavBar from "@/components/common/NavBar";
 import { primaryFont, monoFont, headingFont } from "@/lib/fonts";
 import { Toaster } from "sonner";
-import ClientThemeProvider from "@/components/theme/ClientThemeProvider";
+import ServerThemeProvider from "@/components/theme/ServerThemeProvider";
 
 export const metadata: Metadata = {
   title: "Piscola.net",
@@ -20,11 +20,11 @@ export default function RootLayout({
       <body
         className={`${primaryFont.variable} ${monoFont.variable} ${headingFont.variable} font-sans antialiased`}
       >
-        <ClientThemeProvider>
+        <ServerThemeProvider>
           <NavBar />
           <main className="min-h-screen">{children}</main>
           <Toaster richColors position="top-right" />
-        </ClientThemeProvider>
+        </ServerThemeProvider>
       </body>
     </html>
   );
