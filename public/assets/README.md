@@ -4,7 +4,7 @@ This folder contains the logo assets for Piscola.
 
 ## Current Logo
 
-- **File**: `Piscola SVG.svg`
+- **File**: `piscola-logo.svg`
 - **Dimensions**: Scalable SVG
 - **Usage**: Navigation bar logo (replaces both icon and text)
 - **Size**: Desktop: 120x32px, Mobile: 100x28px
@@ -20,15 +20,15 @@ To replace the current placeholder logo with your own:
    - Keep file size small for web performance
 
 2. **Replace the file**:
-   - Replace `public/assets/Piscola SVG.svg` with your new logo
-   - Keep the same filename (`Piscola SVG.svg`) or update the import path in `components/common/NavBar.tsx`
+   - Replace `public/assets/piscola-logo.svg` with your new logo
+   - Keep the same filename (`piscola-logo.svg`) or update the import path in `components/common/NavBar.tsx`
 
 3. **Adjust sizing if needed**:
    - Logo dimensions: Desktop (120x32px), Mobile (100x28px)
    - To change size, update the `width`, `height`, and `className` props in `NavBar.tsx`:
      ```tsx
      <Image
-       src="/assets/Piscola SVG.svg"
+       src="/assets/piscola-logo.svg"
        alt="Piscola Logo"
        width={120}  // Change this (desktop)
        height={32}  // Change this (desktop)

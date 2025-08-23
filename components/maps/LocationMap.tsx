@@ -70,8 +70,8 @@ export default function LocationMap({
         setLocationError(null);
       },
       (error) => {
-        console.error("Geolocation error:", error);
-        console.error("Error code:", error.code, "Message:", error.message);
+        // Only log errors once, not on every render
+        console.warn("Geolocation error:", error.code, error.message);
         let errorMessage = "Unable to get your location";
         
         switch (error.code) {
@@ -104,7 +104,7 @@ export default function LocationMap({
         maximumAge: isEdge ? 60000 : 300000, // Shorter cache for Edge
       }
     );
-  }, []);
+  }, []); // Empty dependency array - run only once on mount
 
   // Create venues array with user location marker
   const venuesWithUser = userLocation

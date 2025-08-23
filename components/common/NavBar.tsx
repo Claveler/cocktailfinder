@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Plus, Globe, Menu, X } from "lucide-react";
@@ -53,12 +52,11 @@ export default function NavBar() {
           {/* Left Section - Logo */}
           <div className="flex justify-start">
             <Link href="/" className="flex items-center">
-              <Image
-                src="/assets/Piscola SVG.svg"
+              <img
+                src="/assets/piscola-logo.svg"
                 alt="Piscola Logo"
-                width={150}
-                height={40}
-                className="h-10 w-auto shadow-sm"
+                style={{ height: '2.5rem', width: 'auto' }}
+                className="shadow-sm"
               />
             </Link>
           </div>
@@ -105,12 +103,11 @@ export default function NavBar() {
         <div className="flex lg:hidden h-full items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center">
-            <Image
-              src="/assets/Piscola SVG.svg"
+            <img
+              src="/assets/piscola-logo.svg"
               alt="Piscola Logo"
-              width={150}
-              height={40}
-              className="h-10 w-auto shadow-sm"
+              style={{ height: '2.5rem', width: 'auto' }}
+              className="shadow-sm"
             />
           </Link>
 

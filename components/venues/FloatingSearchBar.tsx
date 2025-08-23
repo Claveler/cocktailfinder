@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,6 +35,7 @@ export default function FloatingSearchBar({
   brands,
   resultCount,
 }: FloatingSearchBarProps) {
+  const router = useRouter();
   const [isExpanded, setIsExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState(defaultValues.q || "");
   const [selectedCity, setSelectedCity] = useState(
@@ -66,6 +68,26 @@ export default function FloatingSearchBar({
     setSelectedCity("all");
     setSelectedType("all");
     setSelectedBrand("all");
+    // Navigate to clear all filters
+    router.push("/venues");
+  };
+
+  // Helper function to navigate with current filter state
+  const navigateWithFilters = (overrides: Partial<VenueFilters> = {}) => {
+    const params = new URLSearchParams();
+    
+    // Use current state values or overrides
+    const query = overrides.q !== undefined ? overrides.q : searchQuery;
+    const city = overrides.city !== undefined ? overrides.city : selectedCity;
+    const type = overrides.type !== undefined ? overrides.type : selectedType;
+    const brand = overrides.brand !== undefined ? overrides.brand : selectedBrand;
+
+    if (query) params.set("q", query);
+    if (city && city !== "all") params.set("city", city);
+    if (type && type !== "all") params.set("type", type);
+    if (brand && brand !== "all") params.set("brand", brand);
+
+    router.push(`/venues?${params.toString()}`);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -85,8 +107,8 @@ export default function FloatingSearchBar({
     if (type && type !== "all") params.set("type", type);
     if (brand && brand !== "all") params.set("brand", brand);
 
-    // Navigate to venues page with filters
-    window.location.href = `/venues?${params.toString()}`;
+    // Navigate to venues page with filters using client-side navigation
+    router.push(`/venues?${params.toString()}`);
   };
 
   return (
@@ -117,7 +139,7 @@ export default function FloatingSearchBar({
                 >
                   <Filter className="h-4 w-4" />
                   {hasActiveFilters && (
-                    <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 text-xs">
+                    <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 text-xs flex items-center justify-center">
                       {getActiveFiltersCount()}
                     </Badge>
                   )}
@@ -301,7 +323,7 @@ export default function FloatingSearchBar({
                 >
                   <Filter className="h-4 w-4" />
                   {hasActiveFilters && (
-                    <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 text-xs">
+                    <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 text-xs flex items-center justify-center">
                       {getActiveFiltersCount()}
                     </Badge>
                   )}
@@ -326,12 +348,10 @@ export default function FloatingSearchBar({
                       size="sm"
                       className="text-xs h-7"
                       onClick={() => {
-                        setSelectedBrand(selectedBrand === brand ? "all" : brand);
-                        // Auto-submit when brand is selected
-                        setTimeout(() => {
-                          const form = document.querySelector('form') as HTMLFormElement;
-                          if (form) form.requestSubmit();
-                        }, 100);
+                        const newBrand = selectedBrand === brand ? "all" : brand;
+                        setSelectedBrand(newBrand);
+                        // Navigate immediately with the new brand filter
+                        navigateWithFilters({ brand: newBrand });
                       }}
                     >
                       {brand}

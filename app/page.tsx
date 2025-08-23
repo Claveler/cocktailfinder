@@ -89,7 +89,7 @@ export default async function Home() {
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
-      <section className="relative w-full aspect-[4/3] md:aspect-[5/2] lg:aspect-[16/5] flex items-center overflow-hidden">
+      <section className="relative w-full h-[320px] md:h-[380px] lg:h-[400px] flex items-center overflow-hidden">
         {/* Full Viewport Background Image */}
         <div className="absolute inset-0 z-0">
           <Image
@@ -109,28 +109,28 @@ export default async function Home() {
         {/* Content */}
         <div className="relative z-10 w-full px-4 md:px-6 lg:px-8 py-6 md:py-8">
           <div className="container mx-auto">
-            <div className="max-w-2xl">
+            <div className="max-w-xl md:max-w-2xl lg:max-w-3xl">
               <HomePageClient delay={0}>
-                <h1 className="text-2xl md:text-4xl lg:text-6xl font-bold mb-4 md:mb-6 text-white leading-tight">
+                <h1 className="text-2xl md:text-3xl lg:text-5xl font-bold mb-4 md:mb-6 text-white leading-tight">
                   A Taste of Chile,
                   <br />
                   <span className="text-white/90">Wherever You Are</span>
                 </h1>
-                <p className="text-base md:text-lg lg:text-xl text-white/90 mb-6 md:mb-8 max-w-xl leading-relaxed">
+                <p className="text-sm md:text-base lg:text-lg text-white/90 mb-6 md:mb-8 max-w-xl leading-relaxed">
                   Discover the best venues to enjoy pisco in your city. From
                   speakeasies to rooftop bars, find your perfect drink destination.
                 </p>
 
                 {/* Search CTA */}
-                <div className="flex flex-col md:flex-row gap-4 max-w-lg">
+                <div className="flex flex-col sm:flex-row gap-3 md:gap-4 max-w-lg">
                   <div className="relative flex-1">
                     <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input 
                       placeholder="Enter your location..." 
-                      className="pl-10 bg-white/95 backdrop-blur-sm border-white/20 text-foreground h-12" 
+                      className="pl-10 bg-white/95 backdrop-blur-sm border-white/20 text-foreground h-11 md:h-12" 
                     />
                   </div>
-                  <Button size="lg" className="shrink-0 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-6 lg:px-8 h-12">
+                  <Button size="lg" className="shrink-0 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-4 md:px-6 lg:px-8 h-11 md:h-12">
                     <MapPin className="mr-2 h-4 w-4" />
                     Find Venues
                   </Button>
@@ -142,9 +142,9 @@ export default async function Home() {
       </section>
 
       {/* Map Section Placeholder */}
-      <section className="py-16 px-4 bg-muted/30">
+      <section className="py-8 md:py-12 lg:py-16 px-4 bg-muted/30">
         <div className="container mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12">
+          <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-center mb-8 md:mb-12">
             Explore Venues Near You
           </h2>
 
@@ -152,7 +152,7 @@ export default async function Home() {
           <div className="mb-8">
             <LocationMapWrapper
               venues={sampleVenues}
-              height="384px" // h-96 equivalent
+              height="400px" // Fixed height for debugging
               fallbackCenter={[40.7589, -73.9851]} // NYC center as fallback
               fallbackZoom={13}
             />
