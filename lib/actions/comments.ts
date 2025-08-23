@@ -39,8 +39,6 @@ export async function addCommentAction(venueId: string, formData: FormData) {
       throw result.error;
     }
 
-    console.log("💬 Comment added via server action");
-
     // Revalidate the venue page to show the new comment
     revalidatePath(`/venues/${venueId}`);
 

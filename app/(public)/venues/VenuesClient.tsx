@@ -17,10 +17,8 @@ export default function VenuesClient({ venues, initialCenter, pagination }: Venu
   const [mapZoom, setMapZoom] = useState(11);
 
   const handleVenueCardClick = useCallback((venue: Venue) => {
-    console.log("Venue card clicked:", venue.name, venue.location);
     if (venue.location) {
       const newCenter: [number, number] = [venue.location.lat, venue.location.lng];
-      console.log("Setting map center to:", newCenter);
       setMapCenter(newCenter);
       setMapZoom(15); // Zoom in when focusing on a specific venue
     }

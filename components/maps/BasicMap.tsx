@@ -27,7 +27,6 @@ function MapUpdater({ center, zoom }: { center: [number, number]; zoom: number }
   const map = useMap();
   
   useEffect(() => {
-    console.log("MapUpdater: Updating map view to:", center, "zoom:", zoom);
     map.setView(center, zoom);
   }, [map, center, zoom]);
   

@@ -221,7 +221,7 @@ export async function getVenueById(
   userId?: string
 ): Promise<{ data: VenueWithComments | null; error: Error | null }> {
   try {
-    console.log("🔍 Fetching venue by ID:", id, "for user:", userId);
+  
     const supabase = createClient();
 
     // Fetch venue with profile information
@@ -303,13 +303,6 @@ export async function getVenueById(
       totalComments: transformedComments.length,
     };
 
-    console.log(
-      "🔍 Venue fetched successfully:",
-      result.name,
-      "with",
-      result.totalComments,
-      "comments"
-    );
     return { data: result, error: null };
   } catch (error) {
     console.error("Error getting venue by ID:", error);
@@ -328,7 +321,7 @@ export async function addComment(
   rating: number
 ): Promise<{ data: Comment | null; error: Error | null }> {
   try {
-    console.log("💬 Adding comment to venue:", venueId, "by user:", userId);
+  
     const supabase = createClient();
 
     const { data: comment, error } = await supabase
@@ -357,7 +350,6 @@ export async function addComment(
       profile: comment.profile,
     };
 
-    console.log("💬 Comment added successfully");
     return { data: transformedComment, error: null };
   } catch (error) {
     console.error("Error adding comment:", error);

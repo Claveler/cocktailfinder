@@ -44,7 +44,6 @@ export async function approveVenue(venueId: string) {
       return { success: false, error: "Failed to approve venue" };
     }
 
-    console.log("✅ Venue approved:", venueId);
     revalidatePath("/admin/venues");
     revalidatePath("/venues");
 
@@ -74,7 +73,6 @@ export async function rejectVenue(venueId: string) {
       return { success: false, error: "Failed to reject venue" };
     }
 
-    console.log("❌ Venue rejected:", venueId);
     revalidatePath("/admin/venues");
 
     return { success: true, message: "Venue rejected successfully" };
@@ -126,7 +124,6 @@ export async function updateVenue(
       return { success: false, error: "Failed to update venue" };
     }
 
-    console.log("📝 Venue updated:", venueId);
     revalidatePath("/admin/venues");
     revalidatePath("/venues");
 
@@ -198,8 +195,6 @@ export async function updateVenueAction(
       console.error("Error updating venue:", error);
       return { success: false, error: "Failed to update venue" };
     }
-
-    console.log("📝 Venue updated via admin edit:", venueId);
 
     // Revalidate relevant paths
     revalidatePath("/admin/venues");
@@ -334,7 +329,6 @@ export async function acceptSuggestedEdit(editId: string) {
       // Don't fail the operation for this
     }
 
-    console.log("✅ Suggested edit accepted:", editId);
     revalidatePath("/admin/edits");
     revalidatePath("/venues");
 
@@ -364,7 +358,6 @@ export async function rejectSuggestedEdit(editId: string) {
       return { success: false, error: "Failed to reject suggested edit" };
     }
 
-    console.log("❌ Suggested edit rejected:", editId);
     revalidatePath("/admin/edits");
 
     return { success: true, message: "Suggested edit rejected" };

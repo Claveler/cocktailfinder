@@ -207,9 +207,6 @@ export default function ThemeCustomizer() {
       });
 
       if (response.ok) {
-        const result = await response.json();
-        console.log('Theme saved successfully:', result);
-        
         // Force page reload to apply server-side changes
         window.location.reload();
       } else {
@@ -234,9 +231,6 @@ export default function ThemeCustomizer() {
       });
 
       if (response.ok) {
-        const result = await response.json();
-        console.log('Theme reset successfully:', result);
-        
         // Update local state and UI
         setColors(DEFAULT_COLORS);
         applyColors(DEFAULT_COLORS);

@@ -49,15 +49,10 @@ export default function LocationMap({
     const isEdge = /Edg/i.test(navigator.userAgent);
     const isChrome = /Chrome/i.test(navigator.userAgent) && !/Edg/i.test(navigator.userAgent);
     const isSafari = /Safari/i.test(navigator.userAgent) && !/Chrome/i.test(navigator.userAgent);
-    
-    console.log("Browser detected:", { isEdge, isChrome, isSafari });
-    console.log("User agent:", navigator.userAgent);
-    console.log("Requesting user location...");
 
     // Request user's location
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        console.log("Location obtained:", position.coords);
         const userLat = position.coords.latitude;
         const userLng = position.coords.longitude;
         const userCoords: [number, number] = [userLat, userLng];
