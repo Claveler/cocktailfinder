@@ -105,7 +105,7 @@ export default function FloatingSearchBar({
                     placeholder="Search venues..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 pr-4"
+                    className="pl-10 pr-4 bg-white"
                   />
                 </div>
                 <Button
@@ -138,7 +138,7 @@ export default function FloatingSearchBar({
                         value={selectedCity}
                         onValueChange={setSelectedCity}
                       >
-                        <SelectTrigger className="h-8 text-sm">
+                        <SelectTrigger className="h-8 text-sm bg-white">
                           <SelectValue placeholder="All cities" />
                         </SelectTrigger>
                         <SelectContent>
@@ -159,7 +159,7 @@ export default function FloatingSearchBar({
                         value={selectedType}
                         onValueChange={setSelectedType}
                       >
-                        <SelectTrigger className="h-8 text-sm">
+                        <SelectTrigger className="h-8 text-sm bg-white">
                           <SelectValue placeholder="All types" />
                         </SelectTrigger>
                         <SelectContent>
@@ -179,7 +179,7 @@ export default function FloatingSearchBar({
                       value={selectedBrand}
                       onValueChange={setSelectedBrand}
                     >
-                      <SelectTrigger className="h-8 text-sm">
+                      <SelectTrigger className="h-8 text-sm bg-white">
                         <SelectValue placeholder="All brands" />
                       </SelectTrigger>
                       <SelectContent>
@@ -266,7 +266,7 @@ export default function FloatingSearchBar({
                     placeholder="Search venues..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 pr-4"
+                    className="pl-10 pr-4 bg-white"
                   />
                 </div>
 
@@ -277,7 +277,7 @@ export default function FloatingSearchBar({
                     value={selectedCity}
                     onValueChange={setSelectedCity}
                   >
-                    <SelectTrigger className="text-sm">
+                    <SelectTrigger className="text-sm bg-white">
                       <SelectValue placeholder="All cities" />
                     </SelectTrigger>
                     <SelectContent>
@@ -365,7 +365,7 @@ export default function FloatingSearchBar({
                         value={selectedType}
                         onValueChange={setSelectedType}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="bg-white">
                           <SelectValue placeholder="All types" />
                         </SelectTrigger>
                         <SelectContent>
@@ -387,7 +387,7 @@ export default function FloatingSearchBar({
                         value={selectedBrand}
                         onValueChange={setSelectedBrand}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="bg-white">
                           <SelectValue placeholder="All brands" />
                         </SelectTrigger>
                         <SelectContent>
