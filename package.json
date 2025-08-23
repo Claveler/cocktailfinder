@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "switch-font": "node scripts/switch-font.js"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",

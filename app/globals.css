@@ -68,6 +68,9 @@
     
     /* 🔧 Bebas Neue Heading Configuration - Change this value to adjust scaling */
     --heading-scale: 1.5; /* 150% scaling to compensate for Bebas Neue's smaller appearance */
+    
+    /* 🎨 Font System - REMOVED: Now handled directly in tailwind.config.ts */
+    /* --font-primary: var(--font-poppins); */
   }
   .dark {
     /* Dark mode using logo brown as base */

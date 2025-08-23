@@ -7,6 +7,7 @@ import {
   Roboto,
   Lato,
   Bebas_Neue,
+  Hanken_Grotesk
 } from "next/font/google";
 
 // Local fonts (Geist)
@@ -63,6 +64,12 @@ const lato = Lato({
   display: "swap",
 });
 
+const hankenGrotesk = Hanken_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-hanken-grotesk",
+  display: "swap",
+});
+
 // Bebas Neue for headings
 const bebasNeue = Bebas_Neue({
   subsets: ["latin"],
@@ -83,7 +90,7 @@ type FontConfig = {
 // 🎨 CHANGE THIS TO TEST DIFFERENT FONTS
 const CURRENT_FONT = "geist" as const;
 
-type FontKeys = "geist" | "inter" | "raleway" | "poppins" | "openSans" | "roboto" | "lato";
+type FontKeys = "geist" | "inter" | "raleway" | "poppins" | "openSans" | "roboto" | "lato" | "hankenGrotesk";
 
 const fontConfigs: Record<FontKeys, FontConfig> = {
   geist: {
@@ -133,6 +140,13 @@ const fontConfigs: Record<FontKeys, FontConfig> = {
     mono: geistMono,
     heading: bebasNeue,
     cssVariable: "--font-lato",
+    tailwindClass: "font-sans",
+  },
+  hankenGrotesk: {
+    primary: hankenGrotesk,
+    mono: geistMono,
+    heading: bebasNeue,
+    cssVariable: "--font-hanken-grotesk",
     tailwindClass: "font-sans",
   },
 };
