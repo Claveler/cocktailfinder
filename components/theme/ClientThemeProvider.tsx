@@ -39,11 +39,25 @@ interface ColorConfig {
   primary: string;
   foreground: string;
   background: string;
+  card: string;
+  textAccent: string;
   secondary: string;
   accent: string;
   muted: string;
   border: string;
 }
+
+const DEFAULT_COLORS: ColorConfig = {
+  primary: "#d32117", // Logo red
+  foreground: "#301718", // Logo brown
+  background: "#f4f5f7", // Light gray page background
+  card: "#ffffff", // White card background
+  textAccent: "#ffffff", // White text for dark backgrounds
+  secondary: "#f5f2f2", // Light brown tint
+  accent: "#d32117", // Logo red
+  muted: "#faf9f9", // Very light brown
+  border: "#e5dede", // Light brown border
+};
 
 export default function ClientThemeProvider({
   children,
@@ -55,10 +69,21 @@ export default function ClientThemeProvider({
     const savedColors = localStorage.getItem("piscola-theme-colors");
     if (savedColors) {
       try {
-        const colors: ColorConfig = JSON.parse(savedColors);
+        const parsed = JSON.parse(savedColors);
+        
+        // Handle backward compatibility for new color properties
+        const colors: ColorConfig = {
+          ...DEFAULT_COLORS,
+          ...parsed,
+          // If card color doesn't exist, use background (old behavior)
+          card: parsed.card || parsed.background || DEFAULT_COLORS.card,
+          // If textAccent doesn't exist, use default white
+          textAccent: parsed.textAccent || DEFAULT_COLORS.textAccent,
+        };
+        
         const root = document.documentElement;
 
-        // Apply saved colors
+        // Apply core colors
         root.style.setProperty("--primary", hexToHsl(colors.primary));
         root.style.setProperty("--foreground", hexToHsl(colors.foreground));
         root.style.setProperty("--background", hexToHsl(colors.background));
@@ -69,20 +94,24 @@ export default function ClientThemeProvider({
         root.style.setProperty("--input", hexToHsl(colors.muted));
         root.style.setProperty("--ring", hexToHsl(colors.primary));
 
-        // Update related colors
-        root.style.setProperty("--card", hexToHsl(colors.background));
+        // Card colors (now separate from background)
+        root.style.setProperty("--card", hexToHsl(colors.card));
         root.style.setProperty(
           "--card-foreground",
           hexToHsl(colors.foreground)
         );
-        root.style.setProperty("--popover", hexToHsl(colors.background));
+
+        // Popover colors (use card color for consistency)
+        root.style.setProperty("--popover", hexToHsl(colors.card));
         root.style.setProperty(
           "--popover-foreground",
           hexToHsl(colors.foreground)
         );
+
+        // Foreground colors for UI elements (use textAccent for stability)
         root.style.setProperty(
           "--primary-foreground",
-          hexToHsl(colors.background)
+          hexToHsl(colors.textAccent)
         );
         root.style.setProperty(
           "--secondary-foreground",
@@ -90,7 +119,7 @@ export default function ClientThemeProvider({
         );
         root.style.setProperty(
           "--accent-foreground",
-          hexToHsl(colors.background)
+          hexToHsl(colors.textAccent)
         );
         root.style.setProperty(
           "--muted-foreground",

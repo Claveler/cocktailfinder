@@ -21,6 +21,8 @@ interface ColorConfig {
   primary: string;
   foreground: string;
   background: string;
+  card: string;
+  textAccent: string;
   secondary: string;
   accent: string;
   muted: string;
@@ -30,7 +32,9 @@ interface ColorConfig {
 const DEFAULT_COLORS: ColorConfig = {
   primary: "#d32117", // Logo red
   foreground: "#301718", // Logo brown
-  background: "#ffffff", // White
+  background: "#f4f5f7", // Light gray page background
+  card: "#ffffff", // White card background
+  textAccent: "#ffffff", // White text for dark backgrounds
   secondary: "#f5f2f2", // Light brown tint
   accent: "#d32117", // Logo red
   muted: "#faf9f9", // Very light brown
@@ -67,11 +71,25 @@ export default function ThemeCustomizer() {
     if (savedColors) {
       try {
         const parsed = JSON.parse(savedColors);
-        setColors(parsed);
-        applyColors(parsed);
+        
+        // Handle backward compatibility for new color properties
+        const colorsWithDefaults = {
+          ...DEFAULT_COLORS,
+          ...parsed,
+          // If card color doesn't exist, use background (old behavior)
+          card: parsed.card || parsed.background || DEFAULT_COLORS.card,
+          // If textAccent doesn't exist, use default white
+          textAccent: parsed.textAccent || DEFAULT_COLORS.textAccent,
+        };
+        
+        setColors(colorsWithDefaults);
+        applyColors(colorsWithDefaults);
       } catch (error) {
         console.error("Error loading saved colors:", error);
       }
+    } else {
+      // Apply default colors on first load
+      applyColors(DEFAULT_COLORS);
     }
   }, []);
 
@@ -117,6 +135,7 @@ export default function ThemeCustomizer() {
   const applyColors = (colorConfig: ColorConfig) => {
     const root = document.documentElement;
 
+    // Core colors
     root.style.setProperty("--primary", hexToHsl(colorConfig.primary));
     root.style.setProperty("--foreground", hexToHsl(colorConfig.foreground));
     root.style.setProperty("--background", hexToHsl(colorConfig.background));
@@ -127,24 +146,24 @@ export default function ThemeCustomizer() {
     root.style.setProperty("--input", hexToHsl(colorConfig.muted));
     root.style.setProperty("--ring", hexToHsl(colorConfig.primary));
 
-    // Update card colors
-    root.style.setProperty("--card", hexToHsl(colorConfig.background));
+    // Card colors (now separate from background)
+    root.style.setProperty("--card", hexToHsl(colorConfig.card));
     root.style.setProperty(
       "--card-foreground",
       hexToHsl(colorConfig.foreground)
     );
 
-    // Update popover colors
-    root.style.setProperty("--popover", hexToHsl(colorConfig.background));
+    // Popover colors (use card color for consistency)
+    root.style.setProperty("--popover", hexToHsl(colorConfig.card));
     root.style.setProperty(
       "--popover-foreground",
       hexToHsl(colorConfig.foreground)
     );
 
-    // Update foreground colors
+    // Foreground colors for UI elements (use textAccent for stability)
     root.style.setProperty(
       "--primary-foreground",
-      hexToHsl(colorConfig.background)
+      hexToHsl(colorConfig.textAccent)
     );
     root.style.setProperty(
       "--secondary-foreground",
@@ -152,7 +171,7 @@ export default function ThemeCustomizer() {
     );
     root.style.setProperty(
       "--accent-foreground",
-      hexToHsl(colorConfig.background)
+      hexToHsl(colorConfig.textAccent)
     );
     root.style.setProperty(
       "--muted-foreground",
@@ -391,7 +410,21 @@ export default function ThemeCustomizer() {
               "Background Color",
               colors.background,
               (value) => handleColorChange("background", value),
-              "Main background color"
+              "Main page background color"
+            )}
+
+            {createColorPicker(
+              "Card Color",
+              colors.card,
+              (value) => handleColorChange("card", value),
+              "Card and content area background color"
+            )}
+
+            {createColorPicker(
+              "Text Accent Color",
+              colors.textAccent,
+              (value) => handleColorChange("textAccent", value),
+              "Text color for buttons and dark backgrounds"
             )}
 
             {createColorPicker(
@@ -457,6 +490,13 @@ export default function ThemeCustomizer() {
               </span>
             </div>
             <div>Background: {colors.background}</div>
+            <div>Card: {colors.card}</div>
+            <div>
+              Text Accent:{" "}
+              <span style={{ color: colors.textAccent, backgroundColor: colors.primary, padding: '2px 4px', borderRadius: '2px' }}>
+                {colors.textAccent}
+              </span>
+            </div>
             <div>
               Secondary:{" "}
               <span style={{ color: colors.secondary }}>
