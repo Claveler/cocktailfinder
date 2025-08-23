@@ -17,6 +17,7 @@ const config: Config = {
           "sans-serif",
         ],
         mono: ["var(--font-geist-mono)", "ui-monospace", "monospace"],
+        heading: ["var(--font-bebas-neue)", "Arial", "sans-serif"],
       },
       colors: {
         background: "hsl(var(--background))",

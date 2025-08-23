@@ -6,6 +6,7 @@ import {
   Open_Sans,
   Roboto,
   Lato,
+  Bebas_Neue,
 } from "next/font/google";
 
 // Local fonts (Geist)
@@ -62,68 +63,79 @@ const lato = Lato({
   display: "swap",
 });
 
+// Bebas Neue for headings
+const bebasNeue = Bebas_Neue({
+  subsets: ["latin"],
+  variable: "--font-bebas-neue",
+  weight: ["400"],
+  display: "swap",
+});
+
 // Font configuration - Change this to switch fonts easily!
 type FontConfig = {
   primary: typeof geistSans;
   mono: typeof geistMono;
+  heading: typeof bebasNeue;
   cssVariable: string;
   tailwindClass: string;
 };
 
 // 🎨 CHANGE THIS TO TEST DIFFERENT FONTS
-const CURRENT_FONT:
-  | "geist"
-  | "inter"
-  | "raleway"
-  | "poppins"
-  | "openSans"
-  | "roboto"
-  | "lato" = "geist";
+const CURRENT_FONT = "geist" as const;
 
-const fontConfigs: Record<typeof CURRENT_FONT, FontConfig> = {
+type FontKeys = "geist" | "inter" | "raleway" | "poppins" | "openSans" | "roboto" | "lato";
+
+const fontConfigs: Record<FontKeys, FontConfig> = {
   geist: {
     primary: geistSans,
     mono: geistMono,
+    heading: bebasNeue,
     cssVariable: "--font-geist-sans",
     tailwindClass: "font-sans",
   },
   inter: {
     primary: inter,
     mono: geistMono, // Keep Geist mono for code
+    heading: bebasNeue,
     cssVariable: "--font-inter",
     tailwindClass: "font-sans",
   },
   raleway: {
     primary: raleway,
     mono: geistMono,
+    heading: bebasNeue,
     cssVariable: "--font-raleway",
     tailwindClass: "font-sans",
   },
   poppins: {
     primary: poppins,
     mono: geistMono,
+    heading: bebasNeue,
     cssVariable: "--font-poppins",
     tailwindClass: "font-sans",
   },
   openSans: {
     primary: openSans,
     mono: geistMono,
+    heading: bebasNeue,
     cssVariable: "--font-open-sans",
     tailwindClass: "font-sans",
   },
   roboto: {
     primary: roboto,
     mono: geistMono,
+    heading: bebasNeue,
     cssVariable: "--font-roboto",
     tailwindClass: "font-sans",
   },
   lato: {
     primary: lato,
     mono: geistMono,
+    heading: bebasNeue,
     cssVariable: "--font-lato",
     tailwindClass: "font-sans",
   },
 };
 
-export const currentFontConfig = fontConfigs[CURRENT_FONT];
-export const { primary: primaryFont, mono: monoFont } = currentFontConfig;
+export const currentFontConfig = fontConfigs[CURRENT_FONT as FontKeys];
+export const { primary: primaryFont, mono: monoFont, heading: headingFont } = currentFontConfig;

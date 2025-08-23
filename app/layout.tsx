@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import NavBar from "@/components/common/NavBar";
-import { primaryFont, monoFont } from "@/lib/fonts";
+import { primaryFont, monoFont, headingFont } from "@/lib/fonts";
 import { Toaster } from "sonner";
 import ClientThemeProvider from "@/components/theme/ClientThemeProvider";
 
@@ -18,7 +18,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${primaryFont.variable} ${monoFont.variable} font-sans antialiased`}
+        className={`${primaryFont.variable} ${monoFont.variable} ${headingFont.variable} font-sans antialiased`}
       >
         <ClientThemeProvider>
           <NavBar />
