@@ -18,7 +18,7 @@ import {
   List,
 } from "lucide-react";
 import Link from "next/link";
-import Map from "@/components/maps/Map";
+import BasicMap from "@/components/maps/BasicMap";
 import VenuesClient from "./VenuesClient";
 
 // Helper function to calculate map center based on venue locations
@@ -224,9 +224,13 @@ export default async function VenuesPage({ searchParams }: VenuesPageProps) {
                   </CardContent>
                 </Card>
               ) : (
-                <Card>
-                  <CardContent className="p-0">
-                    <Map
+                <Card 
+                  style={{ 
+                    height: 'calc(100vh - 12rem)' // Fill available space: viewport minus header, toggle bar, and padding
+                  }}
+                >
+                  <CardContent className="p-0 h-full">
+                    <BasicMap
                       venues={venueData.venues
                         .filter((venue) => venue.location)
                         .map((venue) => ({
@@ -235,7 +239,7 @@ export default async function VenuesPage({ searchParams }: VenuesPageProps) {
                           location: venue.location!,
                           status: venue.status as "approved",
                         }))}
-                      height="70vh"
+                      height="100%"
                       center={calculateMapCenter(venueData.venues)}
                       zoom={11}
                     />

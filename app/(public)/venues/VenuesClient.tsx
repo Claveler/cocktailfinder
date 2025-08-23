@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import VenueCard from "@/components/venues/VenueCard";
-import Map from "@/components/maps/Map";
+import BasicMap from "@/components/maps/BasicMap";
 import { Card, CardContent } from "@/components/ui/card";
 import type { Venue } from "@/lib/venues";
 
@@ -46,11 +46,17 @@ export default function VenuesClient({ venues, initialCenter, pagination }: Venu
         )}
       </div>
 
-      {/* Right Column: Sticky Map */}
+      {/* Right Column: Responsive Sticky Map */}
       <div className="w-2/3">
-        <Card className="sticky h-[calc(78vh-6rem)]" style={{ top: 'calc(17rem)' }}>
+        <Card 
+          className="sticky" 
+          style={{ 
+            top: 'calc(17rem)', // Position below navbar + search bar
+            height: 'calc(100vh - 17rem - 2rem)' // Fill available space with small bottom margin
+          }}
+        >
           <CardContent className="p-0 h-full">
-            <Map
+            <BasicMap
               venues={venues
                 .filter((venue: any) => venue.location)
                 .map((venue: any) => ({

@@ -3,7 +3,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { MapPin, Search } from "lucide-react";
 import Image from "next/image";
-import Map, { type Venue } from "@/components/maps/Map";
+import { type Venue } from "@/components/maps/BasicMap";
+import LocationMap from "@/components/maps/LocationMap";
 import VenueCard from "@/components/venues/VenueCard";
 import HomePageClient from "@/app/HomePageClient";
 import { createClient } from "@/lib/supabase/server";
@@ -147,17 +148,15 @@ export default async function Home() {
             Explore Venues Near You
           </h2>
 
-          {/* Interactive Map */}
-          <Card className="w-full h-96 mb-8 overflow-hidden">
-            <CardContent className="p-0 h-full">
-              <Map
-                venues={sampleVenues}
-                height="100%"
-                center={[40.7589, -73.9851]} // NYC center
-                zoom={13}
-              />
-            </CardContent>
-          </Card>
+          {/* Interactive Map with User Location */}
+          <div className="mb-8">
+            <LocationMap
+              venues={sampleVenues}
+              height="384px" // h-96 equivalent
+              fallbackCenter={[40.7589, -73.9851]} // NYC center as fallback
+              fallbackZoom={13}
+            />
+          </div>
 
           {/* Featured Venues Preview */}
           <div className="grid md:grid-cols-3 gap-6">

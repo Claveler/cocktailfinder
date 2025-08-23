@@ -65,8 +65,56 @@ export default function ClientThemeProvider({
   children: React.ReactNode;
 }) {
   useEffect(() => {
+    const applyThemeColors = (colors: ColorConfig) => {
+      const root = document.documentElement;
+
+      // Apply core colors
+      root.style.setProperty("--primary", hexToHsl(colors.primary));
+      root.style.setProperty("--foreground", hexToHsl(colors.foreground));
+      root.style.setProperty("--background", hexToHsl(colors.background));
+      root.style.setProperty("--secondary", hexToHsl(colors.secondary));
+      root.style.setProperty("--accent", hexToHsl(colors.accent));
+      root.style.setProperty("--muted", hexToHsl(colors.muted));
+      root.style.setProperty("--border", hexToHsl(colors.border));
+      root.style.setProperty("--input", hexToHsl(colors.muted));
+      root.style.setProperty("--ring", hexToHsl(colors.primary));
+
+      // Card colors (now separate from background)
+      root.style.setProperty("--card", hexToHsl(colors.card));
+      root.style.setProperty(
+        "--card-foreground",
+        hexToHsl(colors.foreground)
+      );
+
+      // Popover colors (use card color for consistency)
+      root.style.setProperty("--popover", hexToHsl(colors.card));
+      root.style.setProperty(
+        "--popover-foreground",
+        hexToHsl(colors.foreground)
+      );
+
+      // Foreground colors for UI elements (use textAccent for stability)
+      root.style.setProperty(
+        "--primary-foreground",
+        hexToHsl(colors.textAccent)
+      );
+      root.style.setProperty(
+        "--secondary-foreground",
+        hexToHsl(colors.foreground)
+      );
+      root.style.setProperty(
+        "--accent-foreground",
+        hexToHsl(colors.textAccent)
+      );
+      root.style.setProperty(
+        "--muted-foreground",
+        hexToHsl(colors.foreground)
+      );
+    };
+
     // Load saved colors on app start
     const savedColors = localStorage.getItem("piscola-theme-colors");
+    
     if (savedColors) {
       try {
         const parsed = JSON.parse(savedColors);
@@ -81,53 +129,15 @@ export default function ClientThemeProvider({
           textAccent: parsed.textAccent || DEFAULT_COLORS.textAccent,
         };
         
-        const root = document.documentElement;
-
-        // Apply core colors
-        root.style.setProperty("--primary", hexToHsl(colors.primary));
-        root.style.setProperty("--foreground", hexToHsl(colors.foreground));
-        root.style.setProperty("--background", hexToHsl(colors.background));
-        root.style.setProperty("--secondary", hexToHsl(colors.secondary));
-        root.style.setProperty("--accent", hexToHsl(colors.accent));
-        root.style.setProperty("--muted", hexToHsl(colors.muted));
-        root.style.setProperty("--border", hexToHsl(colors.border));
-        root.style.setProperty("--input", hexToHsl(colors.muted));
-        root.style.setProperty("--ring", hexToHsl(colors.primary));
-
-        // Card colors (now separate from background)
-        root.style.setProperty("--card", hexToHsl(colors.card));
-        root.style.setProperty(
-          "--card-foreground",
-          hexToHsl(colors.foreground)
-        );
-
-        // Popover colors (use card color for consistency)
-        root.style.setProperty("--popover", hexToHsl(colors.card));
-        root.style.setProperty(
-          "--popover-foreground",
-          hexToHsl(colors.foreground)
-        );
-
-        // Foreground colors for UI elements (use textAccent for stability)
-        root.style.setProperty(
-          "--primary-foreground",
-          hexToHsl(colors.textAccent)
-        );
-        root.style.setProperty(
-          "--secondary-foreground",
-          hexToHsl(colors.foreground)
-        );
-        root.style.setProperty(
-          "--accent-foreground",
-          hexToHsl(colors.textAccent)
-        );
-        root.style.setProperty(
-          "--muted-foreground",
-          hexToHsl(colors.foreground)
-        );
+        applyThemeColors(colors);
       } catch (error) {
         console.error("Error loading saved theme colors:", error);
+        // Fallback to default colors if parsing fails
+        applyThemeColors(DEFAULT_COLORS);
       }
+    } else {
+      // No saved colors - apply default Piscola theme for first-time visitors
+      applyThemeColors(DEFAULT_COLORS);
     }
   }, []);
 
