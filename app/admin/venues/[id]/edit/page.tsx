@@ -75,7 +75,7 @@ export default async function EditVenuePage({ params }: EditVenuePageProps) {
         </div>
 
         <div>
-          <h1 className="text-3xl font-bold mb-2">Edit Venue</h1>
+          <h1 className="text-2xl font-bold mb-2">Edit Venue</h1>
           <p className="text-muted-foreground">
             Editing: <span className="font-medium">{venue.name}</span>
           </p>

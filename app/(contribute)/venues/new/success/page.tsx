@@ -31,7 +31,7 @@ function SuccessContent({ venueId }: { venueId?: string }) {
 
         {/* Title and Message */}
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-green-800">
+          <h1 className="text-2xl font-bold text-green-800">
             Venue Submitted Successfully!
           </h1>
           <p className="text-lg text-muted-foreground">
@@ -189,7 +189,7 @@ export default function VenueSubmissionSuccess({
             <div className="h-20 w-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <CheckCircle className="h-12 w-12 text-gray-400" />
             </div>
-            <h1 className="text-3xl font-bold mb-2">Loading...</h1>
+            <h1 className="text-2xl font-bold mb-2">Loading...</h1>
           </div>
         </div>
       }

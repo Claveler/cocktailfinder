@@ -190,7 +190,7 @@ export default async function VenuePage({ params }: VenuePageProps) {
       <div className="mb-8">
         <div className="flex items-start justify-between mb-4">
           <div>
-            <h1 className="text-3xl font-bold mb-2">{venue.name}</h1>
+            <h1 className="text-2xl font-bold mb-2">{venue.name}</h1>
             <div className="flex items-center gap-4 text-muted-foreground">
               <Badge variant="secondary" className="capitalize">
                 {venue.type.replace("_", " ")}

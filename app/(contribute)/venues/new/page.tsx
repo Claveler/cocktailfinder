@@ -284,7 +284,7 @@ export default function NewVenuePage() {
         >
           ← Back to Venues
         </Link>
-        <h1 className="text-3xl font-bold mb-2">Submit a New Venue</h1>
+        <h1 className="text-2xl font-bold mb-2">Submit a New Venue</h1>
         <p className="text-muted-foreground">
           Help build our community by adding venues where you can enjoy pisco.
         </p>

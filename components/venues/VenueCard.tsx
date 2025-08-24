@@ -130,12 +130,12 @@ export default function VenueCard({
                 onClick={handleNameClick}
                 className="hover:text-primary-foreground transition-colors"
               >
-                <h3 className="font-bold text-xl mb-1 line-clamp-2 text-white drop-shadow-lg">
+                <h3 className="font-bold text-lg mb-1 line-clamp-2 text-white drop-shadow-lg">
                   {venue.name}
                 </h3>
               </Link>
             ) : (
-              <h3 className="font-bold text-xl mb-1 line-clamp-2 text-white drop-shadow-lg">
+              <h3 className="font-bold text-lg mb-1 line-clamp-2 text-white drop-shadow-lg">
                 {venue.name}
               </h3>
             )}

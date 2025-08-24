@@ -111,12 +111,12 @@ export default async function Home() {
           <div className="container mx-auto">
             <div className="max-w-xl md:max-w-2xl lg:max-w-3xl">
               <HomePageClient delay={0}>
-                <h1 className="text-2xl md:text-3xl lg:text-5xl font-bold mb-4 md:mb-6 text-white leading-tight">
+                <h1 className="text-4xl lg:text-6xl font-bold mb-4 md:mb-6 text-white leading-tight">
                   A Taste of Chile,
                   <br />
                   <span className="text-white/90">Wherever You Are</span>
                 </h1>
-                <p className="text-sm md:text-base lg:text-lg text-white/90 mb-6 md:mb-8 max-w-xl leading-relaxed">
+                <p className="text-sm text-white/90 mb-6 md:mb-8 max-w-xl leading-relaxed">
                   Discover the best venues to enjoy pisco in your city. From
                   speakeasies to rooftop bars, find your perfect drink destination.
                 </p>
@@ -144,7 +144,7 @@ export default async function Home() {
       {/* Map Section Placeholder */}
       <section className="py-8 md:py-12 lg:py-16 px-4 bg-muted/30">
         <div className="container mx-auto">
-          <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-center mb-8 md:mb-12">
+          <h2 className="text-2xl font-bold text-center mb-8 md:mb-12">
             Explore Venues Near You
           </h2>
 
