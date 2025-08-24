@@ -50,39 +50,13 @@ function LeafletMapComponent({
     // Ensure this only runs on the client side
     if (typeof window === 'undefined') return;
     
-    // Setup marker icons with fallback URLs
-    const setupMarkerIcons = async () => {
-      try {
-        const [
-          { default: markerIcon },
-          { default: markerIcon2x },
-          { default: markerShadow }
-        ] = await Promise.all([
-          import("leaflet/dist/images/marker-icon.png"),
-          import("leaflet/dist/images/marker-icon-2x.png"),
-          import("leaflet/dist/images/marker-shadow.png")
-        ]);
-
-        // Fix for default markers not showing in production builds
-        delete (L.Icon.Default.prototype as any)._getIconUrl;
-        L.Icon.Default.mergeOptions({
-          iconUrl: markerIcon.src,
-          iconRetinaUrl: markerIcon2x.src,
-          shadowUrl: markerShadow.src,
-        });
-      } catch (error) {
-        // Fallback: Use CDN URLs if dynamic imports fail
-        console.warn("Using fallback marker icons from CDN");
-        delete (L.Icon.Default.prototype as any)._getIconUrl;
-        L.Icon.Default.mergeOptions({
-          iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-          iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-          shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-        });
-      }
-    };
-
-    setupMarkerIcons();
+    // Setup marker icons using CDN URLs (more reliable in Next.js)
+    delete (L.Icon.Default.prototype as any)._getIconUrl;
+    L.Icon.Default.mergeOptions({
+      iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+      iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+      shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+    });
   }, []); // Run only once on mount
 
   // Create custom icon for user location (client-side only)
