@@ -75,109 +75,111 @@ export default function VenueCard({
   };
 
   const cardContent = (
-    <>
-      {/* Venue Image */}
-      <div className="relative aspect-video w-full bg-gray-100">
-        {venue.photos && venue.photos.length > 0 ? (
-          <img
-            src={venue.photos[0]}
-            alt={venue.name}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
-            <div className="text-center text-gray-500">
-              <Wine className="w-12 h-12 mx-auto mb-2 opacity-50" />
-              <div className="text-sm">No photo available</div>
+    <div className="overflow-hidden">
+      {/* Photo Section with Overlay Info */}
+      <div className="relative h-48 overflow-hidden">
+        {/* Background Image */}
+        <div className="absolute inset-0">
+          {venue.photos && venue.photos.length > 0 ? (
+            <img
+              src={venue.photos[0]}
+              alt={venue.name}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-gray-400 to-gray-600 flex items-center justify-center">
+              <Wine className="w-12 h-12 text-white opacity-40" />
+            </div>
+          )}
+          
+          {/* Enhanced Gradient Overlay for better readability */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/20" />
+          <div className="absolute inset-0 bg-black/30" />
+        </div>
+
+        {/* Overlaid Content */}
+        <div className="relative h-full p-4 flex flex-col justify-between text-white">
+          {/* Top Row - Status badges */}
+          <div className="flex items-start justify-between">
+            <div className="flex gap-2">
+              {showDistance && distance !== undefined && (
+                <Badge className="text-xs bg-black/60 backdrop-blur-sm text-white border-white/20 hover:bg-black/70">
+                  {distance.toFixed(1)} km
+                </Badge>
+              )}
+            </div>
+            
+            <div className="flex gap-2">
+              {venue.photos && venue.photos.length > 1 && (
+                <Badge className="text-xs bg-black/60 backdrop-blur-sm text-white border-white/20">
+                  +{venue.photos.length - 1} photos
+                </Badge>
+              )}
+              <Badge className="text-xs bg-black/60 backdrop-blur-sm text-white border-white/20">
+                <Clock className="h-3 w-3 mr-1" />
+                Open Now
+              </Badge>
             </div>
           </div>
-        )}
 
-        {/* Photo count badge */}
-        {venue.photos && venue.photos.length > 1 && (
-          <div className="absolute top-2 right-2">
-            <Badge
-              variant="secondary"
-              className="text-xs bg-black/70 text-white"
-            >
-              +{venue.photos.length - 1} more
-            </Badge>
-          </div>
-        )}
-      </div>
-
-      <CardContent className="p-6">
-        {/* Header */}
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex-1">
+          {/* Bottom Row - Venue Name & Type */}
+          <div className="space-y-2">
             {onCardClick ? (
               <Link 
                 href={`/venues/${venue.id}`}
                 onClick={handleNameClick}
-                className="hover:text-primary transition-colors"
+                className="hover:text-primary-foreground transition-colors"
               >
-                <h3 className="font-semibold text-lg mb-1 line-clamp-2">
+                <h3 className="font-bold text-xl mb-1 line-clamp-2 text-white drop-shadow-lg">
                   {venue.name}
                 </h3>
               </Link>
             ) : (
-              <h3 className="font-semibold text-lg mb-1 line-clamp-2">
+              <h3 className="font-bold text-xl mb-1 line-clamp-2 text-white drop-shadow-lg">
                 {venue.name}
               </h3>
             )}
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              {getTypeIcon(venue.type)}
-              <span>{getTypeLabel(venue.type)}</span>
-              {venue.price_range && (
-                <>
-                  <span>•</span>
-                  <span className="font-medium text-green-600">
-                    {getPriceRangeDisplay(venue.price_range)}
-                  </span>
-                </>
-              )}
+            
+            <div className="flex items-center gap-2 text-sm">
+              <div className="flex items-center gap-2 bg-black/60 backdrop-blur-sm px-3 py-1 rounded-full">
+                {getTypeIcon(venue.type)}
+                <span className="text-white/90">{getTypeLabel(venue.type)}</span>
+                {venue.price_range && (
+                  <>
+                    <span className="text-white/70">•</span>
+                    <span className="font-medium text-green-300">
+                      {getPriceRangeDisplay(venue.price_range)}
+                    </span>
+                  </>
+                )}
+              </div>
             </div>
-          </div>
-
-          {/* Status badges */}
-          <div className="flex flex-col gap-1">
-            {showDistance && distance !== undefined && (
-              <Badge variant="secondary" className="text-xs">
-                {distance.toFixed(1)} km
-              </Badge>
-            )}
-            <Badge variant="outline" className="text-xs">
-              <Clock className="h-3 w-3 mr-1" />
-              Open Now
-            </Badge>
           </div>
         </div>
+      </div>
 
+      {/* Solid Background Section - Detailed Info */}
+      <CardContent className="p-4 bg-card">
         {/* Address */}
-        <div className="flex items-start gap-2 mb-4">
+        <div className="flex items-start gap-2 mb-3">
           <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
           <div className="text-sm text-muted-foreground">
-            <div>{venue.address}</div>
-            <div>
-              {venue.city}, {venue.country}
-            </div>
+            <div className="font-medium text-foreground">{venue.address}</div>
+            <div>{venue.city}, {venue.country}</div>
           </div>
         </div>
 
         {/* Brands */}
         {venue.brands && venue.brands.length > 0 && (
-          <div className="mb-4">
-            <div className="text-xs text-muted-foreground mb-2">
-              Featured Brands:
-            </div>
+          <div className="mb-3">
             <div className="flex flex-wrap gap-1">
               {venue.brands.slice(0, 3).map((brand, index) => (
-                <Badge key={index} variant="secondary" className="text-xs">
+                <Badge key={index} className="text-xs bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">
                   {brand}
                 </Badge>
               ))}
               {venue.brands.length > 3 && (
-                <Badge variant="secondary" className="text-xs">
+                <Badge className="text-xs bg-primary/10 text-primary border-primary/20">
                   +{venue.brands.length - 3} more
                 </Badge>
               )}
@@ -185,49 +187,26 @@ export default function VenueCard({
           </div>
         )}
 
-        {/* Ambiance */}
-        {venue.ambiance && venue.ambiance.length > 0 && (
-          <div className="mb-4">
-            <div className="text-xs text-muted-foreground mb-2">
-              Ambiance:
-            </div>
-            <div className="flex flex-wrap gap-1">
-              {venue.ambiance.slice(0, 2).map((amb, index) => (
-                <Badge key={index} variant="outline" className="text-xs">
-                  {amb}
-                </Badge>
-              ))}
-              {venue.ambiance.length > 2 && (
-                <Badge variant="outline" className="text-xs">
-                  +{venue.ambiance.length - 2} more
-                </Badge>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Rating placeholder */}
-        <div className="flex items-center justify-between mt-4 pt-4 border-t">
+        {/* Rating & Footer */}
+        <div className="flex items-center justify-between pt-3 border-t border-border">
           <div className="flex items-center">
             <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 mr-1" />
             <span className="text-sm font-medium">4.5</span>
-            <span className="text-xs text-muted-foreground ml-1">
-              (24 reviews)
-            </span>
+            <span className="text-xs text-muted-foreground ml-1">(24 reviews)</span>
           </div>
           <div className="text-xs text-muted-foreground">
             Added {new Date(venue.created_at).toLocaleDateString()}
           </div>
         </div>
       </CardContent>
-    </>
+    </div>
   );
 
   // If no onCardClick handler, wrap entire card with Link (original behavior)
   if (!onCardClick) {
     return (
       <Link href={`/venues/${venue.id}`} className="block">
-        <Card className="hover:shadow-lg transition-shadow duration-200 cursor-pointer overflow-hidden">
+        <Card className="hover:shadow-xl hover:scale-[1.02] transition-all duration-300 cursor-pointer overflow-hidden">
           {cardContent}
         </Card>
       </Link>
@@ -237,7 +216,7 @@ export default function VenueCard({
   // If onCardClick handler exists, use new interactive behavior
   return (
     <Card 
-      className="hover:shadow-lg transition-shadow duration-200 cursor-pointer overflow-hidden" 
+      className="hover:shadow-xl hover:scale-[1.02] transition-all duration-300 cursor-pointer overflow-hidden" 
       onClick={handleCardClick}
     >
       {cardContent}
