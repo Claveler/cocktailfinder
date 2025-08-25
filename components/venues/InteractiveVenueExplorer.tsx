@@ -17,6 +17,7 @@ interface InteractiveVenueExplorerProps {
   maxDistanceKm?: number;
   fallbackCenter?: [number, number];
   fallbackZoom?: number;
+  searchLocation?: [number, number] | null;
 }
 
 export default function InteractiveVenueExplorer({ 
@@ -24,7 +25,11 @@ export default function InteractiveVenueExplorer({
   maxDistanceKm = 15,
   fallbackCenter = [51.5261617, -0.1633234], // London Business School default (LBS easter egg! 🎓)
   fallbackZoom = Number(process.env.NEXT_PUBLIC_MAP_ZOOM_LEVEL) || 13,
+  searchLocation = null,
 }: InteractiveVenueExplorerProps) {
+  
+  // Environment variables for zoom levels
+  const searchZoomLevel = Number(process.env.NEXT_PUBLIC_SEARCH_ZOOM_LEVEL) || 15;
   
 
   // Map loading state
@@ -40,7 +45,7 @@ export default function InteractiveVenueExplorer({
   
   // Map display props - STATIC after initial user location (never updated to prevent re-renders)
   const [staticMapCenter, setStaticMapCenter] = useState<[number, number]>(fallbackCenter);
-  const [staticMapZoom] = useState<number>(fallbackZoom);
+  const [staticMapZoom, setStaticMapZoom] = useState<number>(fallbackZoom);
   const [staticUserLocation, setStaticUserLocation] = useState<[number, number] | null>(null);
   
 
@@ -180,6 +185,19 @@ export default function InteractiveVenueExplorer({
       updateVenuesForBounds(newBounds, newCenter);
     }
   }, [userLocation, updateVenuesForBounds, fallbackZoom]);
+
+  // Handle search location updates
+  useEffect(() => {
+    if (searchLocation) {
+      // Update map center to search location with higher zoom
+      setStaticMapCenter(searchLocation);
+      setStaticMapZoom(searchZoomLevel);
+      
+      // Update venues for the search location using the search zoom level
+      const searchBounds = calculateApproximateBounds(searchLocation, searchZoomLevel);
+      updateVenuesForBounds(searchBounds, searchLocation);
+    }
+  }, [searchLocation, updateVenuesForBounds, searchZoomLevel]);
 
   // Cleanup timeouts on unmount
   useEffect(() => {
