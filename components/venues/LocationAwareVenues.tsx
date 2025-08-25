@@ -17,9 +17,6 @@ export default function LocationAwareVenues({
   allVenues, 
   maxDistanceKm = 10 
 }: LocationAwareVenuesProps) {
-  // Debug: Log the received radius value
-  console.log('🔧 LocationAwareVenues received maxDistanceKm:', maxDistanceKm);
-  
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [filteredVenues, setFilteredVenues] = useState<(VenueType & { distance: number })[]>([]);
   const [isLoading, setIsLoading] = useState(true);

@@ -3,9 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { MapPin, Search } from "lucide-react";
 import Image from "next/image";
-import { type Venue } from "@/components/maps/BasicMap";
-import LocationMapWrapper from "@/components/maps/LocationMapWrapper";
-import LocationAwareVenues from "@/components/venues/LocationAwareVenues";
+import InteractiveVenueExplorer from "@/components/venues/InteractiveVenueExplorer";
 import HomePageClient from "@/app/HomePageClient";
 import { createClient } from "@/lib/supabase/server";
 import type { Venue as VenueType } from "@/lib/venues";
@@ -13,10 +11,6 @@ import type { Venue as VenueType } from "@/lib/venues";
 // Configuration for location-based venue filtering
 const VENUE_SEARCH_RADIUS_KM = Number(process.env.NEXT_PUBLIC_VENUE_SEARCH_RADIUS_KM) || 10; // Default radius in kilometers
 const VENUE_POOL_SIZE = 100; // Fetch more venues for better location filtering
-
-// Debug: Log the radius value
-console.log('🔧 VENUE_SEARCH_RADIUS_KM:', VENUE_SEARCH_RADIUS_KM);
-console.log('🔧 process.env.NEXT_PUBLIC_VENUE_SEARCH_RADIUS_KM:', process.env.NEXT_PUBLIC_VENUE_SEARCH_RADIUS_KM);
 
 // Function to fetch venues for location-aware homepage
 async function getVenuesForLocationFiltering(): Promise<VenueType[]> {
@@ -55,42 +49,8 @@ async function getVenuesForLocationFiltering(): Promise<VenueType[]> {
 }
 
 export default async function Home() {
-  // Fetch venues for location-aware filtering
+  // Fetch venues for interactive filtering
   const availableVenues = await getVenuesForLocationFiltering();
-
-  // Sample venue data for map preview
-  const sampleVenues: Venue[] = [
-    {
-      id: "1",
-      name: "The Speakeasy",
-      location: { lat: 40.7589, lng: -73.9851 }, // Times Square area
-      status: "approved",
-    },
-    {
-      id: "2",
-      name: "Rooftop Cocktail Lounge",
-      location: { lat: 40.7505, lng: -73.9934 }, // Herald Square area
-      status: "approved",
-    },
-    {
-      id: "3",
-      name: "Classic Martini Bar",
-      location: { lat: 40.7614, lng: -73.9776 }, // Midtown East
-      status: "approved",
-    },
-    {
-      id: "4",
-      name: "Modern Mixology",
-      location: { lat: 40.7549, lng: -73.984 }, // Near Bryant Park
-      status: "approved",
-    },
-    {
-      id: "5",
-      name: "Pending Venue", // This shouldn't show on map
-      location: { lat: 40.748, lng: -73.9857 },
-      status: "pending",
-    },
-  ];
 
   return (
     <div className="flex flex-col">
@@ -147,27 +107,19 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Map Section Placeholder */}
+      {/* Interactive Map and Venues Section */}
       <section className="py-8 md:py-12 lg:py-16 px-4 bg-muted/30">
         <div className="container mx-auto">
           <h2 className="text-2xl font-bold text-center mb-8 md:mb-12">
             Explore Venues Near You
           </h2>
 
-          {/* Interactive Map with User Location */}
-          <div className="mb-8">
-            <LocationMapWrapper
-              venues={sampleVenues}
-              height="400px" // Fixed height for debugging
-              fallbackCenter={[40.7589, -73.9851]} // NYC center as fallback
-              fallbackZoom={13}
-            />
-          </div>
-
-          {/* Location-Aware Featured Venues */}
-          <LocationAwareVenues 
+          {/* Interactive Venue Explorer with Map */}
+          <InteractiveVenueExplorer 
             allVenues={availableVenues}
             maxDistanceKm={VENUE_SEARCH_RADIUS_KM}
+            fallbackCenter={[51.5261617, -0.1633234]} // London Business School as fallback (LBS easter egg! 🎓)
+            fallbackZoom={13}
           />
         </div>
       </section>

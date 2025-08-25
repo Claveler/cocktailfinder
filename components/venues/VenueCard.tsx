@@ -11,6 +11,7 @@ interface VenueCardProps {
   showDistance?: boolean;
   distance?: number; // in km
   onCardClick?: (venue: Venue) => void; // Optional click handler for map focus
+  isSelected?: boolean; // Highlight when corresponding map pin is selected
 }
 
 export default function VenueCard({
@@ -18,6 +19,7 @@ export default function VenueCard({
   showDistance = false,
   distance,
   onCardClick,
+  isSelected = false,
 }: VenueCardProps) {
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -72,6 +74,13 @@ export default function VenueCard({
     if (onCardClick) {
       e.stopPropagation(); // Only prevent propagation if we have a card click handler
     }
+  };
+
+  // Generate card classes with optional selection highlighting
+  const getCardClasses = () => {
+    const baseClasses = "hover:shadow-xl hover:scale-[1.02] transition-all duration-300 cursor-pointer overflow-hidden";
+    const selectedClasses = isSelected ? "ring-2 ring-primary border-primary shadow-lg" : "";
+    return `${baseClasses} ${selectedClasses}`.trim();
   };
 
   const cardContent = (
@@ -206,7 +215,7 @@ export default function VenueCard({
   if (!onCardClick) {
     return (
       <Link href={`/venues/${venue.id}`} className="block">
-        <Card className="hover:shadow-xl hover:scale-[1.02] transition-all duration-300 cursor-pointer overflow-hidden">
+        <Card className={getCardClasses()}>
           {cardContent}
         </Card>
       </Link>
@@ -216,7 +225,7 @@ export default function VenueCard({
   // If onCardClick handler exists, use new interactive behavior
   return (
     <Card 
-      className="hover:shadow-xl hover:scale-[1.02] transition-all duration-300 cursor-pointer overflow-hidden" 
+      className={getCardClasses()} 
       onClick={handleCardClick}
     >
       {cardContent}

@@ -1,0 +1,91 @@
+/* Enhanced venue popup styles */
+.venue-popup-container .leaflet-popup-content-wrapper {
+  border-radius: 8px;
+  padding: 0;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.venue-popup-container .leaflet-popup-content {
+  margin: 16px;
+  line-height: 1.4;
+}
+
+.venue-popup-container .leaflet-popup-tip {
+  background: white;
+}
+
+/* Venue popup specific styles */
+.venue-popup {
+  min-width: 280px;
+  max-width: 320px;
+}
+
+.venue-popup img {
+  border-radius: 6px;
+}
+
+.venue-popup .venue-status-badge {
+  background: rgba(34, 197, 94, 0.1);
+  color: rgb(21, 128, 61);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+/* Location control styles */
+.leaflet-control-custom {
+  transition: all 0.2s ease;
+}
+
+.leaflet-control-custom:hover {
+  transform: scale(1.05);
+}
+
+/* Ensure proper button spacing in popups */
+.venue-popup .flex.gap-2 button {
+  flex: 1;
+  justify-content: center;
+}
+
+/* Specific button styling for venue popups - using direct colors */
+.venue-popup-primary-btn {
+  background-color: #d32117 !important;  /* Primary red */
+  color: white !important;
+  border-color: #d32117 !important;
+}
+
+.venue-popup-primary-btn:hover {
+  background-color: #b91c1c !important;  /* Slightly darker red */
+  color: white !important;
+}
+
+.venue-popup-outline-btn {
+  background-color: transparent !important;
+  color: #1f2937 !important;  /* Dark gray */
+  border-color: #d1d5db !important;  /* Light gray border */
+}
+
+.venue-popup-outline-btn:hover {
+  background-color: #f3f4f6 !important;  /* Light gray background */
+  color: #1f2937 !important;
+}
+
+/* Ensure icons in buttons inherit correct color */
+.venue-popup-primary-btn svg,
+.venue-popup-outline-btn svg {
+  color: inherit !important;
+}
+
+/* More specific selectors to override any default styles */
+.leaflet-popup-content-wrapper .venue-popup-primary-btn,
+.leaflet-popup-content .venue-popup-primary-btn {
+  background-color: #d32117 !important;
+  color: white !important;
+  border-color: #d32117 !important;
+}
+
+.leaflet-popup-content-wrapper .venue-popup-outline-btn,
+.leaflet-popup-content .venue-popup-outline-btn {
+  background-color: transparent !important;
+  color: #1f2937 !important;
+  border-color: #d1d5db !important;
+}
