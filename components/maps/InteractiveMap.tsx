@@ -69,18 +69,6 @@ const LeafletMapComponent = memo(function LeafletMapComponent({
   onLocationRequest?: () => void;
   maxDistanceKm?: number;
 }) {
-  // Calculate distance from center to venue
-  const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number) => {
-    const R = 6371; // Earth's radius in kilometers
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLng = (lng2 - lng1) * Math.PI / 180;
-    const a = 
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-      Math.sin(dLng/2) * Math.sin(dLng/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c;
-  };
   useEffect(() => {
     // Ensure this only runs on the client side
     if (typeof window === 'undefined') return;
@@ -127,6 +115,7 @@ const LeafletMapComponent = memo(function LeafletMapComponent({
       <LocationControl 
         userLocation={userLocation ?? null} 
         onLocationRequest={onLocationRequest}
+        zoom={zoom}
       />
       
       <TileLayer
@@ -188,7 +177,7 @@ const InteractiveMap = memo(function InteractiveMap({
   venues,
   height = "400px",
   center = [51.5261617, -0.1633234], // Default to London Business School (LBS easter egg! 🎓)
-  zoom = 10,
+  zoom = Number(process.env.NEXT_PUBLIC_MAP_ZOOM_LEVEL) || 13,
   onCenterChange,
   userLocation,
   onLocationRequest,

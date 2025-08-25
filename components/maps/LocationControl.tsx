@@ -8,9 +8,10 @@ import { MapPin } from "lucide-react";
 interface LocationControlProps {
   userLocation: [number, number] | null;
   onLocationRequest?: () => void;
+  zoom?: number;
 }
 
-export default function LocationControl({ userLocation, onLocationRequest }: LocationControlProps) {
+export default function LocationControl({ userLocation, onLocationRequest, zoom = Number(process.env.NEXT_PUBLIC_MAP_ZOOM_LEVEL) || 13 }: LocationControlProps) {
   const map = useMap();
 
   useEffect(() => {
@@ -61,7 +62,7 @@ export default function LocationControl({ userLocation, onLocationRequest }: Loc
           L.DomEvent.stopPropagation(e);
           if (userLocation) {
             // Return to user location
-            map.setView(userLocation, 12);
+            map.setView(userLocation, zoom);
           } else if (onLocationRequest) {
             // Request location access
             onLocationRequest();
@@ -85,7 +86,7 @@ export default function LocationControl({ userLocation, onLocationRequest }: Loc
     return () => {
       map.removeControl(locationControl);
     };
-  }, [map, userLocation, onLocationRequest]);
+  }, [map, userLocation, onLocationRequest, zoom]);
 
   return null;
 }

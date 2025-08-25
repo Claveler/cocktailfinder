@@ -23,7 +23,7 @@ export default function InteractiveVenueExplorer({
   allVenues, 
   maxDistanceKm = 15,
   fallbackCenter = [51.5261617, -0.1633234], // London Business School default (LBS easter egg! 🎓)
-  fallbackZoom = 13,
+  fallbackZoom = Number(process.env.NEXT_PUBLIC_MAP_ZOOM_LEVEL) || 13,
 }: InteractiveVenueExplorerProps) {
   // Map loading state
   const [isMapLoading, setIsMapLoading] = useState(true);
@@ -83,30 +83,19 @@ export default function InteractiveVenueExplorer({
   }, [requestUserLocation]);
 
   // Filter venues based on current map center
-    const updateVenuesForLocation = useCallback((center: [number, number]) => {
-    console.log('🎯 VENUE CARDS: Using map center:', center);
-
+  const updateVenuesForLocation = useCallback((center: [number, number]) => {
     const venuesWithLocation = allVenues.filter(venue => venue.location !== null);
     const centerLocation = { lat: center[0], lng: center[1] };
     const nearby = filterVenuesByDistance(venuesWithLocation, centerLocation, maxDistanceKm);
 
     // Take only the first 3 venues
     const newVenues = nearby.slice(0, 3);
-
-    // Debug: Show ONLY the venues that will appear in the cards
-    console.log('🏷️ VENUE CARDS will show:');
-    newVenues.forEach(venue => {
-      console.log(`   📋 "${venue.name}": ${venue.distance}km from [${center[0].toFixed(4)}, ${center[1].toFixed(4)}]`);
-    });
     
     // Create signature that includes both venues and their distances
     const newDistanceSignature = newVenues.map(v => `${v.id}:${v.distance.toFixed(2)}`).join('|');
     
     // Force update if venues OR distances changed
     if (newDistanceSignature !== lastDistanceSignatureRef.current) {
-      console.log('🔄 FORCING venue cards update - venues or distances changed');
-      console.log('   Previous:', lastDistanceSignatureRef.current);
-      console.log('   New:     ', newDistanceSignature);
       lastDistanceSignatureRef.current = newDistanceSignature;
       setFilteredVenues([...newVenues]); // Force new array reference
     }
@@ -114,29 +103,18 @@ export default function InteractiveVenueExplorer({
 
   // Bounds-based venue filtering (for venues visible in map)
   const updateVenuesForBounds = useCallback((bounds: MapBounds, center: [number, number]) => {
-    console.log('🔍 VENUE CARDS: Filtering by map bounds:', bounds);
-
     const venuesWithLocation = allVenues.filter(venue => venue.location !== null);
     const centerLocation = { lat: center[0], lng: center[1] };
     const visibleVenues = filterVenuesByBounds(venuesWithLocation, bounds, centerLocation);
 
     // Take only the first 3 venues (closest to center within bounds)
     const newVenues = visibleVenues.slice(0, 3);
-
-    // Debug: Show ONLY the venues that will appear in the cards
-    console.log('🏷️ VENUE CARDS will show (visible in bounds):');
-    newVenues.forEach(venue => {
-      console.log(`   📋 "${venue.name}": ${venue.distance}km from center [${center[0].toFixed(4)}, ${center[1].toFixed(4)}]`);
-    });
     
     // Create signature that includes both venues and their distances
     const newDistanceSignature = newVenues.map(v => `${v.id}:${v.distance.toFixed(2)}`).join('|');
     
     // Force update if venues OR distances changed
     if (newDistanceSignature !== lastDistanceSignatureRef.current) {
-      console.log('🔄 FORCING venue cards update - visible venues changed');
-      console.log('   Previous:', lastDistanceSignatureRef.current);
-      console.log('   New:     ', newDistanceSignature);
       lastDistanceSignatureRef.current = newDistanceSignature;
       setFilteredVenues([...newVenues]); // Force new array reference
     }
@@ -149,10 +127,6 @@ export default function InteractiveVenueExplorer({
   // Map movement handler - ONLY updates venue cards, NEVER updates map state
   const handleMapMovement = useCallback((center: [number, number], zoom: number) => {
     const now = Date.now();
-    console.log('🗺️ Map moved to:', center, 'zoom:', zoom);
-    
-    // DO NOT update currentMapCenter/currentMapZoom state to prevent circular updates
-    // The map manages its own position internally
     
     // Prevent rapid successive calls
     if (now - lastUpdateRef.current < 100) {
@@ -169,7 +143,6 @@ export default function InteractiveVenueExplorer({
     
     debounceTimeoutRef.current = setTimeout(() => {
       lastUpdateRef.current = Date.now();
-      console.log('🚀 Updating venue cards for new map bounds');
       
       // Calculate approximate bounds from center and zoom
       const bounds = calculateApproximateBounds(center, zoom);
@@ -181,29 +154,24 @@ export default function InteractiveVenueExplorer({
 
   // Initial setup: Request user location and set initial venues using bounds
   useEffect(() => {
-    // Start map loading state
     setIsMapLoading(false);
-    
-    // Request user location to center map
     requestUserLocation();
     
-    // Set initial venues using bounds-based filtering (not radius)
-    console.log('🚀 Initial load: Setting venues for fallback center using bounds filtering');
+    // Set initial venues using bounds-based filtering
     const initialBounds = calculateApproximateBounds(fallbackCenter, fallbackZoom);
     updateVenuesForBounds(initialBounds, fallbackCenter);
   }, [requestUserLocation, updateVenuesForBounds, fallbackCenter, fallbackZoom]);
   
-  // Update map center ONLY ONCE when user location is obtained - NEVER AGAIN
+  // Update map center ONLY ONCE when user location is obtained
   useEffect(() => {
     if (userLocation) {
       const newCenter: [number, number] = [userLocation.lat, userLocation.lng];
-      console.log('🎯 User location obtained, setting STATIC map center to:', newCenter);
       
       // Set static map center AND user location ONCE - these will never change again to prevent re-renders
       setStaticMapCenter(newCenter);
       setStaticUserLocation(newCenter);
       
-      // Update venues using bounds-based filtering (not radius)
+      // Update venues using bounds-based filtering
       const newBounds = calculateApproximateBounds(newCenter, fallbackZoom);
       updateVenuesForBounds(newBounds, newCenter);
     }

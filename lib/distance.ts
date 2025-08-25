@@ -71,8 +71,6 @@ export function filterVenuesByDistance<T extends { location: { lat: number; lng:
     .sort((a, b) => a.distance - b.distance); // Sort by distance (closest first)
 }
 
-
-
 /**
  * Check if a point is within the given map bounds
  * @param lat Latitude of the point
