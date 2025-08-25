@@ -22,8 +22,8 @@ export default function LocationControl({ userLocation, onLocationRequest, zoom 
       onAdd: function() {
         const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
         
-        // Style the container
-        container.style.backgroundColor = 'white';
+        // Style the container with primary theme color
+        container.style.backgroundColor = '#DC2626';  // Primary red
         container.style.width = '40px';
         container.style.height = '40px';
         container.style.cursor = 'pointer';
@@ -32,17 +32,17 @@ export default function LocationControl({ userLocation, onLocationRequest, zoom 
         container.style.justifyContent = 'center';
         container.style.borderRadius = '4px';
         container.style.boxShadow = '0 1px 5px rgba(0,0,0,0.65)';
-        container.style.border = '2px solid rgba(0,0,0,0.2)';
+        container.style.border = '2px solid rgba(0,0,0,0.1)';
+        container.style.transition = 'all 0.2s ease';
         
-        // Add icon
+        // Add Google Material Icons "my_location" icon
         const icon = document.createElement('div');
         icon.innerHTML = `
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
-            <circle cx="12" cy="10" r="3"/>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8M3.05,13H1V11H3.05C3.5,6.83 6.83,3.5 11,3.05V1H13V3.05C17.17,3.5 20.5,6.83 20.95,11H23V13H20.95C20.5,17.17 17.17,20.5 13,20.95V23H11V20.95C6.83,20.5 3.5,17.17 3.05,13M12,5A7,7 0 0,0 5,12A7,7 0 0,0 12,19A7,7 0 0,0 19,12A7,7 0 0,0 12,5Z"/>
           </svg>
         `;
-        icon.style.color = userLocation ? '#3B82F6' : '#6B7280';
+        icon.style.color = 'white';  // White icon on primary background
         icon.style.display = 'flex';
         icon.style.alignItems = 'center';
         icon.style.justifyContent = 'center';
@@ -51,10 +51,12 @@ export default function LocationControl({ userLocation, onLocationRequest, zoom 
         
         // Add hover effects
         container.onmouseenter = function() {
-          container.style.backgroundColor = '#f9fafb';
+          container.style.backgroundColor = '#B91C1C';  // Darker red on hover
+          container.style.transform = 'scale(1.05)';
         };
         container.onmouseleave = function() {
-          container.style.backgroundColor = 'white';
+          container.style.backgroundColor = '#DC2626';  // Back to primary red
+          container.style.transform = 'scale(1)';
         };
         
         // Add click handler
