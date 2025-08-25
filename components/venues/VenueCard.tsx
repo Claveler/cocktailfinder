@@ -2,7 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Star, Clock, Wine, DollarSign } from "lucide-react";
+import { MapPin, Star, Clock, Wine, DollarSign, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import type { Venue } from "@/lib/venues";
 
@@ -70,10 +70,8 @@ export default function VenueCard({
     }
   };
 
-  const handleNameClick = (e: React.MouseEvent) => {
-    if (onCardClick) {
-      e.stopPropagation(); // Only prevent propagation if we have a card click handler
-    }
+  const handleNavigateClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click when clicking navigation icon
   };
 
   // Generate card classes with optional selection highlighting
@@ -106,6 +104,17 @@ export default function VenueCard({
           <div className="absolute inset-0 bg-black/30" />
         </div>
 
+        {/* Navigation Icon - Only show when onCardClick is present */}
+        {onCardClick && (
+          <Link 
+            href={`/venues/${venue.id}`}
+            onClick={handleNavigateClick}
+            className="absolute right-3 top-1/2 -translate-y-1/2 z-10 bg-black/60 backdrop-blur-sm hover:bg-black/80 transition-all duration-200 rounded-full p-2.5 group"
+          >
+            <ArrowRight className="h-4 w-4 text-white group-hover:text-white/90 group-hover:translate-x-0.5 transition-all duration-200" />
+          </Link>
+        )}
+
         {/* Overlaid Content */}
         <div className="relative h-full p-4 flex flex-col justify-between text-white">
           {/* Top Row - Status badges */}
@@ -133,21 +142,9 @@ export default function VenueCard({
 
           {/* Bottom Row - Venue Name & Type */}
           <div className="space-y-2">
-            {onCardClick ? (
-              <Link 
-                href={`/venues/${venue.id}`}
-                onClick={handleNameClick}
-                className="hover:text-primary-foreground transition-colors"
-              >
-                <h3 className="font-bold text-lg mb-1 line-clamp-2 text-white drop-shadow-lg">
-                  {venue.name}
-                </h3>
-              </Link>
-            ) : (
-              <h3 className="font-bold text-lg mb-1 line-clamp-2 text-white drop-shadow-lg">
-                {venue.name}
-              </h3>
-            )}
+            <h3 className="font-bold text-lg mb-1 line-clamp-2 text-white drop-shadow-lg">
+              {venue.name}
+            </h3>
             
             <div className="flex items-center gap-2 text-sm">
               <div className="flex items-center gap-2 bg-black/60 backdrop-blur-sm px-3 py-1 rounded-full">

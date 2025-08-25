@@ -43,6 +43,9 @@ export default function InteractiveVenueExplorer({
   // Track if user has explicitly searched for a location (takes precedence over geolocation)
   const [hasSearchedLocation, setHasSearchedLocation] = useState(false);
   
+  // Track venue to focus on map (for card clicks)
+  const [focusedVenueId, setFocusedVenueId] = useState<string | null>(null);
+  
   // Venue state
   const [filteredVenues, setFilteredVenues] = useState<(VenueType & { distance: number })[]>([]);
   
@@ -263,6 +266,15 @@ export default function InteractiveVenueExplorer({
     };
   }, [staticMapCenter, staticMapZoom, updateVenuesForBounds]);
 
+  // Handle venue card click - focus map on venue
+  const handleVenueCardClick = useCallback((venue: VenueType) => {
+    if (venue.location) {
+      setFocusedVenueId(venue.id);
+      // Clear focus after a delay to reset state
+      setTimeout(() => setFocusedVenueId(null), 2000);
+    }
+  }, []);
+
   // Cleanup timeouts on unmount
   useEffect(() => {
     return () => {
@@ -331,6 +343,7 @@ export default function InteractiveVenueExplorer({
               userLocation={staticUserLocation}
               onLocationRequest={requestUserLocationExplicit}
               maxDistanceKm={maxDistanceKm}
+              focusedVenueId={focusedVenueId}
             />
           </CardContent>
         </Card>
@@ -375,6 +388,7 @@ export default function InteractiveVenueExplorer({
                   venue={venue} 
                   showDistance={true}
                   distance={venue.distance}
+                  onCardClick={handleVenueCardClick}
                 />
               </HomePageClient>
             ))}

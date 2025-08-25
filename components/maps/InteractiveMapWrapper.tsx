@@ -19,4 +19,6 @@ const InteractiveMap = dynamic(() => import("./InteractiveMap"), {
   ),
 });
 
-export default InteractiveMap;
+export default function InteractiveMapWrapper(props: any) {
+  return <InteractiveMap {...props} />;
+}

@@ -51,6 +51,7 @@ interface InteractiveMapProps {
   userLocation?: [number, number] | null;
   onLocationRequest?: () => void;
   maxDistanceKm?: number;
+  focusedVenueId?: string | null;
 }
 
 // Helper function to check if location is the fallback location (LBS)
@@ -64,6 +65,45 @@ function isLocationFallback(location: [number, number]): boolean {
   );
 }
 
+// Component to handle venue focusing from card clicks
+function VenueFocuser({ 
+  focusedVenueId, 
+  venues 
+}: { 
+  focusedVenueId: string | null; 
+  venues: Venue[] 
+}) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!focusedVenueId || !map) return;
+
+    // Find the venue to focus on
+    const venue = venues.find(v => v.id === focusedVenueId);
+    if (!venue || !venue.location) return;
+
+    // Focus the map on the venue location
+    map.setView([venue.location.lat, venue.location.lng], 16, {
+      animate: true,
+      duration: 1
+    });
+
+    // Find and open the popup for this venue
+    setTimeout(() => {
+      map.eachLayer((layer: any) => {
+        if (layer instanceof L.Marker && 
+            layer.getLatLng && 
+            Math.abs(layer.getLatLng().lat - venue.location!.lat) < 0.0001 &&
+            Math.abs(layer.getLatLng().lng - venue.location!.lng) < 0.0001) {
+          layer.openPopup();
+        }
+      });
+    }, 1000); // Wait for map animation to complete
+  }, [focusedVenueId, venues, map]);
+
+  return null;
+}
+
 const LeafletMapComponent = memo(function LeafletMapComponent({
   venues,
   center,
@@ -72,6 +112,7 @@ const LeafletMapComponent = memo(function LeafletMapComponent({
   userLocation,
   onLocationRequest,
   maxDistanceKm,
+  focusedVenueId,
 }: {
   venues: Venue[];
   center: [number, number];
@@ -80,9 +121,8 @@ const LeafletMapComponent = memo(function LeafletMapComponent({
   userLocation?: [number, number] | null;
   onLocationRequest?: () => void;
   maxDistanceKm?: number;
+  focusedVenueId?: string | null;
 }) {
-  // Get zoom threshold for user location marker visibility
-  const userLocationZoomThreshold = Number(process.env.NEXT_PUBLIC_USER_LOCATION_ZOOM_THRESHOLD) || 10;
   useEffect(() => {
     // Ensure this only runs on the client side
     if (typeof window === 'undefined') return;
@@ -161,6 +201,9 @@ const LeafletMapComponent = memo(function LeafletMapComponent({
         onLocationRequest={onLocationRequest}
         zoom={zoom}
       />
+
+      {/* Venue focusing for card clicks */}
+      <VenueFocuser focusedVenueId={focusedVenueId ?? null} venues={venues} />
       
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -168,7 +211,7 @@ const LeafletMapComponent = memo(function LeafletMapComponent({
       />
 
       {/* User location marker - "You are here" indicator */}
-      {userLocationIcon && userLocation && !isLocationFallback(userLocation) && zoom <= userLocationZoomThreshold && (
+      {userLocationIcon && userLocation && !isLocationFallback(userLocation) && (
         <Marker
           position={userLocation}
           icon={userLocationIcon}
@@ -249,6 +292,7 @@ const InteractiveMap = memo(function InteractiveMap({
   userLocation,
   onLocationRequest,
   maxDistanceKm,
+  focusedVenueId,
 }: InteractiveMapProps) {
   
 
@@ -268,6 +312,7 @@ const InteractiveMap = memo(function InteractiveMap({
         userLocation={userLocation}
         onLocationRequest={onLocationRequest}
         maxDistanceKm={maxDistanceKm}
+        focusedVenueId={focusedVenueId}
       />
     </div>
   );
