@@ -82,6 +82,26 @@ const LeafletMapComponent = memo(function LeafletMapComponent({
     });
   }, []); // Run only once on mount
 
+  // Create custom red marker icon for venues (theme primary color)
+  const venueMarkerIcon = useMemo(() => {
+    if (typeof window === 'undefined') return null;
+    
+    return new L.Icon({
+      iconUrl: 'data:image/svg+xml;base64,' + btoa(`
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 25 41" fill="none">
+          <path d="M12.5 0C5.59644 0 0 5.59644 0 12.5C0 21.875 12.5 41 12.5 41S25 21.875 25 12.5C25 5.59644 19.4036 0 12.5 0Z" fill="#DC2626"/>
+          <circle cx="12.5" cy="12.5" r="5" fill="white"/>
+        </svg>
+      `),
+      iconSize: [25, 41],
+      iconAnchor: [12.5, 41],
+      popupAnchor: [0, -41],
+      shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+      shadowSize: [41, 41],
+      shadowAnchor: [12, 41]
+    });
+  }, []);
+
   // Create custom icon for user location (client-side only)
   const userLocationIcon = useMemo(() => {
     if (typeof window === 'undefined') return null;
@@ -150,6 +170,28 @@ const LeafletMapComponent = memo(function LeafletMapComponent({
         spiderfyOnMaxZoom={true}
         showCoverageOnHover={false}
         zoomToBoundsOnClick={true}
+        iconCreateFunction={(cluster: any) => {
+          const count = cluster.getChildCount();
+          let size = 'small';
+          let className = 'marker-cluster-small';
+          
+          if (count < 10) {
+            size = 'small';
+            className = 'marker-cluster-small';
+          } else if (count < 100) {
+            size = 'medium';
+            className = 'marker-cluster-medium';
+          } else {
+            size = 'large';
+            className = 'marker-cluster-large';
+          }
+          
+          return new L.DivIcon({
+            html: `<div class="cluster-inner">${count}</div>`,
+            className: `marker-cluster ${className}`,
+            iconSize: new L.Point(40, 40),
+          });
+        }}
       >
         {venues
           .filter((venue) => venue.id !== "user-location")
@@ -158,6 +200,7 @@ const LeafletMapComponent = memo(function LeafletMapComponent({
               <Marker
                 key={venue.id}
                 position={[venue.location.lat, venue.location.lng]}
+                icon={venueMarkerIcon || undefined}
               >
                 <Popup
                   maxWidth={320}

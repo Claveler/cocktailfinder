@@ -89,3 +89,50 @@
   color: #1f2937 !important;
   border-color: #d1d5db !important;
 }
+
+/* Custom cluster styles for better readability */
+.marker-cluster {
+  border-radius: 50%;
+  text-align: center;
+  font-weight: bold;
+  font-size: 14px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  border: 3px solid rgba(255, 255, 255, 0.8);
+  transition: transform 0.2s ease;
+}
+
+.marker-cluster:hover {
+  transform: scale(1.1);
+  cursor: pointer;
+}
+
+.marker-cluster-small {
+  background-color: #DC2626;  /* Primary red */
+  width: 40px;
+  height: 40px;
+}
+
+.marker-cluster-medium {
+  background-color: #B91C1C;  /* Slightly darker red */
+  width: 45px;
+  height: 45px;
+  font-size: 15px;
+}
+
+.marker-cluster-large {
+  background-color: #991B1B;  /* Even darker red */
+  width: 50px;
+  height: 50px;
+  font-size: 16px;
+}
+
+.cluster-inner {
+  color: white;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
