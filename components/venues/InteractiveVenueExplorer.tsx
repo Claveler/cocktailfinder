@@ -238,6 +238,31 @@ export default function InteractiveVenueExplorer({
     }
   }, [searchLocation, updateVenuesForBounds, searchZoomLevel]);
 
+  // Handle window resize to update venue filtering for responsive viewport changes
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleResize = () => {
+      // Debounce resize events to avoid excessive updates
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+      
+      debounceTimeoutRef.current = setTimeout(() => {
+        // Recalculate bounds with new viewport size and update venues
+        const currentCenter = staticMapCenter;
+        const currentZoom = staticMapZoom;
+        const newBounds = calculateApproximateBounds(currentCenter, currentZoom);
+        updateVenuesForBounds(newBounds, currentCenter);
+      }, 300); // 300ms debounce
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [staticMapCenter, staticMapZoom, updateVenuesForBounds]);
+
   // Cleanup timeouts on unmount
   useEffect(() => {
     return () => {
@@ -332,6 +357,13 @@ export default function InteractiveVenueExplorer({
         )}
       </div>
 
+      {/* Explanation Text - Mobile Only */}
+      <div className="text-center block md:hidden">
+        <p className="text-sm text-muted-foreground">
+          Showing venues visible in the current map view • Move the map to explore different areas
+        </p>
+      </div>
+
       {/* Dynamic Venues Based on Map Position */}
       {filteredVenues.length > 0 ? (
         <div className="space-y-6">
@@ -348,6 +380,13 @@ export default function InteractiveVenueExplorer({
             ))}
           </div>
 
+          {/* Explanation Text - Desktop Only */}
+          <div className="text-center hidden md:block">
+            <p className="text-sm text-muted-foreground mb-4">
+              Showing venues visible in the current map view • Move the map to explore different areas
+            </p>
+          </div>
+
           {/* See More Button */}
           <div className="text-center">
             <Button asChild size="lg" variant="outline" className="px-8">
@@ -355,9 +394,6 @@ export default function InteractiveVenueExplorer({
                 See More Venues
               </Link>
             </Button>
-            <p className="text-xs text-muted-foreground mt-2">
-              Showing venues visible in the current map view • Move the map to explore different areas
-            </p>
           </div>
         </div>
       ) : (

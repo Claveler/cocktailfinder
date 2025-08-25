@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import VenueCard from "@/components/venues/VenueCard";
 import BasicMapWrapper from "@/components/maps/BasicMapWrapper";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,6 +15,31 @@ interface VenuesClientProps {
 export default function VenuesClient({ venues, initialCenter, pagination }: VenuesClientProps) {
   const [mapCenter, setMapCenter] = useState<[number, number]>(initialCenter);
   const [mapZoom, setMapZoom] = useState(11);
+  const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
+
+  // Get user location on mount
+  useEffect(() => {
+    if (typeof window === 'undefined' || !navigator.geolocation) return;
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const location: [number, number] = [
+          position.coords.latitude,
+          position.coords.longitude,
+        ];
+        setUserLocation(location);
+      },
+      (error) => {
+        console.warn("Geolocation error on venues page:", error);
+        // Silently fail - user location is optional on venues page
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 300000, // 5 minutes
+      }
+    );
+  }, []);
 
   const handleVenueCardClick = useCallback((venue: Venue) => {
     if (venue.location) {
@@ -66,6 +91,7 @@ export default function VenuesClient({ venues, initialCenter, pagination }: Venu
               height="100%"
               center={mapCenter}
               zoom={mapZoom}
+              userLocation={userLocation}
             />
           </CardContent>
         </Card>

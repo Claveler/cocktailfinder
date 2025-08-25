@@ -103,11 +103,22 @@ export function filterVenuesByBounds<T extends { location: { lat: number; lng: n
   bounds: MapBounds,
   mapCenter: { lat: number; lng: number }
 ): (T & { distance: number })[] {
-  return venues
-    .filter((venue) => venue.location !== null)
-    .filter((venue) => 
-      isPointInBounds(venue.location!.lat, venue.location!.lng, bounds)
-    )
+  const venuesWithLocation = venues.filter((venue) => venue.location !== null);
+  const venuesInBounds = venuesWithLocation.filter((venue) => 
+    isPointInBounds(venue.location!.lat, venue.location!.lng, bounds)
+  );
+  
+  // Debug logging for mobile filtering
+  if (typeof window !== 'undefined' && window.innerWidth < 768) {
+    console.log(`📱 Mobile venue filtering:`, {
+      totalVenues: venuesWithLocation.length,
+      venuesInBounds: venuesInBounds.length,
+      bounds,
+      mapCenter
+    });
+  }
+  
+  return venuesInBounds
     .map((venue) => ({
       ...venue,
       distance: calculateDistance(
@@ -121,27 +132,74 @@ export function filterVenuesByBounds<T extends { location: { lat: number; lng: n
 }
 
 /**
+ * Get responsive viewport dimensions based on screen size
+ * @returns Object with width and height in pixels
+ */
+function getResponsiveViewportSize(): { width: number; height: number } {
+  if (typeof window === 'undefined') {
+    // Server-side fallback
+    return { width: 800, height: 400 };
+  }
+  
+  const screenWidth = window.innerWidth;
+  
+  // Mobile: < 768px
+  if (screenWidth < 768) {
+    return { 
+      width: Math.min(screenWidth - 32, 350), // Account for padding, max 350px
+      height: Math.min(screenWidth * 0.6, 250) // Aspect ratio friendly, max 250px
+    };
+  }
+  
+  // Tablet: 768px - 1024px  
+  if (screenWidth < 1024) {
+    return { 
+      width: Math.min(screenWidth * 0.7, 600), 
+      height: Math.min(screenWidth * 0.35, 350) 
+    };
+  }
+  
+  // Desktop: >= 1024px
+  return { 
+    width: Math.min(screenWidth * 0.6, 800), 
+    height: Math.min(screenWidth * 0.3, 400) 
+  };
+}
+
+/**
  * Calculate approximate map bounds based on center and zoom level
- * This is an approximation based on Leaflet's tile system
+ * This is an approximation based on Leaflet's tile system with responsive viewport
  * @param center Map center coordinates
  * @param zoom Map zoom level
+ * @param customViewport Optional custom viewport dimensions
  * @returns Approximate map bounds
  */
 export function calculateApproximateBounds(
   center: [number, number], 
-  zoom: number
+  zoom: number,
+  customViewport?: { width: number; height: number }
 ): MapBounds {
   // Calculate degrees per pixel at this zoom level
   // This is an approximation based on Web Mercator projection
   const degreesPerPixel = 360 / (256 * Math.pow(2, zoom));
   
-  // Assume a typical map viewport size (can be adjusted)
-  const viewportWidth = 800;  // pixels
-  const viewportHeight = 400; // pixels
+  // Get responsive viewport size or use custom dimensions
+  const viewport = customViewport || getResponsiveViewportSize();
+  
+  // Debug logging for mobile viewport calculation
+  if (typeof window !== 'undefined' && window.innerWidth < 768) {
+    console.log(`📱 Mobile bounds calculation:`, {
+      screenWidth: window.innerWidth,
+      viewport,
+      zoom,
+      center,
+      degreesPerPixel: degreesPerPixel.toFixed(8)
+    });
+  }
   
   // Calculate half the viewport in degrees
-  const halfWidthDegrees = (viewportWidth / 2) * degreesPerPixel;
-  const halfHeightDegrees = (viewportHeight / 2) * degreesPerPixel;
+  const halfWidthDegrees = (viewport.width / 2) * degreesPerPixel;
+  const halfHeightDegrees = (viewport.height / 2) * degreesPerPixel;
   
   // Adjust for latitude (Mercator projection distortion)
   const latAdjustment = Math.cos(center[0] * Math.PI / 180);

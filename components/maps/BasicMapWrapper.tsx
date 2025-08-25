@@ -17,4 +17,6 @@ const BasicMap = dynamic(() => import("./BasicMap"), {
   ),
 });
 
-export default BasicMap;
+export default function BasicMapWrapper(props: any) {
+  return <BasicMap {...props} />;
+}
