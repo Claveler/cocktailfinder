@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { MapPin, AlertCircle, X } from "lucide-react";
 import VenueCard from "@/components/venues/VenueCard";
-import HomePageClient from "@/app/HomePageClient";
 import InteractiveMapWrapper from "@/components/maps/InteractiveMapWrapper";
 import Link from "next/link";
 import type { Venue as VenueType } from "@/lib/venues";
@@ -382,15 +381,14 @@ export default function InteractiveVenueExplorer({
         <div className="space-y-6">
           {/* Venues Grid */}
           <div className="grid md:grid-cols-3 gap-6">
-            {filteredVenues.map((venue, index) => (
-              <HomePageClient key={`${venue.id}-${venue.distance.toFixed(2)}`} delay={index * 0.1}>
-                <VenueCard 
-                  venue={venue} 
-                  showDistance={true}
-                  distance={venue.distance}
-                  onCardClick={handleVenueCardClick}
-                />
-              </HomePageClient>
+            {filteredVenues.map((venue) => (
+              <VenueCard 
+                key={`${venue.id}-${venue.distance.toFixed(2)}`}
+                venue={venue} 
+                showDistance={true}
+                distance={venue.distance}
+                onCardClick={handleVenueCardClick}
+              />
             ))}
           </div>
 
