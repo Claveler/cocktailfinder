@@ -40,6 +40,9 @@ export default function InteractiveVenueExplorer({
   const [locationError, setLocationError] = useState<string | null>(null);
   const [isErrorDismissed, setIsErrorDismissed] = useState(false);
   
+  // Track if user has explicitly searched for a location (takes precedence over geolocation)
+  const [hasSearchedLocation, setHasSearchedLocation] = useState(false);
+  
   // Venue state
   const [filteredVenues, setFilteredVenues] = useState<(VenueType & { distance: number })[]>([]);
   
@@ -55,7 +58,7 @@ export default function InteractiveVenueExplorer({
   const lastUpdateRef = useRef<number>(0);
   const lastDistanceSignatureRef = useRef<string>('');
 
-  // Request user location
+  // Request user location (internal - for automatic geolocation on load)
   const requestUserLocation = useCallback(() => {
     if (typeof window === 'undefined') return;
 
@@ -63,6 +66,39 @@ export default function InteractiveVenueExplorer({
       setLocationError("Geolocation is not supported by this browser");
       return;
     }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const location = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        };
+        setUserLocation(location);
+        setLocationError(null);
+      },
+      (error) => {
+        console.warn("Geolocation error:", error);
+        setLocationError("Unable to get your location");
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 300000, // 5 minutes
+      }
+    );
+  }, []);
+
+  // Request user location explicitly (when user clicks location button - overrides search)
+  const requestUserLocationExplicit = useCallback(() => {
+    if (typeof window === 'undefined') return;
+
+    if (!navigator.geolocation) {
+      setLocationError("Geolocation is not supported by this browser");
+      return;
+    }
+
+    // Reset search location flag - user explicitly wants their actual location
+    setHasSearchedLocation(false);
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -171,9 +207,9 @@ export default function InteractiveVenueExplorer({
     updateVenuesForBounds(initialBounds, fallbackCenter);
   }, [requestUserLocation, updateVenuesForBounds, fallbackCenter, fallbackZoom]);
   
-  // Update map center ONLY ONCE when user location is obtained
+  // Update map center ONLY ONCE when user location is obtained (but only if user hasn't searched)
   useEffect(() => {
-    if (userLocation) {
+    if (userLocation && !hasSearchedLocation) {
       const newCenter: [number, number] = [userLocation.lat, userLocation.lng];
       
       // Set static map center AND user location ONCE - these will never change again to prevent re-renders
@@ -184,11 +220,14 @@ export default function InteractiveVenueExplorer({
       const newBounds = calculateApproximateBounds(newCenter, fallbackZoom);
       updateVenuesForBounds(newBounds, newCenter);
     }
-  }, [userLocation, updateVenuesForBounds, fallbackZoom]);
+  }, [userLocation, updateVenuesForBounds, fallbackZoom, hasSearchedLocation]);
 
   // Handle search location updates
   useEffect(() => {
     if (searchLocation) {
+      // Mark that user has explicitly searched for a location (takes precedence over geolocation)
+      setHasSearchedLocation(true);
+      
       // Update map center to search location with higher zoom
       setStaticMapCenter(searchLocation);
       setStaticMapZoom(searchZoomLevel);
@@ -265,7 +304,7 @@ export default function InteractiveVenueExplorer({
               zoom={staticMapZoom}
               onCenterChange={handleMapMovement}
               userLocation={staticUserLocation}
-              onLocationRequest={requestUserLocation}
+              onLocationRequest={requestUserLocationExplicit}
               maxDistanceKm={maxDistanceKm}
             />
           </CardContent>
