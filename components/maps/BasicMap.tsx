@@ -70,6 +70,8 @@ function LeafletMapComponent({
   zoom: number;
   userLocation?: [number, number] | null;
 }) {
+  // Get zoom threshold for user location marker visibility
+  const userLocationZoomThreshold = Number(process.env.NEXT_PUBLIC_USER_LOCATION_ZOOM_THRESHOLD) || 10;
   useEffect(() => {
     // Ensure this only runs on the client side
     if (typeof window === 'undefined') return;
@@ -145,7 +147,7 @@ function LeafletMapComponent({
       />
 
       {/* User location marker - "You are here" indicator */}
-      {userLocationIcon && userLocation && !isLocationFallback(userLocation) && (
+      {userLocationIcon && userLocation && !isLocationFallback(userLocation) && zoom <= userLocationZoomThreshold && (
         <Marker
           position={userLocation}
           icon={userLocationIcon}

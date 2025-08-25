@@ -108,15 +108,7 @@ export function filterVenuesByBounds<T extends { location: { lat: number; lng: n
     isPointInBounds(venue.location!.lat, venue.location!.lng, bounds)
   );
   
-  // Debug logging for mobile filtering
-  if (typeof window !== 'undefined' && window.innerWidth < 768) {
-    console.log(`📱 Mobile venue filtering:`, {
-      totalVenues: venuesWithLocation.length,
-      venuesInBounds: venuesInBounds.length,
-      bounds,
-      mapCenter
-    });
-  }
+
   
   return venuesInBounds
     .map((venue) => ({
@@ -186,16 +178,7 @@ export function calculateApproximateBounds(
   // Get responsive viewport size or use custom dimensions
   const viewport = customViewport || getResponsiveViewportSize();
   
-  // Debug logging for mobile viewport calculation
-  if (typeof window !== 'undefined' && window.innerWidth < 768) {
-    console.log(`📱 Mobile bounds calculation:`, {
-      screenWidth: window.innerWidth,
-      viewport,
-      zoom,
-      center,
-      degreesPerPixel: degreesPerPixel.toFixed(8)
-    });
-  }
+
   
   // Calculate half the viewport in degrees
   const halfWidthDegrees = (viewport.width / 2) * degreesPerPixel;
