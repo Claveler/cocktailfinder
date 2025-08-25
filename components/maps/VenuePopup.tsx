@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { Wine, MapPin, ExternalLink, Star, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,7 +26,7 @@ interface VenuePopupProps {
 
 }
 
-export default function VenuePopup({ venue }: VenuePopupProps) {
+const VenuePopup = memo(function VenuePopup({ venue }: VenuePopupProps) {
   const getTypeIcon = (type?: string) => {
     return <Wine className="h-3 w-3" />;
   };
@@ -131,4 +132,6 @@ export default function VenuePopup({ venue }: VenuePopupProps) {
       </div>
     </div>
   );
-}
+});
+
+export default VenuePopup;

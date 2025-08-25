@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo, useEffect } from "react";
+import { useMemo, useEffect, memo } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "./venue-popup.css";
+
 import MapCenterTracker from "./MapCenterTracker";
 import LocationControl from "./LocationControl";
 import VenuePopup from "./VenuePopup";
@@ -51,7 +52,7 @@ interface InteractiveMapProps {
   maxDistanceKm?: number;
 }
 
-function LeafletMapComponent({
+const LeafletMapComponent = memo(function LeafletMapComponent({
   venues,
   center,
   zoom,
@@ -119,14 +120,12 @@ function LeafletMapComponent({
     >
       <MapUpdater center={center} zoom={zoom} />
       
-      {/* Add center tracking if callback provided */}
-      {onCenterChange && (
-        <MapCenterTracker onCenterChange={onCenterChange} />
-      )}
+      {/* Map center tracking - ISOLATED component for venue cards only */}
+      {onCenterChange && <MapCenterTracker onCenterChange={onCenterChange} />}
 
       {/* Add location control */}
       <LocationControl 
-        userLocation={userLocation} 
+        userLocation={userLocation ?? null} 
         onLocationRequest={onLocationRequest}
       />
       
@@ -183,9 +182,9 @@ function LeafletMapComponent({
       </MarkerClusterGroup>
     </MapContainer>
   );
-}
+});
 
-export default function InteractiveMap({
+const InteractiveMap = memo(function InteractiveMap({
   venues,
   height = "400px",
   center = [51.5261617, -0.1633234], // Default to London Business School (LBS easter egg! 🎓)
@@ -214,4 +213,6 @@ export default function InteractiveMap({
       />
     </div>
   );
-}
+});
+
+export default InteractiveMap;

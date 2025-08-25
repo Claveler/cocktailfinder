@@ -9,7 +9,8 @@ import HomePageClient from "@/app/HomePageClient";
 import InteractiveMapWrapper from "@/components/maps/InteractiveMapWrapper";
 import Link from "next/link";
 import type { Venue as VenueType } from "@/lib/venues";
-import { filterVenuesByDistance } from "@/lib/distance";
+import { filterVenuesByDistance, filterVenuesByBounds, calculateApproximateBounds } from "@/lib/distance";
+import type { MapBounds } from "@/lib/distance";
 
 interface InteractiveVenueExplorerProps {
   allVenues: VenueType[];
@@ -34,6 +35,11 @@ export default function InteractiveVenueExplorer({
   
   // Venue state
   const [filteredVenues, setFilteredVenues] = useState<(VenueType & { distance: number })[]>([]);
+  
+  // Map display props - STATIC after initial user location (never updated to prevent re-renders)
+  const [staticMapCenter, setStaticMapCenter] = useState<[number, number]>(fallbackCenter);
+  const [staticMapZoom] = useState<number>(fallbackZoom);
+  const [staticUserLocation, setStaticUserLocation] = useState<[number, number] | null>(null);
   
   // Refs for debouncing
   const debounceTimeoutRef = useRef<NodeJS.Timeout>();
@@ -77,16 +83,16 @@ export default function InteractiveVenueExplorer({
   }, [requestUserLocation]);
 
   // Filter venues based on current map center
-  const updateVenuesForLocation = useCallback((center: [number, number]) => {
+    const updateVenuesForLocation = useCallback((center: [number, number]) => {
     console.log('🎯 VENUE CARDS: Using map center:', center);
-    
+
     const venuesWithLocation = allVenues.filter(venue => venue.location !== null);
     const centerLocation = { lat: center[0], lng: center[1] };
     const nearby = filterVenuesByDistance(venuesWithLocation, centerLocation, maxDistanceKm);
-    
+
     // Take only the first 3 venues
     const newVenues = nearby.slice(0, 3);
-    
+
     // Debug: Show ONLY the venues that will appear in the cards
     console.log('🏷️ VENUE CARDS will show:');
     newVenues.forEach(venue => {
@@ -106,9 +112,47 @@ export default function InteractiveVenueExplorer({
     }
   }, [allVenues, maxDistanceKm]);
 
-  // Map center change handler - only updates venue cards, not map position
-  const handleMapCenterChange = useCallback((center: [number, number], zoom: number) => {
+  // Bounds-based venue filtering (for venues visible in map)
+  const updateVenuesForBounds = useCallback((bounds: MapBounds, center: [number, number]) => {
+    console.log('🔍 VENUE CARDS: Filtering by map bounds:', bounds);
+
+    const venuesWithLocation = allVenues.filter(venue => venue.location !== null);
+    const centerLocation = { lat: center[0], lng: center[1] };
+    const visibleVenues = filterVenuesByBounds(venuesWithLocation, bounds, centerLocation);
+
+    // Take only the first 3 venues (closest to center within bounds)
+    const newVenues = visibleVenues.slice(0, 3);
+
+    // Debug: Show ONLY the venues that will appear in the cards
+    console.log('🏷️ VENUE CARDS will show (visible in bounds):');
+    newVenues.forEach(venue => {
+      console.log(`   📋 "${venue.name}": ${venue.distance}km from center [${center[0].toFixed(4)}, ${center[1].toFixed(4)}]`);
+    });
+    
+    // Create signature that includes both venues and their distances
+    const newDistanceSignature = newVenues.map(v => `${v.id}:${v.distance.toFixed(2)}`).join('|');
+    
+    // Force update if venues OR distances changed
+    if (newDistanceSignature !== lastDistanceSignatureRef.current) {
+      console.log('🔄 FORCING venue cards update - visible venues changed');
+      console.log('   Previous:', lastDistanceSignatureRef.current);
+      console.log('   New:     ', newDistanceSignature);
+      lastDistanceSignatureRef.current = newDistanceSignature;
+      setFilteredVenues([...newVenues]); // Force new array reference
+    }
+  }, [allVenues]);
+
+  // Stable reference to venue update function
+  const updateVenuesRef = useRef(updateVenuesForBounds);
+  updateVenuesRef.current = updateVenuesForBounds;
+
+  // Map movement handler - ONLY updates venue cards, NEVER updates map state
+  const handleMapMovement = useCallback((center: [number, number], zoom: number) => {
     const now = Date.now();
+    console.log('🗺️ Map moved to:', center, 'zoom:', zoom);
+    
+    // DO NOT update currentMapCenter/currentMapZoom state to prevent circular updates
+    // The map manages its own position internally
     
     // Prevent rapid successive calls
     if (now - lastUpdateRef.current < 100) {
@@ -125,24 +169,45 @@ export default function InteractiveVenueExplorer({
     
     debounceTimeoutRef.current = setTimeout(() => {
       lastUpdateRef.current = Date.now();
-      console.log('🚀 Map moved, updating venue cards for new center:', center);
-      // Only update venue cards - map manages its own position
-      updateVenuesForLocation(center);
+      console.log('🚀 Updating venue cards for new map bounds');
+      
+      // Calculate approximate bounds from center and zoom
+      const bounds = calculateApproximateBounds(center, zoom);
+      
+      // Update venue cards based on what's visible in the map
+      updateVenuesRef.current(bounds, center);
     }, debounceDelayMs);
-  }, [updateVenuesForLocation]);
+  }, []); // EMPTY DEPENDENCIES - completely stable
 
-  // Initial venue filtering on component mount only
+  // Initial setup: Request user location and set initial venues using bounds
   useEffect(() => {
-    updateVenuesForLocation(fallbackCenter);
-  }, [updateVenuesForLocation, fallbackCenter]);
+    // Start map loading state
+    setIsMapLoading(false);
+    
+    // Request user location to center map
+    requestUserLocation();
+    
+    // Set initial venues using bounds-based filtering (not radius)
+    console.log('🚀 Initial load: Setting venues for fallback center using bounds filtering');
+    const initialBounds = calculateApproximateBounds(fallbackCenter, fallbackZoom);
+    updateVenuesForBounds(initialBounds, fallbackCenter);
+  }, [requestUserLocation, updateVenuesForBounds, fallbackCenter, fallbackZoom]);
   
-  // Update venues when user location is obtained
+  // Update map center ONLY ONCE when user location is obtained - NEVER AGAIN
   useEffect(() => {
     if (userLocation) {
       const newCenter: [number, number] = [userLocation.lat, userLocation.lng];
-      updateVenuesForLocation(newCenter);
+      console.log('🎯 User location obtained, setting STATIC map center to:', newCenter);
+      
+      // Set static map center AND user location ONCE - these will never change again to prevent re-renders
+      setStaticMapCenter(newCenter);
+      setStaticUserLocation(newCenter);
+      
+      // Update venues using bounds-based filtering (not radius)
+      const newBounds = calculateApproximateBounds(newCenter, fallbackZoom);
+      updateVenuesForBounds(newBounds, newCenter);
     }
-  }, [userLocation, updateVenuesForLocation]);
+  }, [userLocation, updateVenuesForBounds, fallbackZoom]);
 
   // Cleanup timeouts on unmount
   useEffect(() => {
@@ -154,8 +219,10 @@ export default function InteractiveVenueExplorer({
   }, []);
 
   // Create venues array with user location marker for map display
-  const venuesForMap = useMemo(() => {
-    const mapVenues = allVenues.filter(venue => venue.location !== null).map(venue => ({
+  // STATIC venues for map - NEVER changes to prevent popup redraws
+  const staticVenuesForMap = useMemo(() => {
+    // Only include actual venues, no user location to prevent re-renders
+    return allVenues.filter(venue => venue.location !== null).map(venue => ({
       id: venue.id,
       name: venue.name,
       type: venue.type,
@@ -168,18 +235,7 @@ export default function InteractiveVenueExplorer({
       location: venue.location!,
       status: venue.status as "pending" | "approved" | "rejected",
     }));
-
-    if (userLocation) {
-      mapVenues.push({
-        id: "user-location",
-        name: "Your Location",
-        location: { lat: userLocation.lat, lng: userLocation.lng },
-        status: "approved" as const,
-      });
-    }
-
-    return mapVenues;
-  }, [allVenues, userLocation]);
+  }, [allVenues]); // ONLY depends on allVenues, NOT userLocation
 
   if (isMapLoading) {
     return (
@@ -213,12 +269,12 @@ export default function InteractiveVenueExplorer({
         <Card className="w-full overflow-hidden" style={{ height: "400px" }}>
           <CardContent className="p-0 h-full">
             <InteractiveMapWrapper
-              venues={venuesForMap}
+              venues={staticVenuesForMap}
               height="100%"
-              center={fallbackCenter}
-              zoom={fallbackZoom}
-              onCenterChange={handleMapCenterChange}
-              userLocation={userLocation ? [userLocation.lat, userLocation.lng] : null}
+              center={staticMapCenter}
+              zoom={staticMapZoom}
+              onCenterChange={handleMapMovement}
+              userLocation={staticUserLocation}
               onLocationRequest={requestUserLocation}
               maxDistanceKm={maxDistanceKm}
             />
@@ -271,7 +327,7 @@ export default function InteractiveVenueExplorer({
               </Link>
             </Button>
             <p className="text-xs text-muted-foreground mt-2">
-              Showing venues within {maxDistanceKm}km of the map center • Move the map to explore different areas
+              Showing venues visible in the current map view • Move the map to explore different areas
             </p>
           </div>
         </div>
@@ -279,7 +335,7 @@ export default function InteractiveVenueExplorer({
         /* No Venues Found */
         <div className="text-center py-12">
           <p className="text-muted-foreground mb-4">
-            No venues found within {maxDistanceKm}km of this area.
+            No venues visible in the current map view.
           </p>
           <p className="text-sm text-muted-foreground mb-6">
             Try moving the map to explore different locations, or browse all venues.
