@@ -82,23 +82,22 @@ function VenueFocuser({
     const venue = venues.find(v => v.id === focusedVenueId);
     if (!venue || !venue.location) return;
 
-    // Focus the map on the venue location
-    map.setView([venue.location.lat, venue.location.lng], 16, {
-      animate: true,
-      duration: 1
+    // Find the marker for this venue
+    let targetMarker: any = null;
+    map.eachLayer((layer: any) => {
+      if (layer instanceof L.Marker && 
+          layer.getLatLng && 
+          Math.abs(layer.getLatLng().lat - venue.location!.lat) < 0.0001 &&
+          Math.abs(layer.getLatLng().lng - venue.location!.lng) < 0.0001) {
+        targetMarker = layer;
+      }
     });
 
-    // Find and open the popup for this venue
-    setTimeout(() => {
-      map.eachLayer((layer: any) => {
-        if (layer instanceof L.Marker && 
-            layer.getLatLng && 
-            Math.abs(layer.getLatLng().lat - venue.location!.lat) < 0.0001 &&
-            Math.abs(layer.getLatLng().lng - venue.location!.lng) < 0.0001) {
-          layer.openPopup();
-        }
-      });
-    }, 1000); // Wait for map animation to complete
+    if (targetMarker) {
+      // Simulate an actual click on the marker to trigger Leaflet's complete built-in behavior
+      // This handles popup opening AND optimal map positioning in one smooth action
+      targetMarker.fire('click');
+    }
   }, [focusedVenueId, venues, map]);
 
   return null;
