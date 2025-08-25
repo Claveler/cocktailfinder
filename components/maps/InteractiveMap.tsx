@@ -53,6 +53,17 @@ interface InteractiveMapProps {
   maxDistanceKm?: number;
 }
 
+// Helper function to check if location is the fallback location (LBS)
+function isLocationFallback(location: [number, number]): boolean {
+  const fallbackLocation: [number, number] = [51.5261617, -0.1633234]; // London Business School
+  const tolerance = 0.0001; // Small tolerance for floating point comparison
+  
+  return (
+    Math.abs(location[0] - fallbackLocation[0]) < tolerance &&
+    Math.abs(location[1] - fallbackLocation[1]) < tolerance
+  );
+}
+
 const LeafletMapComponent = memo(function LeafletMapComponent({
   venues,
   center,
@@ -106,20 +117,27 @@ const LeafletMapComponent = memo(function LeafletMapComponent({
     });
   }, []);
 
-  // Create custom icon for user location (client-side only)
+  // Create custom "you are here" icon for user location
   const userLocationIcon = useMemo(() => {
     if (typeof window === 'undefined') return null;
     
+    // Get theme primary color for consistency
+    const primaryColor = getThemeColorAsHex('primary', '#DC2626');
+    
     return new L.Icon({
       iconUrl: 'data:image/svg+xml;base64,' + btoa(`
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#3B82F6" width="30" height="30">
-          <circle cx="12" cy="12" r="10" fill="#3B82F6" stroke="white" stroke-width="2"/>
-          <circle cx="12" cy="12" r="4" fill="white"/>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+          <!-- Outer pulse ring -->
+          <circle cx="16" cy="16" r="14" fill="${primaryColor}" fill-opacity="0.2" stroke="${primaryColor}" stroke-width="1"/>
+          <!-- Inner solid circle -->
+          <circle cx="16" cy="16" r="8" fill="${primaryColor}" stroke="white" stroke-width="3"/>
+          <!-- Center dot -->
+          <circle cx="16" cy="16" r="3" fill="white"/>
         </svg>
       `),
-      iconSize: [30, 30],
-      iconAnchor: [15, 15],
-      popupAnchor: [0, -15],
+      iconSize: [32, 32],
+      iconAnchor: [16, 16],
+      popupAnchor: [0, -16],
     });
   }, []);
 
@@ -147,26 +165,26 @@ const LeafletMapComponent = memo(function LeafletMapComponent({
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
 
-      {/* User location marker (outside cluster group) */}
-      {userLocationIcon && venues
-        .filter((venue) => venue.id === "user-location")
-        .map((venue) => (
-          <Marker
-            key={venue.id}
-            position={[venue.location.lat, venue.location.lng]}
-            icon={userLocationIcon}
-          >
-            <Popup>
-              <div className="p-2">
-                <h3 className="font-semibold text-sm text-blue-600">📍 {venue.name}</h3>
-                <p className="text-xs text-gray-600 mt-1">
-                  {venue.location.lat.toFixed(4)},{" "}
-                  {venue.location.lng.toFixed(4)}
-                </p>
-              </div>
-            </Popup>
-          </Marker>
-        ))}
+      {/* User location marker - "You are here" indicator */}
+      {userLocationIcon && userLocation && !isLocationFallback(userLocation) && (
+        <Marker
+          position={userLocation}
+          icon={userLocationIcon}
+          zIndexOffset={1000} // Ensure it appears above venue markers
+        >
+          <Popup>
+            <div className="p-2">
+              <h3 className="font-semibold text-sm text-primary">📍 You are here</h3>
+              <p className="text-xs text-gray-600 mt-1">
+                Your current location
+              </p>
+              <p className="text-xs text-gray-500">
+                {userLocation[0].toFixed(4)}, {userLocation[1].toFixed(4)}
+              </p>
+            </div>
+          </Popup>
+        </Marker>
+      )}
 
       {/* Regular venue markers (in cluster group) */}
       <MarkerClusterGroup
