@@ -25,6 +25,8 @@ export default function InteractiveVenueExplorer({
   fallbackCenter = [51.5261617, -0.1633234], // London Business School default (LBS easter egg! 🎓)
   fallbackZoom = Number(process.env.NEXT_PUBLIC_MAP_ZOOM_LEVEL) || 13,
 }: InteractiveVenueExplorerProps) {
+  
+
   // Map loading state
   const [isMapLoading, setIsMapLoading] = useState(true);
   
@@ -40,6 +42,8 @@ export default function InteractiveVenueExplorer({
   const [staticMapCenter, setStaticMapCenter] = useState<[number, number]>(fallbackCenter);
   const [staticMapZoom] = useState<number>(fallbackZoom);
   const [staticUserLocation, setStaticUserLocation] = useState<[number, number] | null>(null);
+  
+
   
   // Refs for debouncing
   const debounceTimeoutRef = useRef<NodeJS.Timeout>();

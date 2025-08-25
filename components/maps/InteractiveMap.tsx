@@ -183,6 +183,8 @@ const InteractiveMap = memo(function InteractiveMap({
   onLocationRequest,
   maxDistanceKm,
 }: InteractiveMapProps) {
+  
+
   // Filter to only show approved venues
   const approvedVenues = useMemo(
     () => venues.filter((venue) => venue.status === "approved"),

@@ -119,7 +119,7 @@ export default async function Home() {
             allVenues={availableVenues}
             maxDistanceKm={VENUE_SEARCH_RADIUS_KM}
             fallbackCenter={[51.5261617, -0.1633234]} // London Business School as fallback (LBS easter egg! 🎓)
-            fallbackZoom={13}
+            // fallbackZoom removed - now uses environment variable NEXT_PUBLIC_MAP_ZOOM_LEVEL
           />
         </div>
       </section>
