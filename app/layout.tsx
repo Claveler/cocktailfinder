@@ -9,6 +9,11 @@ import ServerThemeProvider from "@/components/theme/ServerThemeProvider";
 export const metadata: Metadata = {
   title: "Piscola.net",
   description: "Find the best venues to enjoy Piscola in your city",
+  icons: {
+    icon: '/favicon.png',
+    shortcut: '/favicon.png',
+    apple: '/favicon.png',
+  },
 };
 
 export default function RootLayout({

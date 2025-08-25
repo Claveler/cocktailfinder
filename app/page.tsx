@@ -5,13 +5,21 @@ import { MapPin, Search } from "lucide-react";
 import Image from "next/image";
 import { type Venue } from "@/components/maps/BasicMap";
 import LocationMapWrapper from "@/components/maps/LocationMapWrapper";
-import VenueCard from "@/components/venues/VenueCard";
+import LocationAwareVenues from "@/components/venues/LocationAwareVenues";
 import HomePageClient from "@/app/HomePageClient";
 import { createClient } from "@/lib/supabase/server";
 import type { Venue as VenueType } from "@/lib/venues";
 
-// Function to fetch random venues for homepage
-async function getRandomVenues(count: number = 3): Promise<VenueType[]> {
+// Configuration for location-based venue filtering
+const VENUE_SEARCH_RADIUS_KM = Number(process.env.NEXT_PUBLIC_VENUE_SEARCH_RADIUS_KM) || 10; // Default radius in kilometers
+const VENUE_POOL_SIZE = 100; // Fetch more venues for better location filtering
+
+// Debug: Log the radius value
+console.log('🔧 VENUE_SEARCH_RADIUS_KM:', VENUE_SEARCH_RADIUS_KM);
+console.log('🔧 process.env.NEXT_PUBLIC_VENUE_SEARCH_RADIUS_KM:', process.env.NEXT_PUBLIC_VENUE_SEARCH_RADIUS_KM);
+
+// Function to fetch venues for location-aware homepage
+async function getVenuesForLocationFiltering(): Promise<VenueType[]> {
   try {
     const supabase = createClient();
 
@@ -19,10 +27,12 @@ async function getRandomVenues(count: number = 3): Promise<VenueType[]> {
       .from("venues")
       .select("*, latitude, longitude")
       .eq("status", "approved")
-      .limit(50); // Fetch more to have a good selection
+      .not("latitude", "is", null)
+      .not("longitude", "is", null)
+      .limit(VENUE_POOL_SIZE); // Fetch more venues for location filtering
 
     if (error) {
-      console.error("Error fetching random venues:", error);
+      console.error("Error fetching venues:", error);
       return [];
     }
 
@@ -30,12 +40,8 @@ async function getRandomVenues(count: number = 3): Promise<VenueType[]> {
       return [];
     }
 
-    // Shuffle and pick random venues
-    const shuffled = venues.sort(() => 0.5 - Math.random());
-    const selected = shuffled.slice(0, count);
-
     // Transform to match our interface
-    return selected.map((venue: any) => ({
+    return venues.map((venue: any) => ({
       ...venue,
       location:
         venue.latitude && venue.longitude
@@ -43,14 +49,14 @@ async function getRandomVenues(count: number = 3): Promise<VenueType[]> {
           : null,
     }));
   } catch (error) {
-    console.error("Unexpected error fetching random venues:", error);
+    console.error("Unexpected error fetching venues:", error);
     return [];
   }
 }
 
 export default async function Home() {
-  // Fetch random venues for featured section
-  const featuredVenues = await getRandomVenues(3);
+  // Fetch venues for location-aware filtering
+  const availableVenues = await getVenuesForLocationFiltering();
 
   // Sample venue data for map preview
   const sampleVenues: Venue[] = [
@@ -158,26 +164,11 @@ export default async function Home() {
             />
           </div>
 
-          {/* Featured Venues Preview */}
-          <div className="grid md:grid-cols-3 gap-6">
-            {featuredVenues.length > 0 ? (
-              featuredVenues.map((venue, index) => (
-                <HomePageClient key={venue.id} delay={index * 0.1}>
-                  <VenueCard venue={venue} />
-                </HomePageClient>
-              ))
-            ) : (
-              // Fallback content if no venues found
-              <div className="col-span-3 text-center py-12">
-                <p className="text-muted-foreground">
-                  No venues available yet. Be the first to add one!
-                </p>
-                <Button asChild className="mt-4">
-                  <a href="/venues/new">Add First Venue</a>
-                </Button>
-              </div>
-            )}
-          </div>
+          {/* Location-Aware Featured Venues */}
+          <LocationAwareVenues 
+            allVenues={availableVenues}
+            maxDistanceKm={VENUE_SEARCH_RADIUS_KM}
+          />
         </div>
       </section>
     </div>
