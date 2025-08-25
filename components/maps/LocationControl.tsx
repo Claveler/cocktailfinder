@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useMap } from "react-leaflet";
 import L from "leaflet";
 import { MapPin } from "lucide-react";
+import { getThemeColorAsHex, getThemeColorAsHexDarker } from "@/lib/utils";
 
 interface LocationControlProps {
   userLocation: [number, number] | null;
@@ -17,13 +18,17 @@ export default function LocationControl({ userLocation, onLocationRequest, zoom 
   useEffect(() => {
     if (!map) return;
 
+    // Get theme colors
+    const primaryColor = getThemeColorAsHex('primary', '#DC2626');
+    const primaryHoverColor = getThemeColorAsHexDarker('primary', 15, '#B91C1C');
+    
     // Create custom control
     const LocationControl = L.Control.extend({
       onAdd: function() {
         const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
         
         // Style the container with primary theme color
-        container.style.backgroundColor = '#DC2626';  // Primary red
+        container.style.backgroundColor = primaryColor;
         container.style.width = '40px';
         container.style.height = '40px';
         container.style.cursor = 'pointer';
@@ -51,11 +56,11 @@ export default function LocationControl({ userLocation, onLocationRequest, zoom 
         
         // Add hover effects
         container.onmouseenter = function() {
-          container.style.backgroundColor = '#B91C1C';  // Darker red on hover
+          container.style.backgroundColor = primaryHoverColor;  // Darker primary on hover
           container.style.transform = 'scale(1.05)';
         };
         container.onmouseleave = function() {
-          container.style.backgroundColor = '#DC2626';  // Back to primary red
+          container.style.backgroundColor = primaryColor;  // Back to primary
           container.style.transform = 'scale(1)';
         };
         

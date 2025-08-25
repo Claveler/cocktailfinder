@@ -121,7 +121,13 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Upsert the theme (update if exists, create if not)
+    // First, set all existing themes to inactive
+    await supabase
+      .from('theme_settings')
+      .update({ is_active: false })
+      .neq('id', 0); // Update all rows
+    
+    // Then upsert the new active theme
     const { data, error } = await supabase
       .from('theme_settings')
       .upsert({
@@ -213,58 +219,34 @@ export async function DELETE() {
       border: "#e5dede"
     };
 
-    // First, try to update existing default theme
-    let data, error;
-    
-    // Try to update existing default theme first
-    const { data: updateData, error: updateError } = await supabase
+    // First, set all existing themes to inactive
+    await supabase
       .from('theme_settings')
-      .update({
+      .update({ is_active: false })
+      .neq('id', 0); // Update all rows
+
+    // Then upsert the default theme as active
+    const { data, error } = await supabase
+      .from('theme_settings')
+      .upsert({
+        name: 'Default Piscola Theme',
         colors: defaultColors,
         is_active: true,
+        created_by: user.id,
         updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'name',
+        ignoreDuplicates: false
       })
-      .eq('name', 'Default Piscola Theme')
       .select()
       .single();
 
-    if (updateError && updateError.code !== 'PGRST116') {
-      // PGRST116 = no rows found, which is fine - we'll insert
-      console.error('Error updating theme:', updateError);
+    if (error) {
+      console.error('Error resetting theme:', error);
       return NextResponse.json(
-        { error: `Failed to reset theme: ${updateError.message}` },
+        { error: `Failed to reset theme: ${error.message}` },
         { status: 500 }
       );
-    }
-
-    if (updateData) {
-      data = updateData;
-      error = null;
-    } else {
-      // If no existing theme found, create new one
-      const { data: insertData, error: insertError } = await supabase
-        .from('theme_settings')
-        .insert({
-          name: 'Default Piscola Theme',
-          colors: defaultColors,
-          is_active: true,
-          created_by: user.id,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .select()
-        .single();
-
-      data = insertData;
-      error = insertError;
-      
-      if (error) {
-        console.error('Error creating default theme:', error);
-        return NextResponse.json(
-          { error: `Failed to create default theme: ${error.message}` },
-          { status: 500 }
-        );
-      }
     }
 
     return NextResponse.json({

@@ -10,6 +10,7 @@ import "./venue-popup.css";
 import MapCenterTracker from "./MapCenterTracker";
 import LocationControl from "./LocationControl";
 import VenuePopup from "./VenuePopup";
+import { getThemeColorAsHex } from "@/lib/utils";
 // import { createRoot } from "react-dom/client"; // Unused
 
 // Enhanced venue type definition
@@ -82,14 +83,17 @@ const LeafletMapComponent = memo(function LeafletMapComponent({
     });
   }, []); // Run only once on mount
 
-  // Create custom red marker icon for venues (theme primary color)
+  // Create custom marker icon for venues using theme primary color
   const venueMarkerIcon = useMemo(() => {
     if (typeof window === 'undefined') return null;
+    
+    // Get the primary color from theme
+    const primaryColor = getThemeColorAsHex('primary', '#DC2626');
     
     return new L.Icon({
       iconUrl: 'data:image/svg+xml;base64,' + btoa(`
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 25 41" fill="none">
-          <path d="M12.5 0C5.59644 0 0 5.59644 0 12.5C0 21.875 12.5 41 12.5 41S25 21.875 25 12.5C25 5.59644 19.4036 0 12.5 0Z" fill="#DC2626"/>
+          <path d="M12.5 0C5.59644 0 0 5.59644 0 12.5C0 21.875 12.5 41 12.5 41S25 21.875 25 12.5C25 5.59644 19.4036 0 12.5 0Z" fill="${primaryColor}"/>
           <circle cx="12.5" cy="12.5" r="5" fill="white"/>
         </svg>
       `),
