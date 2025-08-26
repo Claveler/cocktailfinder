@@ -76,6 +76,18 @@ export async function createVenue(formData: FormData) {
 
     logger.debug(`Creating venue for user: ${user.id}`);
 
+    // Get user's full name for pisco verification record
+    let userFullName = "Anonymous";
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("full_name")
+      .eq("id", user.id)
+      .single();
+    
+    if (profile?.full_name) {
+      userFullName = profile.full_name;
+    }
+
     // Extract and validate form data
     const name = formData.get("name") as string;
     const type = formData.get("type") as "bar" | "pub" | "liquor_store";
@@ -90,6 +102,10 @@ export async function createVenue(formData: FormData) {
     // Parse arrays from JSON strings
     const brands = JSON.parse((formData.get("brands") as string) || "[]");
     const ambiance = JSON.parse((formData.get("ambiance") as string) || "[]");
+
+    // Extract pisco information
+    const pisco_status = formData.get("pisco_status") as string || "unverified";
+    const pisco_notes = formData.get("pisco_notes") as string || "";
 
     // Photos are now handled client-side, no need to process them here
 
@@ -131,6 +147,12 @@ export async function createVenue(formData: FormData) {
         status: "pending",
         created_by: user.id,
         google_maps_url: google_maps_url?.trim() || null,
+        // Add pisco information
+        pisco_status: pisco_status,
+        pisco_notes: pisco_notes.trim() || null,
+        // Set verification fields if user provided pisco info
+        last_verified: pisco_status !== "unverified" ? new Date().toISOString() : null,
+        verified_by: pisco_status !== "unverified" ? userFullName : null,
       })
       .select()
       .single();
@@ -138,6 +160,24 @@ export async function createVenue(formData: FormData) {
     if (venueError) {
       logger.error("Error creating venue", { error: venueError });
       throw new Error(`Failed to create venue: ${venueError.message}`);
+    }
+
+    // Create pisco verification record if user provided pisco information
+    if (pisco_status !== "unverified") {
+      const { error: verificationError } = await supabase
+        .from("pisco_verifications")
+        .insert({
+          venue_id: venue.id,
+          user_id: user.id,
+          verified_by: userFullName,
+          pisco_status: pisco_status,
+          pisco_notes: pisco_notes.trim() || null,
+        });
+
+      if (verificationError) {
+        logger.error("Error creating pisco verification", { error: verificationError });
+        // Don't fail the entire venue creation if verification fails
+      }
     }
 
     logger.debug("Venue creation completed successfully");

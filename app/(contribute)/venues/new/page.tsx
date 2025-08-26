@@ -4,7 +4,7 @@ import { useState, useTransition, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-// import { Textarea } from "@/components/ui/textarea";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { uploadPhoto } from "@/lib/storage";
@@ -29,6 +29,9 @@ import {
   Camera,
   AlertCircle,
   Link as LinkIcon,
+  CheckCircle,
+  XCircle,
+  HelpCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { createVenue, updateVenuePhotos } from "@/lib/actions/venues";
@@ -114,6 +117,10 @@ export default function NewVenuePage() {
     price_range: "",
     google_maps_url: "",
   });
+
+  // Pisco information state
+  const [piscoStatus, setPiscoStatus] = useState("unverified");
+  const [piscoNotes, setPiscoNotes] = useState("");
 
   const [brands, setBrands] = useState<string[]>([]);
   const [newBrand, setNewBrand] = useState("");
@@ -219,6 +226,10 @@ export default function NewVenuePage() {
         // Add arrays as JSON
         submitFormData.append("brands", JSON.stringify(brands));
         submitFormData.append("ambiance", JSON.stringify(ambiance));
+
+        // Add pisco information
+        submitFormData.append("pisco_status", piscoStatus);
+        submitFormData.append("pisco_notes", piscoNotes.trim());
 
         // Create venue without photos first
         const result = await createVenue(submitFormData);
@@ -640,12 +651,118 @@ export default function NewVenuePage() {
           </CardContent>
         </Card>
 
+        {/* Pisco Information */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Wine className="h-5 w-5" />
+              Step 5: Pisco Information
+            </CardTitle>
+            <p className="text-muted-foreground text-sm">
+              Help the community by sharing pisco availability at this venue
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Pisco Status */}
+            <div>
+              <Label>Pisco Status</Label>
+              <div className="grid grid-cols-2 gap-3 mt-2">
+                {/* Pisco Available */}
+                <button
+                  type="button"
+                  onClick={() => setPiscoStatus("available")}
+                  className={`p-4 rounded-lg border-2 transition-all duration-200 flex flex-col items-center gap-2 text-sm font-medium ${
+                    piscoStatus === "available"
+                      ? "border-green-500 bg-green-50 text-green-700"
+                      : "border-gray-200 hover:border-green-300 hover:bg-green-50/50"
+                  }`}
+                >
+                  <CheckCircle className={`h-6 w-6 ${piscoStatus === "available" ? "text-green-500" : "text-gray-400"}`} />
+                  Pisco Available
+                </button>
+
+                {/* No Pisco */}
+                <button
+                  type="button"
+                  onClick={() => setPiscoStatus("unavailable")}
+                  className={`p-4 rounded-lg border-2 transition-all duration-200 flex flex-col items-center gap-2 text-sm font-medium ${
+                    piscoStatus === "unavailable"
+                      ? "border-red-500 bg-red-50 text-red-700"
+                      : "border-gray-200 hover:border-red-300 hover:bg-red-50/50"
+                  }`}
+                >
+                  <XCircle className={`h-6 w-6 ${piscoStatus === "unavailable" ? "text-red-500" : "text-gray-400"}`} />
+                  No Pisco
+                </button>
+
+                {/* Temporarily Out */}
+                <button
+                  type="button"
+                  onClick={() => setPiscoStatus("temporarily_out")}
+                  className={`p-4 rounded-lg border-2 transition-all duration-200 flex flex-col items-center gap-2 text-sm font-medium ${
+                    piscoStatus === "temporarily_out"
+                      ? "border-orange-500 bg-orange-50 text-orange-700"
+                      : "border-gray-200 hover:border-orange-300 hover:bg-orange-50/50"
+                  }`}
+                >
+                  <AlertCircle className={`h-6 w-6 ${piscoStatus === "temporarily_out" ? "text-orange-500" : "text-gray-400"}`} />
+                  Temporarily Out
+                </button>
+
+                {/* Status Unknown */}
+                <button
+                  type="button"
+                  onClick={() => setPiscoStatus("unverified")}
+                  className={`p-4 rounded-lg border-2 transition-all duration-200 flex flex-col items-center gap-2 text-sm font-medium ${
+                    piscoStatus === "unverified"
+                      ? "border-gray-500 bg-gray-50 text-gray-700"
+                      : "border-gray-200 hover:border-gray-300 hover:bg-gray-50/50"
+                  }`}
+                >
+                  <HelpCircle className={`h-6 w-6 ${piscoStatus === "unverified" ? "text-gray-500" : "text-gray-400"}`} />
+                  Status Unknown
+                </button>
+              </div>
+            </div>
+
+            {/* Pisco Notes */}
+            <div>
+              <Label htmlFor="pisco_notes">
+                {piscoStatus === "available" 
+                  ? "What pisco brands or options are available?" 
+                  : piscoStatus === "unavailable"
+                  ? "Why is pisco not available?"
+                  : "Additional details about pisco at this venue"
+                }
+              </Label>
+              <Textarea
+                id="pisco_notes"
+                placeholder={
+                  piscoStatus === "available" 
+                    ? "e.g., They have Alto del Carmen and Control C. Staff can make Piscola on request..."
+                    : piscoStatus === "unavailable"
+                    ? "e.g., Manager confirmed they don't stock pisco, only whisky and vodka..."
+                    : "Share any details about pisco availability at this venue..."
+                }
+                value={piscoNotes}
+                onChange={(e) => setPiscoNotes(e.target.value)}
+                rows={3}
+                className="mt-1"
+                maxLength={500}
+              />
+              <div className="text-xs text-muted-foreground mt-1">
+                {piscoNotes.length}/500 characters
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Photos */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Camera className="h-5 w-5" />
-              Step 5: Photos (Optional)
+              Step 6: Photos (Optional)
             </CardTitle>
             <p className="text-muted-foreground text-sm">
               Upload photos to showcase the venue's atmosphere

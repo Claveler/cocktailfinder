@@ -368,7 +368,10 @@ export default function ThemeCustomizer() {
               </Card>
             ) : sampleVenue ? (
               <div className="max-w-sm">
-                <VenueCard venue={sampleVenue} />
+                <VenueCard 
+                  venue={sampleVenue} 
+                  onCardClick={() => {}} // Dummy function to enable full interactive layout
+                />
               </div>
             ) : (
               <Card className="w-full max-w-none p-8 text-center text-muted-foreground">

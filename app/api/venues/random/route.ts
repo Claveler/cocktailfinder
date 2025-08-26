@@ -2,6 +2,28 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import type { Venue } from "@/lib/venues";
 
+// Helper function to fetch verification stats for venues
+async function fetchVerificationStats(venueIds: string[]) {
+  if (venueIds.length === 0) return {};
+
+  const supabase = createClient();
+  
+  const { data: stats, error } = await supabase
+    .from('venue_verification_stats')
+    .select('venue_id, total_verifications, positive_verifications, unique_verifiers')
+    .in('venue_id', venueIds);
+
+  if (error) {
+    console.error('Error fetching verification stats:', error);
+    return {};
+  }
+
+  return stats.reduce((acc, stat) => {
+    acc[stat.venue_id] = stat;
+    return acc;
+  }, {} as Record<string, any>);
+}
+
 export async function GET() {
   try {
     const supabase = createClient();
@@ -32,6 +54,14 @@ export async function GET() {
     const randomIndex = Math.floor(Math.random() * venues.length);
     const randomVenue = venues[randomIndex];
 
+    // Fetch verification stats for this venue
+    const verificationStats = await fetchVerificationStats([randomVenue.id]);
+    const stats = verificationStats[randomVenue.id] || {
+      total_verifications: 0,
+      positive_verifications: 0,
+      unique_verifiers: 0
+    };
+
     // Transform the data to match our interface
     const transformedVenue: Venue = {
       ...randomVenue,
@@ -39,6 +69,10 @@ export async function GET() {
         randomVenue.latitude && randomVenue.longitude
           ? { lat: randomVenue.latitude, lng: randomVenue.longitude }
           : null,
+      // Add verification statistics
+      total_verifications: stats.total_verifications,
+      positive_verifications: stats.positive_verifications,
+      unique_verifiers: stats.unique_verifiers,
     };
 
     return NextResponse.json(transformedVenue);
