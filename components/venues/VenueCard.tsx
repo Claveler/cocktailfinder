@@ -2,7 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Star, Clock, Wine, DollarSign, ChevronRight, CheckCircle, XCircle, HelpCircle, AlertCircle } from "lucide-react";
+import { MapPin, Star, Clock, Wine, DollarSign, ChevronRight, CheckCircle, XCircle, HelpCircle, AlertCircle, Users } from "lucide-react";
 import Link from "next/link";
 import type { Venue } from "@/lib/venues";
 
@@ -88,6 +88,14 @@ export default function VenueCard({
       default: // unverified
         return "Pisco Status Unknown";
     }
+  };
+
+  const formatDate = (date: string) => {
+    const d = new Date(date);
+    const day = d.getDate().toString().padStart(2, '0');
+    const month = d.toLocaleDateString('en-US', { month: 'short' });
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
   };
 
 
@@ -223,58 +231,54 @@ export default function VenueCard({
 
         {/* Pisco Info & Footer */}
         <div className="pt-3 border-t border-border space-y-2">
-          {/* Pisco Status */}
-          <div className="flex items-center">
-            {getPiscoStatusIcon(venue.pisco_status)}
-            <span className="text-sm font-medium ml-2">
-              {getPiscoStatusText(venue.pisco_status)}
-            </span>
-          </div>
-
-          {/* Community Trust Section */}
-          <div className="bg-muted/30 rounded-lg p-3 space-y-1.5">
-            {/* Trust Score */}
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-foreground">Community Trust</span>
-              <div className="text-xs">
-                {(venue.total_verifications ?? 0) > 0 ? (
-                  <span className="font-medium text-green-600">
-                    {venue.positive_verifications || 0}/{venue.total_verifications} positive
-                  </span>
-                ) : (
-                  <span className="text-muted-foreground">Not verified</span>
-                )}
-              </div>
+          {/* Pisco Status & Community Trust - Same Line */}
+          <div className="flex items-center justify-between">
+            {/* Pisco Status */}
+            <div className="flex items-center">
+              {getPiscoStatusIcon(venue.pisco_status)}
+              <span className="text-sm font-medium ml-2">
+                {getPiscoStatusText(venue.pisco_status)}
+              </span>
             </div>
 
-            {/* Verification Details - Combined Line */}
-            {(venue.unique_verifiers ?? 0) > 0 && (
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
+            {/* Community Trust Score */}
+            <div className="text-xs">
+              {(venue.total_verifications ?? 0) > 0 ? (
+                <span className="font-medium text-green-600">
+                  {venue.positive_verifications || 0}/{venue.total_verifications} positive
+                </span>
+              ) : (
+                <span className="text-muted-foreground">Not verified</span>
+              )}
+            </div>
+          </div>
+
+          {/* Verification Details */}
+          {(venue.unique_verifiers ?? 0) > 0 && venue.last_verified && (
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              {/* Verifier Count with Icon */}
+              <div className="flex items-center gap-1">
+                <Users className="h-3 w-3" />
                 <span>
                   {venue.unique_verifiers} {venue.unique_verifiers === 1 ? 'verifier' : 'verifiers'}
                 </span>
-                {venue.last_verified && (
-                  <span>
-                    {new Date(venue.last_verified).toLocaleDateString()}
-                    {venue.verified_by && <> by {venue.verified_by}</>}
-                  </span>
-                )}
               </div>
-            )}
+              
+              {/* Last Verification Date */}
+              <span>
+                Last verified on {formatDate(venue.last_verified)}
+              </span>
+            </div>
+          )}
 
-            {/* Community Notes - Inline */}
-            {venue.pisco_notes && (
-              <div className="text-xs text-muted-foreground">
-                <span className="font-medium">Note:</span>
-                <span className="ml-1 italic">"{venue.pisco_notes}"</span>
+          {/* Community Notes - Quote Style with Theme Colors */}
+          {venue.pisco_notes && venue.verified_by && (
+            <div className="bg-foreground/5 border border-foreground/10 rounded-lg p-2.5 mt-3">
+              <div className="text-xs text-foreground/80 italic">
+                "{venue.pisco_notes}" — {venue.verified_by}
               </div>
-            )}
-          </div>
-
-          {/* Venue Metadata */}
-          <div className="text-xs text-muted-foreground text-right">
-            Added {new Date(venue.created_at).toLocaleDateString()}
-          </div>
+            </div>
+          )}
         </div>
       </CardContent>
     </div>
