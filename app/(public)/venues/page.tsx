@@ -20,8 +20,9 @@ import {
 import Link from "next/link";
 import BasicMapWrapper from "@/components/maps/BasicMapWrapper";
 import VenuesClient from "./VenuesClient";
+import L from "leaflet";
 
-// Helper function to calculate map center based on venue locations
+// Helper function to calculate map center based on venue locations using Leaflet's bounds
 function calculateMapCenter(venues: any[]): [number, number] {
   const venuesWithLocation = venues.filter((venue) => venue.location);
 
@@ -30,14 +31,14 @@ function calculateMapCenter(venues: any[]): [number, number] {
     return [51.5074, -0.1278];
   }
 
-  const avgLat =
-    venuesWithLocation.reduce((sum, venue) => sum + venue.location.lat, 0) /
-    venuesWithLocation.length;
-  const avgLng =
-    venuesWithLocation.reduce((sum, venue) => sum + venue.location.lng, 0) /
-    venuesWithLocation.length;
+  // Use Leaflet's bounds calculation for accurate center positioning
+  const coordinates = venuesWithLocation.map(venue => [venue.location.lat, venue.location.lng] as [number, number]);
+  const bounds = L.latLngBounds(coordinates);
+  const center = bounds.getCenter();
 
-  return [avgLat, avgLng];
+  console.log(`🗺️ Using Leaflet's bounds.getCenter(): [${center.lat.toFixed(4)}, ${center.lng.toFixed(4)}] from ${venuesWithLocation.length} venues`);
+
+  return [center.lat, center.lng];
 }
 
 interface VenuesPageProps {
