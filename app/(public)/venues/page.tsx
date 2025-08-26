@@ -21,25 +21,10 @@ import Link from "next/link";
 import BasicMapWrapper from "@/components/maps/BasicMapWrapper";
 import VenuesClient from "./VenuesClient";
 
-// Helper function to calculate map center based on venue locations using simple math (SSR-safe)
-function calculateMapCenter(venues: any[]): [number, number] {
-  const venuesWithLocation = venues.filter((venue) => venue.location);
-
-  if (venuesWithLocation.length === 0) {
-    // Default to London if no venues have coordinates
-    return [51.5074, -0.1278];
-  }
-
-  // Calculate center using simple mathematical average (works on server-side)
-  const totalLat = venuesWithLocation.reduce((sum, venue) => sum + venue.location.lat, 0);
-  const totalLng = venuesWithLocation.reduce((sum, venue) => sum + venue.location.lng, 0);
-  
-  const centerLat = totalLat / venuesWithLocation.length;
-  const centerLng = totalLng / venuesWithLocation.length;
-
-  console.log(`🗺️ Using mathematical center: [${centerLat.toFixed(4)}, ${centerLng.toFixed(4)}] from ${venuesWithLocation.length} venues`);
-
-  return [centerLat, centerLng];
+// Simple fallback center for SSR (proper center will be calculated client-side with Leaflet)
+function getServerFallbackCenter(): [number, number] {
+  // Default to London - client will calculate proper center using Leaflet
+  return [51.5074, -0.1278];
 }
 
 interface VenuesPageProps {
@@ -242,7 +227,7 @@ export default async function VenuesPage({ searchParams }: VenuesPageProps) {
                           status: venue.status as "approved",
                         }))}
                       height="100%"
-                      center={calculateMapCenter(venueData.venues)}
+                      center={getServerFallbackCenter()}
                       zoom={11}
                     />
                   </CardContent>
@@ -324,7 +309,7 @@ export default async function VenuesPage({ searchParams }: VenuesPageProps) {
                   {/* Interactive Venues and Map */}
                   <VenuesClient 
                     venues={venueData.venues}
-                    initialCenter={calculateMapCenter(venueData.venues)}
+                    initialCenter={getServerFallbackCenter()}
                     pagination={venueData.totalPages > 1 ? (
                       <Pagination
                         currentPage={venueData.currentPage}

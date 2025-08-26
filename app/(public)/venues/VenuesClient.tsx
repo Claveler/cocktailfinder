@@ -5,6 +5,7 @@ import VenueCard from "@/components/venues/VenueCard";
 import BasicMapWrapper from "@/components/maps/BasicMapWrapper";
 import { Card, CardContent } from "@/components/ui/card";
 import type { Venue } from "@/lib/venues";
+import L from "leaflet";
 
 interface VenuesClientProps {
   venues: any[];
@@ -12,8 +13,31 @@ interface VenuesClientProps {
   pagination?: React.ReactNode;
 }
 
+// Helper function to calculate map center using Leaflet's bounds (client-side only)
+function calculateMapCenterWithLeaflet(venues: any[]): [number, number] {
+  const venuesWithLocation = venues.filter((venue) => venue.location);
+
+  if (venuesWithLocation.length === 0) {
+    // Default to London if no venues have coordinates
+    return [51.5074, -0.1278];
+  }
+
+  // Use Leaflet's bounds calculation for accurate center positioning
+  const coordinates = venuesWithLocation.map(venue => [venue.location.lat, venue.location.lng] as [number, number]);
+  const bounds = L.latLngBounds(coordinates);
+  const center = bounds.getCenter();
+
+  console.log(`🗺️ Using Leaflet's bounds.getCenter(): [${center.lat.toFixed(4)}, ${center.lng.toFixed(4)}] from ${venuesWithLocation.length} venues`);
+
+  return [center.lat, center.lng];
+}
+
 export default function VenuesClient({ venues, initialCenter, pagination }: VenuesClientProps) {
-  const [mapCenter, setMapCenter] = useState<[number, number]>(initialCenter);
+  // Calculate proper center using Leaflet on client side
+  const [mapCenter, setMapCenter] = useState<[number, number]>(() => {
+    if (typeof window === 'undefined') return initialCenter;
+    return calculateMapCenterWithLeaflet(venues);
+  });
   const [mapZoom, setMapZoom] = useState(11);
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
 
