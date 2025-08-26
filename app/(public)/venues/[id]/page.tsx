@@ -312,13 +312,25 @@ export default async function VenuePage({ params }: VenuePageProps) {
                     </div>
                   </div>
                   <div className="text-right text-xs text-muted-foreground">
-                    {venue.last_verified ? (
+                    {(venue.total_verifications ?? 0) > 0 ? (
                       <>
-                        <div>Verified {new Date(venue.last_verified).toLocaleDateString()}</div>
-                        {venue.verified_by && <div>by {venue.verified_by}</div>}
+                        <div className="font-medium">
+                          {venue.positive_verifications || 0}/{venue.total_verifications} community positive
+                        </div>
+                        {(venue.unique_verifiers ?? 0) > 1 && (
+                          <div>{venue.unique_verifiers} different verifiers</div>
+                        )}
+                        {venue.last_verified && (
+                          <>
+                            <div className="mt-1 pt-1 border-t border-muted">
+                              Latest: {new Date(venue.last_verified).toLocaleDateString()}
+                            </div>
+                            {venue.verified_by && <div>by {venue.verified_by}</div>}
+                          </>
+                        )}
                       </>
                     ) : (
-                      <div>Never verified</div>
+                      <div>No community verifications yet</div>
                     )}
                   </div>
                 </div>

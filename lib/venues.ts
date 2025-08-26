@@ -1,6 +1,57 @@
 import { createClient } from "@/lib/supabase/server";
 import { logger } from "@/lib/logger";
 
+// Helper function to fetch verification stats for venues
+async function fetchVerificationStats(venueIds: string[]) {
+  if (venueIds.length === 0) return {};
+  
+  const supabase = createClient();
+  
+  try {
+    const { data: verifications } = await supabase
+      .from("pisco_verifications")
+      .select("venue_id, pisco_status, user_id")
+      .in("venue_id", venueIds);
+
+    if (!verifications) return {};
+
+    // Calculate stats for each venue
+    const stats: Record<string, { positive_verifications: number; total_verifications: number; unique_verifiers: number }> = {};
+    
+    verifications.forEach(verification => {
+      if (!stats[verification.venue_id]) {
+        stats[verification.venue_id] = {
+          positive_verifications: 0,
+          total_verifications: 0,
+          unique_verifiers: 0
+        };
+      }
+      
+      stats[verification.venue_id].total_verifications++;
+      if (verification.pisco_status === 'available') {
+        stats[verification.venue_id].positive_verifications++;
+      }
+    });
+
+    // Count unique verifiers
+    Object.keys(stats).forEach(venueId => {
+      const uniqueUsers = new Set(
+        verifications
+          .filter(v => v.venue_id === venueId)
+          .map(v => v.user_id)
+      );
+      stats[venueId].unique_verifiers = uniqueUsers.size;
+    });
+
+    return stats;
+  } catch (error) {
+    console.warn("Error fetching verification stats:", error);
+    return {};
+  }
+}
+
+
+
 export interface Venue {
   id: string;
   name: string;
@@ -26,6 +77,10 @@ export interface Venue {
   last_verified: string | null;
   verified_by: string | null;
   pisco_notes: string | null;
+  // Verification stats from community
+  positive_verifications?: number;
+  total_verifications?: number;
+  unique_verifiers?: number;
 }
 
 export interface VenueFilters {
@@ -121,6 +176,10 @@ export async function listVenues(
 
     logger.debug("Query completed", { venueCount: venues?.length, totalCount });
 
+    // Fetch verification stats for all venues
+    const venueIds = (venues || []).map((venue: any) => venue.id);
+    const verificationStats = await fetchVerificationStats(venueIds);
+
     // Transform the data to match our interface (now with direct coordinate columns!)
     const transformedVenues: Venue[] = (venues || []).map((venue: any) => {
       const location =
@@ -128,11 +187,16 @@ export async function listVenues(
           ? { lat: venue.latitude, lng: venue.longitude }
           : null;
 
-
+      const stats = verificationStats[venue.id] || {
+        positive_verifications: 0,
+        total_verifications: 0,
+        unique_verifiers: 0
+      };
 
       return {
         ...venue,
         location,
+        ...stats
       };
     });
 
@@ -261,6 +325,14 @@ export async function getVenueById(
       return { data: null, error: new Error("Venue not found") };
     }
 
+    // Fetch verification stats for this venue
+    const verificationStats = await fetchVerificationStats([venue.id]);
+    const stats = verificationStats[venue.id] || {
+      positive_verifications: 0,
+      total_verifications: 0,
+      unique_verifiers: 0
+    };
+
     // Transform venue data
     const transformedVenue: Venue = {
       ...venue,
@@ -268,6 +340,7 @@ export async function getVenueById(
         venue.latitude && venue.longitude
           ? { lat: venue.latitude, lng: venue.longitude }
           : null,
+      ...stats
     };
 
     // Fetch comments for this venue

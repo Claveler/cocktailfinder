@@ -234,23 +234,35 @@ export default function VenueCard({
 
           </div>
 
-          {/* Verification Info */}
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <div>
-              {venue.last_verified ? (
-                <>
-                  Verified {new Date(venue.last_verified).toLocaleDateString()}
-                  {venue.verified_by && (
-                    <> by {venue.verified_by}</>
-                  )}
-                </>
-              ) : (
-                <>Never verified</>
-              )}
+          {/* Community Verification Info */}
+          <div className="space-y-1">
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <div>
+                {(venue.total_verifications ?? 0) > 0 ? (
+                  <>
+                    <span className="font-medium">
+                      {venue.positive_verifications || 0}/{venue.total_verifications} positive
+                    </span>
+                    {(venue.unique_verifiers ?? 0) > 1 && (
+                      <span className="ml-1">({venue.unique_verifiers} verifiers)</span>
+                    )}
+                  </>
+                ) : (
+                  <>No community verifications yet</>
+                )}
+              </div>
+              <div>
+                Added {new Date(venue.created_at).toLocaleDateString()}
+              </div>
             </div>
-            <div>
-              Added {new Date(venue.created_at).toLocaleDateString()}
-            </div>
+            {venue.last_verified && (
+              <div className="text-xs text-muted-foreground">
+                Latest: {new Date(venue.last_verified).toLocaleDateString()}
+                {venue.verified_by && (
+                  <> by {venue.verified_by}</>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Pisco Notes (if available) */}

@@ -194,7 +194,23 @@ export async function updateVenuePiscoInfo(venueId: string, formData: FormData) 
 
 
 
-    // Prepare update data
+    // Insert new verification record into history
+    const { error: insertError } = await supabase
+      .from("pisco_verifications")
+      .insert({
+        venue_id: venueId,
+        user_id: user.id,
+        verified_by: profile?.full_name || "Anonymous User",
+        pisco_status: piscoStatus,
+        pisco_notes: piscoNotes || null
+      });
+
+    if (insertError) {
+      console.error("Error inserting verification:", insertError);
+      throw new Error("Failed to record verification");
+    }
+
+    // Update venue with latest verification info (for backward compatibility)
     const updateData: any = {
       pisco_status: piscoStatus,
       pisco_notes: piscoNotes || null,
