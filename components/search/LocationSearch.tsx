@@ -27,16 +27,22 @@ export default function LocationSearch({ onLocationFound }: LocationSearchProps)
   const [error, setError] = useState<string | null>(null);
   
   const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<NodeJS.Timeout>();
+  const isSelectionUpdate = useRef(false);
 
   // Fetch suggestions as user types
   const fetchSuggestions = async (query: string) => {
+    console.log('🔍 fetchSuggestions called with query:', query);
+    
     if (query.length < 3) {
+      console.log('🔍 Query too short, clearing suggestions');
       setSuggestions([]);
       setShowSuggestions(false);
       return;
     }
 
+    console.log('🔍 Fetching suggestions from API');
     try {
       const response = await fetch(
         `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1`
@@ -47,6 +53,7 @@ export default function LocationSearch({ onLocationFound }: LocationSearchProps)
       }
 
       const data = await response.json();
+      console.log('🔍 API returned', data.length, 'suggestions, showing dropdown:', data.length > 0);
       setSuggestions(data);
       setShowSuggestions(data.length > 0);
       setActiveSuggestionIndex(-1);
@@ -59,11 +66,22 @@ export default function LocationSearch({ onLocationFound }: LocationSearchProps)
 
   // Debounced search for suggestions
   useEffect(() => {
+    console.log('🔍 useEffect triggered by searchTerm change:', searchTerm, 'isSelectionUpdate:', isSelectionUpdate.current);
+    
+    // Skip fetching suggestions if this is a programmatic update from selection
+    if (isSelectionUpdate.current) {
+      console.log('🔍 Skipping fetchSuggestions - this is a selection update');
+      isSelectionUpdate.current = false; // Reset the flag
+      return;
+    }
+    
     if (debounceRef.current) {
+      console.log('🔍 Clearing existing debounce timeout');
       clearTimeout(debounceRef.current);
     }
 
     debounceRef.current = setTimeout(() => {
+      console.log('🔍 Debounce timeout fired, calling fetchSuggestions');
       fetchSuggestions(searchTerm);
     }, 300);
 
@@ -87,19 +105,39 @@ export default function LocationSearch({ onLocationFound }: LocationSearchProps)
   }, []);
 
   const selectLocation = (suggestion: SearchSuggestion) => {
+    console.log('🔍 selectLocation called:', suggestion.display_name);
+    
+    // Clear any pending debounced search 
+    if (debounceRef.current) {
+      console.log('🔍 Clearing debounce timeout');
+      clearTimeout(debounceRef.current);
+    }
+
+    // Use coordinates we already have from the suggestion
     const coordinates: [number, number] = [
       parseFloat(suggestion.lat),
       parseFloat(suggestion.lon)
     ];
 
-    // Call the callback with the found coordinates
+    // Call the callback with the coordinates we already have
+    console.log('🔍 Calling onLocationFound with existing coordinates');
     onLocationFound(coordinates, suggestion.display_name);
     
-    // Update UI
+    // Update UI - just set the display value and clear suggestions  
+    console.log('🔍 Updating UI - setting display value and clearing suggestions');
+    
+    // Set flag to prevent fetchSuggestions when we update the display value
+    isSelectionUpdate.current = true;
     setSearchTerm(suggestion.display_name.split(',')[0]); // Show short version
     setShowSuggestions(false);
     setSuggestions([]);
     setError(null);
+    
+    // Blur input 
+    if (inputRef.current) {
+      console.log('🔍 Blurring input');
+      inputRef.current.blur();
+    }
   };
 
   const searchLocation = async (locationName: string) => {
@@ -174,9 +212,12 @@ export default function LocationSearch({ onLocationFound }: LocationSearchProps)
         break;
       case 'Enter':
         e.preventDefault();
+        console.log('🔍 Enter key pressed, activeSuggestionIndex:', activeSuggestionIndex);
         if (activeSuggestionIndex >= 0 && suggestions[activeSuggestionIndex]) {
+          console.log('🔍 Selecting suggestion via Enter key');
           selectLocation(suggestions[activeSuggestionIndex]);
         } else {
+          console.log('🔍 No active suggestion, calling handleSubmit');
           handleSubmit(e);
         }
         break;
@@ -184,7 +225,9 @@ export default function LocationSearch({ onLocationFound }: LocationSearchProps)
   };
 
   const handleInputFocus = () => {
+    console.log('🔍 Input focus event, suggestions.length:', suggestions.length, 'searchTerm.length:', searchTerm.length);
     if (suggestions.length > 0 && searchTerm.length >= 3) {
+      console.log('🔍 Showing suggestions on focus');
       setShowSuggestions(true);
     }
   };
@@ -194,6 +237,7 @@ export default function LocationSearch({ onLocationFound }: LocationSearchProps)
       <div className="relative flex-1">
         <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground z-10" />
         <Input 
+          ref={inputRef}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -215,7 +259,10 @@ export default function LocationSearch({ onLocationFound }: LocationSearchProps)
                     ? 'bg-primary/10 text-primary' 
                     : 'hover:bg-gray-50 text-gray-900'
                 }`}
-                onClick={() => selectLocation(suggestion)}
+                onClick={() => {
+                  console.log('🔍 Suggestion clicked:', suggestion.display_name);
+                  selectLocation(suggestion);
+                }}
               >
                 <div className="font-medium text-sm">
                   {suggestion.display_name.split(',')[0]}
