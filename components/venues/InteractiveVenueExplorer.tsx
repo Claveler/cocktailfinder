@@ -268,9 +268,9 @@ export default function InteractiveVenueExplorer({
   // Handle venue card click - focus map on venue
   const handleVenueCardClick = useCallback((venue: VenueType) => {
     if (venue.location) {
-      setFocusedVenueId(venue.id);
-      // Clear focus after a delay to reset state
-      setTimeout(() => setFocusedVenueId(null), 2000);
+      // Only change focusedVenueId if it's different from current
+      // This prevents unnecessary re-renders that cause popup blinking
+      setFocusedVenueId(prevId => prevId === venue.id ? prevId : venue.id);
     }
   }, []);
 
