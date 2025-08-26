@@ -65,6 +65,33 @@ function isLocationFallback(location: [number, number]): boolean {
   );
 }
 
+// Component to debug zoom levels
+function ZoomDebugger() {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!map) return;
+
+    const logZoom = () => {
+      const currentZoom = map.getZoom();
+      const clusteringDisableZoom = Number(process.env.NEXT_PUBLIC_CLUSTERING_DISABLE_ZOOM) || 14;
+      console.log(`🔍 Current zoom level: ${currentZoom} ${currentZoom >= clusteringDisableZoom ? '(clustering disabled)' : '(clustering enabled)'}`);
+    };
+
+    // Log initial zoom
+    logZoom();
+
+    // Log zoom changes
+    map.on('zoomend', logZoom);
+
+    return () => {
+      map.off('zoomend', logZoom);
+    };
+  }, [map]);
+
+  return null;
+}
+
 // Component to handle venue focusing from card clicks
 function VenueFocuser({ 
   focusedVenueId, 
@@ -203,6 +230,9 @@ const LeafletMapComponent = memo(function LeafletMapComponent({
 
       {/* Venue focusing for card clicks */}
       <VenueFocuser focusedVenueId={focusedVenueId ?? null} venues={venues} />
+
+      {/* Debug zoom levels */}
+      <ZoomDebugger />
       
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -236,6 +266,7 @@ const LeafletMapComponent = memo(function LeafletMapComponent({
         spiderfyOnMaxZoom={true}
         showCoverageOnHover={false}
         zoomToBoundsOnClick={true}
+        disableClusteringAtZoom={Number(process.env.NEXT_PUBLIC_CLUSTERING_DISABLE_ZOOM) || 14}
         iconCreateFunction={(cluster: any) => {
           const count = cluster.getChildCount();
           let size = 'small';

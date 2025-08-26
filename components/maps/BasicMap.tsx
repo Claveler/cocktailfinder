@@ -171,6 +171,7 @@ function LeafletMapComponent({
         spiderfyOnMaxZoom={true}
         showCoverageOnHover={false}
         zoomToBoundsOnClick={true}
+        disableClusteringAtZoom={Number(process.env.NEXT_PUBLIC_CLUSTERING_DISABLE_ZOOM) || 14}
         iconCreateFunction={(cluster: any) => {
           const count = cluster.getChildCount();
           let size = 'small';
