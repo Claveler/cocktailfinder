@@ -21,6 +21,11 @@ export interface Venue {
   created_at: string;
   updated_at: string;
   google_maps_url: string | null;
+  // Pisco-specific fields
+  pisco_status: "available" | "unavailable" | "unverified" | "temporarily_out";
+  last_verified: string | null;
+  verified_by: string | null;
+  pisco_notes: string | null;
 }
 
 export interface VenueFilters {

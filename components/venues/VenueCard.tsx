@@ -2,7 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Star, Clock, Wine, DollarSign, ChevronRight } from "lucide-react";
+import { MapPin, Star, Clock, Wine, DollarSign, ChevronRight, CheckCircle, XCircle, HelpCircle, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import type { Venue } from "@/lib/venues";
 
@@ -63,6 +63,34 @@ export default function VenueCard({
 
     return ranges[priceRange.toLowerCase()] || priceRange;
   };
+
+  const getPiscoStatusIcon = (status: string) => {
+    switch (status) {
+      case "available":
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case "unavailable":
+        return <XCircle className="h-4 w-4 text-red-500" />;
+      case "temporarily_out":
+        return <AlertCircle className="h-4 w-4 text-orange-500" />;
+      default: // unverified
+        return <HelpCircle className="h-4 w-4 text-gray-400" />;
+    }
+  };
+
+  const getPiscoStatusText = (status: string) => {
+    switch (status) {
+      case "available":
+        return "Pisco Available";
+      case "unavailable":
+        return "No Pisco";
+      case "temporarily_out":
+        return "Temporarily Out";
+      default: // unverified
+        return "Pisco Status Unknown";
+    }
+  };
+
+
 
   const handleCardClick = () => {
     if (onCardClick) {
@@ -193,16 +221,44 @@ export default function VenueCard({
           </div>
         )}
 
-        {/* Rating & Footer */}
-        <div className="flex items-center justify-between pt-3 border-t border-border">
-          <div className="flex items-center">
-            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 mr-1" />
-            <span className="text-sm font-medium">4.5</span>
-            <span className="text-xs text-muted-foreground ml-1">(24 reviews)</span>
+        {/* Pisco Info & Footer */}
+        <div className="pt-3 border-t border-border space-y-2">
+          {/* Pisco Status */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              {getPiscoStatusIcon(venue.pisco_status)}
+              <span className="text-sm font-medium ml-2">
+                {getPiscoStatusText(venue.pisco_status)}
+              </span>
+            </div>
+
           </div>
-          <div className="text-xs text-muted-foreground">
-            Added {new Date(venue.created_at).toLocaleDateString()}
+
+          {/* Verification Info */}
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <div>
+              {venue.last_verified ? (
+                <>
+                  Verified {new Date(venue.last_verified).toLocaleDateString()}
+                  {venue.verified_by && (
+                    <> by {venue.verified_by}</>
+                  )}
+                </>
+              ) : (
+                <>Never verified</>
+              )}
+            </div>
+            <div>
+              Added {new Date(venue.created_at).toLocaleDateString()}
+            </div>
           </div>
+
+          {/* Pisco Notes (if available) */}
+          {venue.pisco_notes && (
+            <div className="text-xs text-muted-foreground italic">
+              "{venue.pisco_notes}"
+            </div>
+          )}
         </div>
       </CardContent>
     </div>

@@ -88,7 +88,7 @@ type FontConfig = {
 };
 
 // 🎨 CHANGE THIS TO TEST DIFFERENT FONTS
-const CURRENT_FONT = "geist" as const;
+const CURRENT_FONT = "inter" as const;
 
 type FontKeys = "geist" | "inter" | "raleway" | "poppins" | "openSans" | "roboto" | "lato" | "hankenGrotesk";
 

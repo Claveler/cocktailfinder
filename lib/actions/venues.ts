@@ -160,3 +160,77 @@ export async function createVenue(formData: FormData) {
     };
   }
 }
+
+export async function updateVenuePiscoInfo(venueId: string, formData: FormData) {
+  try {
+    const supabase = createClient();
+
+    // Check authentication
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      throw new Error("You must be logged in to update pisco information");
+    }
+
+    // Get current user profile for verification tracking
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("full_name")
+      .eq("id", user.id)
+      .single();
+
+    // Extract form data
+    const piscoStatus = formData.get("pisco_status") as string;
+    const piscoNotes = (formData.get("pisco_notes") as string)?.trim();
+
+    // Validate pisco status
+    const validStatuses = ["available", "unavailable", "unverified", "temporarily_out"];
+    if (!validStatuses.includes(piscoStatus)) {
+      throw new Error("Invalid pisco status");
+    }
+
+
+
+    // Prepare update data
+    const updateData: any = {
+      pisco_status: piscoStatus,
+      pisco_notes: piscoNotes || null,
+      last_verified: new Date().toISOString(),
+      verified_by: profile?.full_name || "Anonymous User"
+    };
+
+    // Update venue pisco information
+    const { error: updateError } = await supabase
+      .from("venues")
+      .update(updateData)
+      .eq("id", venueId);
+
+    if (updateError) {
+      logger.error("Error updating venue pisco info", { error: updateError });
+      throw new Error(`Failed to update pisco information: ${updateError.message}`);
+    }
+
+    logger.debug(`Updated pisco info for venue ${venueId} by user ${user.id}`);
+
+    // Revalidate venue page
+    revalidatePath(`/venues/${venueId}`);
+    revalidatePath("/venues");
+    revalidatePath("/");
+
+    return {
+      success: true,
+      message: "Pisco information updated successfully!"
+    };
+
+  } catch (error) {
+    logger.error("Error in updateVenuePiscoInfo", { error });
+
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to update pisco information",
+    };
+  }
+}

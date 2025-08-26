@@ -17,8 +17,12 @@ import {
   ArrowLeft,
   StarIcon,
   Edit,
+  CheckCircle,
+  XCircle,
+  HelpCircle,
+  AlertCircle,
 } from "lucide-react";
-import CommentForm from "./CommentForm";
+import PiscoVerificationForm from "./PiscoVerificationForm";
 import PhotoGallery from "./PhotoGallery";
 import { getVenueGoogleMapsUrl } from "@/lib/maps";
 
@@ -93,30 +97,34 @@ function StarRating({
   return <div className="flex items-center gap-1">{stars}</div>;
 }
 
-// Comment component
-function CommentItem({ comment }: { comment: any }) {
-  return (
-    <div className="space-y-3 p-4 border-b last:border-b-0">
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-              <User className="h-4 w-4 text-primary" />
-            </div>
-            <span className="font-medium">
-              {comment.profile?.full_name || "Anonymous"}
-            </span>
-          </div>
-          <StarRating rating={comment.rating} />
-        </div>
-        <span className="text-sm text-muted-foreground">
-          {new Date(comment.created_at).toLocaleDateString()}
-        </span>
-      </div>
-      <p className="text-sm text-gray-700 leading-relaxed">{comment.content}</p>
-    </div>
-  );
+// Pisco status helper functions
+function getPiscoStatusIcon(status: string) {
+  switch (status) {
+    case "available":
+      return <CheckCircle className="h-5 w-5 text-green-500" />;
+    case "unavailable":
+      return <XCircle className="h-5 w-5 text-red-500" />;
+    case "temporarily_out":
+      return <AlertCircle className="h-5 w-5 text-orange-500" />;
+    default: // unverified
+      return <HelpCircle className="h-5 w-5 text-gray-400" />;
+  }
 }
+
+function getPiscoStatusText(status: string) {
+  switch (status) {
+    case "available":
+      return "Pisco Available";
+    case "unavailable":
+      return "No Pisco";
+    case "temporarily_out":
+      return "Temporarily Out";
+    default: // unverified
+      return "Pisco Status Unknown";
+  }
+}
+
+
 
 export default async function VenuePage({ params }: VenuePageProps) {
   // Get current user for access control
@@ -285,36 +293,68 @@ export default async function VenuePage({ params }: VenuePageProps) {
             </CardContent>
           </Card>
 
-          {/* Comments Section */}
+          {/* Pisco Information Section */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <MessageCircle className="h-5 w-5" />
-                Reviews & Comments ({venue.totalComments})
+                {getPiscoStatusIcon(venue.pisco_status)}
+                Pisco Information
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {venue.comments.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>No reviews yet. Be the first to share your experience!</p>
+              {/* Current Pisco Status */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    {getPiscoStatusIcon(venue.pisco_status)}
+                    <div>
+                      <h3 className="font-semibold">{getPiscoStatusText(venue.pisco_status)}</h3>
+                    </div>
+                  </div>
+                  <div className="text-right text-xs text-muted-foreground">
+                    {venue.last_verified ? (
+                      <>
+                        <div>Verified {new Date(venue.last_verified).toLocaleDateString()}</div>
+                        {venue.verified_by && <div>by {venue.verified_by}</div>}
+                      </>
+                    ) : (
+                      <div>Never verified</div>
+                    )}
+                  </div>
                 </div>
-              ) : (
-                <div className="space-y-0">
-                  {venue.comments.map((comment) => (
-                    <CommentItem key={comment.id} comment={comment} />
-                  ))}
-                </div>
-              )}
 
-              {/* Comment Form */}
+                {/* Pisco Notes */}
+                {venue.pisco_notes && (
+                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <h4 className="font-medium text-blue-900 mb-2">Community Notes:</h4>
+                    <p className="text-blue-800 text-sm italic">"{venue.pisco_notes}"</p>
+                  </div>
+                )}
+
+                {/* No information available */}
+                {venue.pisco_status === "unverified" && !venue.pisco_notes && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <HelpCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>No pisco information available yet. Help the community by verifying!</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Verification Form */}
               {user ? (
                 <>
                   <Separator className="my-6" />
                   <div>
-                    <h4 className="font-semibold mb-4">Add Your Review</h4>
-                    <Suspense fallback={<div>Loading comment form...</div>}>
-                      <CommentForm venueId={venue.id} />
+                    <h4 className="font-semibold mb-4">Update Pisco Information</h4>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Help fellow pisco lovers by sharing what you know about this venue's pisco availability.
+                    </p>
+                    <Suspense fallback={<div>Loading verification form...</div>}>
+                                            <PiscoVerificationForm
+                        venueId={venue.id}
+                        currentStatus={venue.pisco_status}
+                        currentNotes={venue.pisco_notes}
+                      />
                     </Suspense>
                   </div>
                 </>
@@ -323,7 +363,7 @@ export default async function VenuePage({ params }: VenuePageProps) {
                   <Separator className="my-6" />
                   <div className="text-center py-4">
                     <p className="text-muted-foreground mb-4">
-                      Sign in to leave a review
+                      Sign in to help verify pisco information
                     </p>
                     <Button asChild>
                       <Link href="/login">Sign In</Link>
