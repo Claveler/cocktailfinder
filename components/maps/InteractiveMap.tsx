@@ -36,7 +36,11 @@ function MapUpdater({ center, zoom }: { center: [number, number]; zoom: number }
   const map = useMap();
   
   useEffect(() => {
-    map.setView(center, zoom);
+    // Use flyTo for smooth animation when map center/zoom changes
+    map.flyTo(center, zoom, {
+      animate: true,
+      duration: 1.5
+    });
   }, [map, center, zoom]);
   
   return null;

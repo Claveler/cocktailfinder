@@ -68,8 +68,11 @@ export default function LocationControl({ userLocation, onLocationRequest, zoom 
         container.onclick = function(e) {
           L.DomEvent.stopPropagation(e);
           if (userLocation) {
-            // Return to user location
-            map.setView(userLocation, zoom);
+            // Return to user location with smooth flyTo animation
+            map.flyTo(userLocation, zoom, {
+              animate: true,
+              duration: 1.5
+            });
           } else if (onLocationRequest) {
             // Request location access
             onLocationRequest();
