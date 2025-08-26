@@ -63,7 +63,19 @@ export function filterVenuesByDistance<T extends { location: { lat: number; lng:
 }
 
 /**
- * Check if a point is within the given map bounds
+ * Convert our MapBounds interface to Leaflet's LatLngBounds
+ * @param bounds Map bounds object with north, south, east, west properties
+ * @returns Leaflet LatLngBounds object
+ */
+function createLatLngBounds(bounds: MapBounds): L.LatLngBounds {
+  // Create bounds from southwest and northeast corners
+  const southWest = L.latLng(bounds.south, bounds.west);
+  const northEast = L.latLng(bounds.north, bounds.east);
+  return L.latLngBounds(southWest, northEast);
+}
+
+/**
+ * Check if a point is within the given map bounds using Leaflet's built-in contains method
  * @param lat Latitude of the point
  * @param lng Longitude of the point  
  * @param bounds Map bounds object
@@ -74,12 +86,15 @@ export function isPointInBounds(
   lng: number,
   bounds: MapBounds
 ): boolean {
-  return (
-    lat >= bounds.south &&
-    lat <= bounds.north &&
-    lng >= bounds.west &&
-    lng <= bounds.east
-  );
+  // Use Leaflet's built-in bounds checking for accuracy
+  const leafletBounds = createLatLngBounds(bounds);
+  const point = L.latLng(lat, lng);
+  
+  const isInBounds = leafletBounds.contains(point);
+  
+  console.log(`📍 Using Leaflet's bounds.contains(): ${isInBounds} for point [${lat.toFixed(4)}, ${lng.toFixed(4)}] in bounds [S:${bounds.south.toFixed(4)}, N:${bounds.north.toFixed(4)}, W:${bounds.west.toFixed(4)}, E:${bounds.east.toFixed(4)}]`);
+  
+  return isInBounds;
 }
 
 /**
