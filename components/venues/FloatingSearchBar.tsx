@@ -24,7 +24,7 @@ import type { VenueFilters } from "@/lib/venues";
 
 interface FloatingSearchBarProps {
   defaultValues: VenueFilters;
-  cities: string[];
+  cities: string[]; // Will be removed - keeping for now to avoid breaking changes
   brands: string[];
   resultCount: number;
 }
@@ -38,9 +38,6 @@ export default function FloatingSearchBar({
   const router = useRouter();
   const [isExpanded, setIsExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState(defaultValues.q || "");
-  const [selectedCity, setSelectedCity] = useState(
-    defaultValues.city || "all"
-  );
   const [selectedType, setSelectedType] = useState(
     defaultValues.type || "all"
   );
@@ -50,14 +47,12 @@ export default function FloatingSearchBar({
 
   const hasActiveFilters =
     searchQuery ||
-    selectedCity !== "all" ||
     selectedType !== "all" ||
     selectedBrand !== "all";
 
   const getActiveFiltersCount = () => {
     let count = 0;
     if (searchQuery) count++;
-    if (selectedCity !== "all") count++;
     if (selectedType !== "all") count++;
     if (selectedBrand !== "all") count++;
     return count;
@@ -65,7 +60,6 @@ export default function FloatingSearchBar({
 
   const clearFilters = () => {
     setSearchQuery("");
-    setSelectedCity("all");
     setSelectedType("all");
     setSelectedBrand("all");
     // Navigate to clear all filters
@@ -78,12 +72,10 @@ export default function FloatingSearchBar({
     
     // Use current state values or overrides
     const query = overrides.q !== undefined ? overrides.q : searchQuery;
-    const city = overrides.city !== undefined ? overrides.city : selectedCity;
     const type = overrides.type !== undefined ? overrides.type : selectedType;
     const brand = overrides.brand !== undefined ? overrides.brand : selectedBrand;
 
     if (query) params.set("q", query);
-    if (city && city !== "all") params.set("city", city);
     if (type && type !== "all") params.set("type", type);
     if (brand && brand !== "all") params.set("brand", brand);
 
@@ -98,12 +90,10 @@ export default function FloatingSearchBar({
 
     // Build query parameters
     const query = formData.get("q")?.toString();
-    const city = formData.get("city")?.toString();
     const type = formData.get("type")?.toString();
     const brand = formData.get("brand")?.toString();
 
     if (query) params.set("q", query);
-    if (city && city !== "all") params.set("city", city);
     if (type && type !== "all") params.set("type", type);
     if (brand && brand !== "all") params.set("brand", brand);
 
@@ -124,7 +114,7 @@ export default function FloatingSearchBar({
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     name="q"
-                    placeholder="Search venues..."
+                    placeholder="Search by location..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-10 pr-4 bg-white"
@@ -144,54 +134,31 @@ export default function FloatingSearchBar({
                     </Badge>
                   )}
                 </Button>
-                <Button type="submit" size="sm" className="shrink-0">
-                  Search
+                <Button type="submit" size="icon" className="shrink-0">
+                  <Search className="h-4 w-4" />
                 </Button>
               </div>
 
               {/* Expandable filters for mobile */}
               {isExpanded && (
                 <div className="border-t pt-3 space-y-3">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <Label className="text-xs text-muted-foreground">City</Label>
-                      <Select
-                        name="city"
-                        value={selectedCity}
-                        onValueChange={setSelectedCity}
-                      >
-                        <SelectTrigger className="h-8 text-sm bg-white">
-                          <SelectValue placeholder="All cities" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All cities</SelectItem>
-                          {cities.map((city) => (
-                            <SelectItem key={city} value={city}>
-                              {city}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div>
-                      <Label className="text-xs text-muted-foreground">Type</Label>
-                      <Select
-                        name="type"
-                        value={selectedType}
-                        onValueChange={setSelectedType}
-                      >
-                        <SelectTrigger className="h-8 text-sm bg-white">
-                          <SelectValue placeholder="All types" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All types</SelectItem>
-                          <SelectItem value="bar">Bar</SelectItem>
-                          <SelectItem value="pub">Pub</SelectItem>
-                          <SelectItem value="liquor_store">Store</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Type</Label>
+                    <Select
+                      name="type"
+                      value={selectedType}
+                      onValueChange={setSelectedType}
+                    >
+                      <SelectTrigger className="h-8 text-sm bg-white">
+                        <SelectValue placeholder="All types" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All types</SelectItem>
+                        <SelectItem value="bar">Bar</SelectItem>
+                        <SelectItem value="pub">Pub</SelectItem>
+                        <SelectItem value="liquor_store">Store</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div>
@@ -285,32 +252,11 @@ export default function FloatingSearchBar({
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     name="q"
-                    placeholder="Search venues..."
+                    placeholder="Search by location..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-10 pr-4 bg-white"
                   />
-                </div>
-
-                {/* Quick City Filter */}
-                <div className="min-w-[140px]">
-                  <Select
-                    name="city"
-                    value={selectedCity}
-                    onValueChange={setSelectedCity}
-                  >
-                    <SelectTrigger className="text-sm bg-white">
-                      <SelectValue placeholder="All cities" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All cities</SelectItem>
-                      {cities.map((city) => (
-                        <SelectItem key={city} value={city}>
-                          {city}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                 </div>
 
                 {/* Filter Toggle Button */}

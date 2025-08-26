@@ -18,14 +18,14 @@ import {
   List,
 } from "lucide-react";
 import Link from "next/link";
-import BasicMapWrapper from "@/components/maps/BasicMapWrapper";
-import VenuesClient from "./VenuesClient";
+// Map components temporarily removed - will integrate enhanced map from landing page
+// import BasicMapWrapper from "@/components/maps/BasicMapWrapper";
+// import VenuesClient from "./VenuesClient";
 
-// Simple fallback center for SSR (proper center will be calculated client-side with Leaflet)
-function getServerFallbackCenter(): [number, number] {
-  // Default to London - client will calculate proper center using Leaflet
-  return [51.5074, -0.1278];
-}
+// Map center function temporarily not needed - will be used when integrating enhanced map
+// function getServerFallbackCenter(): [number, number] {
+//   return [51.5074, -0.1278];
+// }
 
 interface VenuesPageProps {
   searchParams: {
@@ -216,20 +216,17 @@ export default async function VenuesPage({ searchParams }: VenuesPageProps) {
                     height: 'calc(100vh - 12rem)' // Fill available space: viewport minus header, toggle bar, and padding
                   }}
                 >
-                  <CardContent className="p-0 h-full">
-                    <BasicMapWrapper
-                      venues={venueData.venues
-                        .filter((venue) => venue.location)
-                        .map((venue) => ({
-                          id: venue.id,
-                          name: venue.name,
-                          location: venue.location!,
-                          status: venue.status as "approved",
-                        }))}
-                      height="100%"
-                      center={getServerFallbackCenter()}
-                      zoom={11}
-                    />
+                  <CardContent className="p-0 h-full flex items-center justify-center bg-muted/10">
+                    <div className="text-center">
+                      <MapIcon className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold mb-2">Enhanced Map Coming Soon</h3>
+                      <p className="text-muted-foreground mb-4 max-w-md">
+                        We're working on integrating the powerful interactive map from our home page here.
+                      </p>
+                      <Button asChild>
+                        <Link href="/">Experience the full map on our home page</Link>
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               )}
@@ -306,20 +303,52 @@ export default async function VenuesPage({ searchParams }: VenuesPageProps) {
                 </Card>
               ) : (
                 <>
-                  {/* Interactive Venues and Map */}
-                  <VenuesClient 
-                    venues={venueData.venues}
-                    initialCenter={getServerFallbackCenter()}
-                    pagination={venueData.totalPages > 1 ? (
-                      <Pagination
-                        currentPage={venueData.currentPage}
-                        totalPages={venueData.totalPages}
-                        hasNextPage={venueData.hasNextPage}
-                        hasPrevPage={venueData.hasPrevPage}
-                        searchParams={urlParams}
-                      />
-                    ) : undefined}
-                  />
+                  {/* Venue List + Map Placeholder */}
+                  <div className="flex gap-6">
+                    {/* Left Column: Venue List */}
+                    <div className="w-1/3">
+                      <div className="space-y-4">
+                        {venueData.venues.map((venue) => (
+                          <VenueCard key={venue.id} venue={venue} />
+                        ))}
+                      </div>
+                      {venueData.totalPages > 1 && (
+                        <div className="mt-8 mb-8">
+                          <Pagination
+                            currentPage={venueData.currentPage}
+                            totalPages={venueData.totalPages}
+                            hasNextPage={venueData.hasNextPage}
+                            hasPrevPage={venueData.hasPrevPage}
+                            searchParams={urlParams}
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Right Column: Map Placeholder */}
+                    <div className="w-2/3">
+                      <Card 
+                        className="sticky" 
+                        style={{ 
+                          top: 'calc(17rem)', // Position below navbar + search bar
+                          height: 'calc(100vh - 17rem - 2rem)' // Fill available space with small bottom margin
+                        }}
+                      >
+                        <CardContent className="p-0 h-full flex items-center justify-center bg-muted/10">
+                          <div className="text-center">
+                            <MapIcon className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                            <h3 className="text-lg font-semibold mb-2">Enhanced Interactive Map</h3>
+                            <p className="text-muted-foreground mb-4 max-w-md">
+                              Coming soon: The same powerful map experience from our home page with venue focusing, real-time updates, and location search.
+                            </p>
+                            <Button asChild>
+                              <Link href="/">Try the full experience</Link>
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </div>
                 </>
               )}
             </Suspense>
