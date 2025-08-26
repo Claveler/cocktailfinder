@@ -68,13 +68,16 @@ export default function LocationControl({ userLocation, onLocationRequest, zoom 
         container.onclick = function(e) {
           L.DomEvent.stopPropagation(e);
           if (userLocation) {
-            // Return to user location with smooth flyTo animation
+            // Return to user location with smooth animation
+            const flyToDuration = Number(process.env.NEXT_PUBLIC_FLYTO_DURATION) || 1.5;
+            console.log('🎯 Crosshair: Flying to user location', userLocation, 'zoom:', zoom, 'duration:', flyToDuration);
             map.flyTo(userLocation, zoom, {
               animate: true,
-              duration: 1.5
+              duration: flyToDuration
             });
           } else if (onLocationRequest) {
             // Request location access
+            console.log('🎯 Crosshair: Requesting location access');
             onLocationRequest();
           }
         };

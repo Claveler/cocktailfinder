@@ -34,10 +34,10 @@ function MapUpdater({ center, zoom }: { center: [number, number]; zoom: number }
   const map = useMap();
   
   useEffect(() => {
-    // Use flyTo for smooth animation when map center/zoom changes
+    const flyToDuration = Number(process.env.NEXT_PUBLIC_FLYTO_DURATION) || 1.5;
     map.flyTo(center, zoom, {
       animate: true,
-      duration: 1.5
+      duration: flyToDuration
     });
   }, [map, center, zoom]);
   
