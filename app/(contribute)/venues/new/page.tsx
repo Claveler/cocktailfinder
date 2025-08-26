@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useCallback } from "react";
+import { useState, useTransition, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,32 +51,7 @@ const PRICE_RANGES = [
   { value: "$$$$", label: "$$$$ - Luxury" },
 ];
 
-const COMMON_BRANDS = [
-  "Hennessy",
-  "Bombay Sapphire",
-  "Grey Goose",
-  "Tanqueray",
-  "Kettle One",
-  "Aperol",
-  "Hendricks",
-  "Absolut",
-  "Bacardi",
-  "Captain Morgan",
-  "Jack Daniels",
-  "Johnnie Walker",
-  "Chivas Regal",
-  "Macallan",
-  "Glenfiddich",
-  "Patron",
-  "Don Julio",
-  "Cointreau",
-  "Grand Marnier",
-  "Baileys",
-  "Kahlua",
-  "Amaretto",
-  "Campari",
-  "Vermouth",
-];
+// Brands will be fetched from the database
 
 const COMMON_AMBIANCE = [
   "speakeasy",
@@ -128,6 +103,35 @@ export default function NewVenuePage() {
   const [newAmbiance, setNewAmbiance] = useState("");
   const [photos, setPhotos] = useState<File[]>([]);
   const [uploadingPhotos, setUploadingPhotos] = useState(false);
+
+  // Database brands
+  const [commonBrands, setCommonBrands] = useState<string[]>([]);
+  const [loadingBrands, setLoadingBrands] = useState(true);
+
+  // Fetch brands from database on mount
+  useEffect(() => {
+    const fetchBrands = async () => {
+      try {
+        const response = await fetch("/api/brands");
+        if (response.ok) {
+          const brandsData = await response.json();
+          setCommonBrands(brandsData);
+        } else {
+          console.error("Failed to fetch brands");
+          // Fallback to some basic brands if API fails
+          setCommonBrands(["Hennessy", "Bombay Sapphire", "Grey Goose", "Tanqueray", "Aperol"]);
+        }
+      } catch (error) {
+        console.error("Error fetching brands:", error);
+        // Fallback to some basic brands if API fails
+        setCommonBrands(["Hennessy", "Bombay Sapphire", "Grey Goose", "Tanqueray", "Aperol"]);
+      } finally {
+        setLoadingBrands(false);
+      }
+    };
+
+    fetchBrands();
+  }, []);
 
   const handleInputChange = (field: keyof typeof formData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -527,23 +531,33 @@ export default function NewVenuePage() {
                 {/* Common brands */}
                 <div>
                   <p className="text-sm text-muted-foreground mb-2">
-                    Common brands:
+                    {loadingBrands ? "Loading brands..." : "Common brands from our database:"}
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    {COMMON_BRANDS.map((brand) => (
-                      <Badge
-                        key={brand}
-                        variant={brands.includes(brand) ? "default" : "outline"}
-                        className="cursor-pointer"
-                        onClick={() =>
-                          brands.includes(brand)
-                            ? removeBrand(brand)
-                            : addBrand(brand)
-                        }
-                      >
-                        {brand}
-                      </Badge>
-                    ))}
+                    {loadingBrands ? (
+                      <div className="text-sm text-muted-foreground">
+                        Fetching brands from venues...
+                      </div>
+                    ) : commonBrands.length > 0 ? (
+                      commonBrands.map((brand) => (
+                        <Badge
+                          key={brand}
+                          variant={brands.includes(brand) ? "default" : "outline"}
+                          className="cursor-pointer"
+                          onClick={() =>
+                            brands.includes(brand)
+                              ? removeBrand(brand)
+                              : addBrand(brand)
+                          }
+                        >
+                          {brand}
+                        </Badge>
+                      ))
+                    ) : (
+                      <div className="text-sm text-muted-foreground">
+                        No brands found in database yet.
+                      </div>
+                    )}
                   </div>
                 </div>
 
