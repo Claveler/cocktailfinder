@@ -338,7 +338,7 @@ const InteractiveMap = memo(function InteractiveMap({
   );
 
   return (
-    <div style={{ height }} className="w-full rounded-lg overflow-hidden">
+    <div style={{ height }} className="w-full !rounded-none md:!rounded-lg overflow-hidden">
       <LeafletMapComponent 
         venues={approvedVenues} 
         center={center} 

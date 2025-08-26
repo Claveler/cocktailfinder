@@ -45,7 +45,7 @@ export default function NavBar() {
   }, [isMobileMenuOpen]);
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
+    <nav className="sticky top-0 z-50 w-full border-b bg-card md:bg-card/95 md:backdrop-blur md:supports-[backdrop-filter]:bg-card/60">
       <div className="container mx-auto h-16 px-4">
         {/* Desktop Layout - Three Section Grid */}
         <div className="hidden lg:grid lg:grid-cols-3 lg:items-center h-full">
@@ -139,7 +139,7 @@ export default function NavBar() {
 
       {/* Mobile Menu Panel */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden border-t bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 animate-in slide-in-from-top-2 duration-200">
+        <div className="lg:hidden border-t bg-card animate-in slide-in-from-top-2 duration-200">
           <div className="container mx-auto px-4 py-4">
             <div className="flex flex-col space-y-4">
               {/* Navigation Links */}

@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { MapPin, AlertCircle, X } from "lucide-react";
 import VenueCard from "@/components/venues/VenueCard";
 import InteractiveMapWrapper from "@/components/maps/InteractiveMapWrapper";
+import MobileFooter from "@/components/mobile/MobileFooter";
 import Link from "next/link";
 import type { Venue as VenueType } from "@/lib/venues";
 import { filterVenuesByDistance, filterVenuesByBounds, calculateApproximateBounds } from "@/lib/distance";
@@ -327,10 +328,10 @@ export default function InteractiveVenueExplorer({
   }
 
   return (
-    <div className="space-y-8">
-      {/* Interactive Map */}
-      <div className="relative">
-        <Card className="w-full overflow-hidden" style={{ height: "400px" }}>
+    <div className="md:space-y-8">
+      {/* Interactive Map - Sticky on Mobile */}
+      <div className="sticky top-16 md:relative md:top-auto z-30 h-[calc(50vh-4rem)] md:h-auto">
+        <Card className="w-full overflow-hidden h-full md:h-[400px] !rounded-none md:!rounded-xl border-0 md:border">
           <CardContent className="p-0 h-full">
             <InteractiveMapWrapper
               venues={staticVenuesForMap}
@@ -368,16 +369,11 @@ export default function InteractiveVenueExplorer({
         )}
       </div>
 
-      {/* Explanation Text - Mobile Only */}
-      <div className="text-center block md:hidden">
-        <p className="text-sm text-muted-foreground">
-          Showing venues closest to map center • Move the map to explore different areas
-        </p>
-      </div>
+
 
       {/* Dynamic Venues Based on Map Position */}
       {filteredVenues.length > 0 ? (
-        <div className="space-y-6">
+        <div className="p-4 md:p-0 pb-20 md:pb-4 space-y-6">
           {/* Venues Grid */}
           <div className="grid md:grid-cols-3 gap-6">
             {filteredVenues.map((venue) => (
@@ -406,24 +402,32 @@ export default function InteractiveVenueExplorer({
               </Link>
             </Button>
           </div>
+          
+          {/* Mobile Footer */}
+          <MobileFooter />
         </div>
       ) : (
         /* No Venues Found */
-        <div className="text-center py-12">
-          <p className="text-muted-foreground mb-4">
-            No venues visible in the current map view.
-          </p>
-          <p className="text-sm text-muted-foreground mb-6">
-            Try moving the map to explore different locations, or browse all venues.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button asChild variant="outline">
-              <Link href="/venues">View All Venues</Link>
-            </Button>
-            <Button asChild>
-              <Link href="/venues/new">Add a Venue</Link>
-            </Button>
+        <div className="flex items-center justify-center p-4 md:p-0 py-12">
+          <div className="text-center py-12">
+            <p className="text-muted-foreground mb-4">
+              No venues visible in the current map view.
+            </p>
+            <p className="text-sm text-muted-foreground mb-6">
+              Try moving the map to explore different locations, or browse all venues.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button asChild variant="outline">
+                <Link href="/venues">View All Venues</Link>
+              </Button>
+              <Button asChild>
+                <Link href="/venues/new">Add a Venue</Link>
+              </Button>
+            </div>
           </div>
+          
+          {/* Mobile Footer */}
+          <MobileFooter />
         </div>
       )}
     </div>

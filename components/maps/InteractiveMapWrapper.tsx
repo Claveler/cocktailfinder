@@ -8,7 +8,7 @@ import { MapPin } from "lucide-react";
 const InteractiveMap = dynamic(() => import("./InteractiveMap"), {
   ssr: false,
   loading: () => (
-    <Card className="w-full overflow-hidden" style={{ height: "400px" }}>
+    <Card className="w-full overflow-hidden !rounded-none md:!rounded-xl" style={{ height: "400px" }}>
       <CardContent className="p-0 h-full flex items-center justify-center bg-gray-100">
         <div className="text-center text-gray-500">
           <MapPin className="w-8 h-8 mx-auto mb-3 animate-pulse" />

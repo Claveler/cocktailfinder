@@ -8,6 +8,7 @@ import Image from "next/image";
 import LocationSearch from "@/components/search/LocationSearch";
 import InteractiveVenueExplorer from "@/components/venues/InteractiveVenueExplorer";
 import HomePageClient from "@/app/HomePageClient";
+import BottomNavBar from "@/components/mobile/BottomNavBar";
 import type { Venue as VenueType } from "@/lib/venues";
 
 interface LandingPageClientProps {
@@ -26,9 +27,9 @@ export default function LandingPageClient({
   };
 
   return (
-    <div className="flex flex-col">
-      {/* Hero Section */}
-      <section className="relative w-full h-[320px] md:h-[380px] lg:h-[400px] flex items-center" style={{ overflow: 'visible' }}>
+    <div className="flex flex-col min-h-screen">
+      {/* Hero Section - Hidden on Mobile */}
+      <section className="hidden md:flex relative w-full h-[320px] md:h-[380px] lg:h-[400px] items-center" style={{ overflow: 'visible' }}>
         {/* Full Viewport Background Image */}
         <div className="absolute inset-0 z-0 overflow-hidden">
           <Image
@@ -69,8 +70,8 @@ export default function LandingPageClient({
       </section>
 
       {/* Interactive Map and Venues Section */}
-      <section className="py-8 px-4 bg-muted/30">
-        <div className="container mx-auto">
+      <section className="py-0 md:py-8 px-0 md:px-4 bg-transparent md:bg-muted/30 min-h-screen md:h-auto">
+        <div className="md:container mx-auto w-full">
           {/* Interactive Venue Explorer with Map */}
           <InteractiveVenueExplorer 
             allVenues={allVenues}
@@ -80,6 +81,9 @@ export default function LandingPageClient({
           />
         </div>
       </section>
+
+      {/* Mobile Bottom Navigation Bar */}
+      <BottomNavBar onLocationFound={handleLocationFound} />
     </div>
   );
 }
