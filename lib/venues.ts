@@ -121,7 +121,7 @@ export interface VenueWithComments extends Venue {
   } | null;
 }
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = Number(process.env.NEXT_PUBLIC_VENUES_LIMIT) || 20;
 
 export async function listVenues(
   filters: VenueFilters = {}

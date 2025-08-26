@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,15 +18,27 @@ import {
   Search,
   Filter,
   X,
+  MapPin,
+  Loader2,
 } from "lucide-react";
 import Link from "next/link";
 import type { VenueFilters } from "@/lib/venues";
+
+interface SearchSuggestion {
+  place_id: string;
+  display_name: string;
+  lat: string;
+  lon: string;
+  type: string;
+  class: string;
+}
 
 interface FloatingSearchBarProps {
   defaultValues: VenueFilters;
   cities: string[]; // Will be removed - keeping for now to avoid breaking changes
   brands: string[];
   resultCount: number;
+  onLocationFound?: (coordinates: [number, number], locationName: string) => void;
 }
 
 export default function FloatingSearchBar({
@@ -34,6 +46,7 @@ export default function FloatingSearchBar({
   cities,
   brands,
   resultCount,
+  onLocationFound,
 }: FloatingSearchBarProps) {
   const router = useRouter();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -44,6 +57,169 @@ export default function FloatingSearchBar({
   const [selectedBrand, setSelectedBrand] = useState(
     defaultValues.brand || "all"
   );
+
+  // Location search state
+  const [isSearching, setIsSearching] = useState(false);
+  const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
+  
+  const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const debounceRef = useRef<NodeJS.Timeout>();
+  const isSelectionUpdate = useRef(false);
+
+  // Location search functionality
+  const fetchSuggestions = async (query: string) => {
+    if (query.length < 3) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    try {
+      setIsSearching(true);
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1`
+      );
+      
+      if (!response.ok) throw new Error('Search failed');
+      
+      const data: SearchSuggestion[] = await response.json();
+      setSuggestions(data);
+      setShowSuggestions(true);
+      setActiveSuggestionIndex(-1);
+    } catch (error) {
+      console.error('Location search error:', error);
+      setSuggestions([]);
+      setShowSuggestions(false);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const selectLocation = (suggestion: SearchSuggestion) => {
+    console.log('🔍 selectLocation called:', suggestion.display_name);
+    
+    // Clear any pending debounced search 
+    if (debounceRef.current) {
+      console.log('🔍 Clearing debounce timeout');
+      clearTimeout(debounceRef.current);
+    }
+
+    // Use coordinates we already have from the suggestion
+    const coordinates: [number, number] = [
+      parseFloat(suggestion.lat),
+      parseFloat(suggestion.lon)
+    ];
+
+    // Call the callback with the coordinates we already have
+    console.log('🔍 Calling onLocationFound with existing coordinates');
+    if (onLocationFound) {
+      onLocationFound(coordinates, suggestion.display_name);
+    }
+    
+    // Update UI - just set the display value and clear suggestions  
+    console.log('🔍 Updating UI - setting display value and clearing suggestions');
+    
+    // Set flag to prevent fetchSuggestions when we update the display value
+    isSelectionUpdate.current = true;
+    setSearchQuery(suggestion.display_name.split(',')[0]); // Show short version
+    setShowSuggestions(false);
+    setSuggestions([]);
+    setActiveSuggestionIndex(-1);
+    
+    // Blur input if available
+    if (inputRef.current) {
+      console.log('🔍 Blurring input');
+      inputRef.current.blur();
+    }
+  };
+
+  // Handle search input changes with debouncing
+  useEffect(() => {
+    console.log('🔍 useEffect triggered by searchQuery change:', searchQuery, 'isSelectionUpdate:', isSelectionUpdate.current);
+    
+    // Skip fetching suggestions if this is a programmatic update from selection
+    if (isSelectionUpdate.current) {
+      console.log('🔍 Skipping fetchSuggestions - this is a selection update');
+      isSelectionUpdate.current = false; // Reset the flag
+      return;
+    }
+    
+    if (debounceRef.current) {
+      console.log('🔍 Clearing existing debounce timeout');
+      clearTimeout(debounceRef.current);
+    }
+
+    debounceRef.current = setTimeout(() => {
+      console.log('🔍 Debounce timeout fired, calling fetchSuggestions');
+      if (searchQuery && onLocationFound) {
+        fetchSuggestions(searchQuery);
+      } else {
+        setSuggestions([]);
+        setShowSuggestions(false);
+      }
+    }, 300);
+
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, [searchQuery, onLocationFound]);
+
+  // Handle click outside to close suggestions
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
+        setActiveSuggestionIndex(-1);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Keyboard navigation for suggestions
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!showSuggestions || suggestions.length === 0) return;
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setActiveSuggestionIndex(prev => 
+          prev < suggestions.length - 1 ? prev + 1 : prev
+        );
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setActiveSuggestionIndex(prev => prev > 0 ? prev - 1 : -1);
+        break;
+      case 'Escape':
+        setShowSuggestions(false);
+        setActiveSuggestionIndex(-1);
+        break;
+      case 'Enter':
+        e.preventDefault();
+        console.log('🔍 Enter key pressed, activeSuggestionIndex:', activeSuggestionIndex);
+        if (activeSuggestionIndex >= 0 && suggestions[activeSuggestionIndex]) {
+          console.log('🔍 Selecting suggestion via Enter key');
+          selectLocation(suggestions[activeSuggestionIndex]);
+        }
+        break;
+    }
+  };
+
+  // Handle input focus to show existing suggestions
+  const handleInputFocus = () => {
+    console.log('🔍 Input focus event, suggestions.length:', suggestions.length, 'searchQuery.length:', searchQuery.length);
+    if (suggestions.length > 0 && searchQuery.length >= 3) {
+      console.log('🔍 Showing suggestions on focus');
+      setShowSuggestions(true);
+    }
+  };
 
   const hasActiveFilters =
     searchQuery ||
@@ -62,6 +238,8 @@ export default function FloatingSearchBar({
     setSearchQuery("");
     setSelectedType("all");
     setSelectedBrand("all");
+    setSuggestions([]);
+    setShowSuggestions(false);
     // Navigate to clear all filters
     router.push("/venues");
   };
@@ -110,15 +288,50 @@ export default function FloatingSearchBar({
             <form onSubmit={handleSubmit} className="space-y-3">
               {/* Main search row */}
               <div className="flex items-center gap-2">
-                <div className="relative flex-1">
+                <div className="relative flex-1" ref={containerRef}>
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  {isSearching && (
+                    <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground animate-spin" />
+                  )}
                   <Input
+                    ref={inputRef}
                     name="q"
                     placeholder="Search by location..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    onFocus={handleInputFocus}
                     className="pl-10 pr-4 bg-white"
+                    autoComplete="off"
+                    disabled={isSearching}
                   />
+                  
+                  {/* Location Suggestions Dropdown */}
+                  {showSuggestions && suggestions.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-md shadow-lg border border-gray-200 max-h-60 overflow-y-auto z-50">
+                      {suggestions.map((suggestion, index) => (
+                        <div
+                          key={suggestion.place_id}
+                          className={`px-4 py-3 cursor-pointer border-b border-gray-100 last:border-b-0 ${
+                            index === activeSuggestionIndex 
+                              ? 'bg-primary/10 text-primary' 
+                              : 'hover:bg-gray-50 text-gray-900'
+                          }`}
+                          onClick={() => {
+                            console.log('🔍 Suggestion clicked:', suggestion.display_name);
+                            selectLocation(suggestion);
+                          }}
+                        >
+                          <div className="font-medium text-sm">
+                            {suggestion.display_name.split(',')[0]}
+                          </div>
+                          <div className="text-xs text-gray-500 mt-1">
+                            {suggestion.display_name.split(',').slice(1).join(',').trim()}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <Button
                   type="button"
@@ -209,11 +422,7 @@ export default function FloatingSearchBar({
                       {searchQuery}
                     </Badge>
                   )}
-                  {selectedCity !== "all" && (
-                    <Badge variant="secondary" className="text-xs h-6">
-                      {selectedCity}
-                    </Badge>
-                  )}
+
                   {selectedType !== "all" && (
                     <Badge variant="secondary" className="text-xs h-6">
                       {selectedType}
@@ -250,13 +459,47 @@ export default function FloatingSearchBar({
                 {/* Search Input */}
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  {isSearching && (
+                    <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground animate-spin" />
+                  )}
                   <Input
                     name="q"
                     placeholder="Search by location..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    onFocus={handleInputFocus}
                     className="pl-10 pr-4 bg-white"
+                    autoComplete="off"
+                    disabled={isSearching}
                   />
+                  
+                  {/* Location Suggestions Dropdown */}
+                  {showSuggestions && suggestions.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-md shadow-lg border border-gray-200 max-h-60 overflow-y-auto z-50">
+                      {suggestions.map((suggestion, index) => (
+                        <div
+                          key={suggestion.place_id}
+                          className={`px-4 py-3 cursor-pointer border-b border-gray-100 last:border-b-0 ${
+                            index === activeSuggestionIndex 
+                              ? 'bg-primary/10 text-primary' 
+                              : 'hover:bg-gray-50 text-gray-900'
+                          }`}
+                          onClick={() => {
+                            console.log('🔍 Suggestion clicked:', suggestion.display_name);
+                            selectLocation(suggestion);
+                          }}
+                        >
+                          <div className="font-medium text-sm">
+                            {suggestion.display_name.split(',')[0]}
+                          </div>
+                          <div className="text-xs text-gray-500 mt-1">
+                            {suggestion.display_name.split(',').slice(1).join(',').trim()}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* Filter Toggle Button */}
@@ -395,9 +638,7 @@ export default function FloatingSearchBar({
                   {searchQuery && (
                     <Badge variant="secondary">Search: {searchQuery}</Badge>
                   )}
-                  {selectedCity !== "all" && (
-                    <Badge variant="secondary">City: {selectedCity}</Badge>
-                  )}
+
                   {selectedType !== "all" && (
                     <Badge variant="secondary">Type: {selectedType}</Badge>
                   )}

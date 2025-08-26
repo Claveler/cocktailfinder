@@ -371,7 +371,7 @@ export default function InteractiveVenueExplorer({
       {/* Explanation Text - Mobile Only */}
       <div className="text-center block md:hidden">
         <p className="text-sm text-muted-foreground">
-          Showing venues visible in the current map view • Move the map to explore different areas
+          Showing venues closest to map center • Move the map to explore different areas
         </p>
       </div>
 
@@ -394,7 +394,7 @@ export default function InteractiveVenueExplorer({
           {/* Explanation Text - Desktop Only */}
           <div className="text-center hidden md:block">
             <p className="text-sm text-muted-foreground mb-4">
-              Showing venues visible in the current map view • Move the map to explore different areas
+              Showing venues closest to map center • Move the map to explore different areas
             </p>
           </div>
 
