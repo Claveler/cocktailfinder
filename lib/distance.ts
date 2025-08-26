@@ -1,3 +1,5 @@
+import L from "leaflet";
+
 // Map bounds interface
 export interface MapBounds {
   north: number;
@@ -7,7 +9,7 @@ export interface MapBounds {
 }
 
 /**
- * Calculate the distance between two geographic points using the Haversine formula
+ * Calculate the distance between two geographic points using Leaflet's built-in distanceTo method
  * @param lat1 Latitude of first point
  * @param lng1 Longitude of first point
  * @param lat2 Latitude of second point
@@ -20,28 +22,17 @@ export function calculateDistance(
   lat2: number,
   lng2: number
 ): number {
-  const R = 6371; // Earth's radius in kilometers
-  const dLat = toRadians(lat2 - lat1);
-  const dLng = toRadians(lng2 - lng1);
+  // Use Leaflet's built-in distanceTo method for accurate distance calculation
+  const point1 = L.latLng(lat1, lng1);
+  const point2 = L.latLng(lat2, lng2);
   
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(toRadians(lat1)) *
-      Math.cos(toRadians(lat2)) *
-      Math.sin(dLng / 2) *
-      Math.sin(dLng / 2);
+  // distanceTo returns distance in meters, convert to kilometers
+  const distanceInMeters = point1.distanceTo(point2);
+  const distanceInKm = distanceInMeters / 1000;
   
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  const distance = R * c;
+  console.log(`📏 Using Leaflet's distanceTo: ${distanceInKm.toFixed(2)}km between [${lat1.toFixed(4)}, ${lng1.toFixed(4)}] and [${lat2.toFixed(4)}, ${lng2.toFixed(4)}]`);
   
-  return Math.round(distance * 100) / 100; // Round to 2 decimal places
-}
-
-/**
- * Convert degrees to radians
- */
-function toRadians(degrees: number): number {
-  return degrees * (Math.PI / 180);
+  return Math.round(distanceInKm * 100) / 100; // Round to 2 decimal places
 }
 
 /**
