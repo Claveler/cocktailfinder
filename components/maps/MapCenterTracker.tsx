@@ -1,25 +1,40 @@
 "use client";
 
 import { useMapEvents } from "react-leaflet";
+import { MapBounds } from "@/lib/distance";
 
-interface MapCenterTrackerProps {
-  onCenterChange: (center: [number, number], zoom: number) => void;
+interface MapBoundsTrackerProps {
+  onBoundsChange: (center: [number, number], zoom: number, bounds: MapBounds) => void;
 }
 
-export default function MapCenterTracker({ 
-  onCenterChange
-}: MapCenterTrackerProps) {
+export default function MapBoundsTracker({ 
+  onBoundsChange
+}: MapBoundsTrackerProps) {
+  // Convert Leaflet LatLngBounds to our MapBounds interface
+  const convertBounds = (leafletBounds: L.LatLngBounds): MapBounds => {
+    return {
+      north: leafletBounds.getNorth(),
+      south: leafletBounds.getSouth(),
+      east: leafletBounds.getEast(),
+      west: leafletBounds.getWest(),
+    };
+  };
+
   // Simple event handler - no state, no effects, no re-renders
   useMapEvents({
     moveend: (e) => {
       const center = e.target.getCenter();
       const zoom = e.target.getZoom();
-      onCenterChange([center.lat, center.lng], zoom);
+      const bounds = convertBounds(e.target.getBounds());
+      console.log('🗺️ Map moveend - getting real bounds via getBounds():', bounds);
+      onBoundsChange([center.lat, center.lng], zoom, bounds);
     },
     zoomend: (e) => {
       const center = e.target.getCenter();
       const zoom = e.target.getZoom();
-      onCenterChange([center.lat, center.lng], zoom);
+      const bounds = convertBounds(e.target.getBounds());
+      console.log('🗺️ Map zoomend - getting real bounds via getBounds():', bounds);
+      onBoundsChange([center.lat, center.lng], zoom, bounds);
     },
   });
 

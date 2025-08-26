@@ -172,7 +172,7 @@ export default function InteractiveVenueExplorer({
   updateVenuesRef.current = updateVenuesForBounds;
 
   // Map movement handler - ONLY updates venue cards, NEVER updates map state
-  const handleMapMovement = useCallback((center: [number, number], zoom: number) => {
+  const handleMapMovement = useCallback((center: [number, number], zoom: number, bounds: MapBounds) => {
     const now = Date.now();
     
     // Prevent rapid successive calls
@@ -191,10 +191,9 @@ export default function InteractiveVenueExplorer({
     debounceTimeoutRef.current = setTimeout(() => {
       lastUpdateRef.current = Date.now();
       
-      // Calculate approximate bounds from center and zoom
-      const bounds = calculateApproximateBounds(center, zoom);
+      console.log('🗺️ Using real bounds from getBounds():', bounds);
       
-      // Update venue cards based on what's visible in the map
+      // Update venue cards based on what's visible in the map using REAL bounds
       updateVenuesRef.current(bounds, center);
     }, debounceDelayMs);
   }, []); // EMPTY DEPENDENCIES - completely stable
@@ -338,7 +337,7 @@ export default function InteractiveVenueExplorer({
               height="100%"
               center={staticMapCenter}
               zoom={staticMapZoom}
-              onCenterChange={handleMapMovement}
+              onBoundsChange={handleMapMovement}
               userLocation={staticUserLocation}
               onLocationRequest={requestUserLocationExplicit}
               maxDistanceKm={maxDistanceKm}

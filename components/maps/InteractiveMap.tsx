@@ -7,10 +7,11 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "./venue-popup.css";
 
-import MapCenterTracker from "./MapCenterTracker";
+import MapBoundsTracker from "./MapCenterTracker"; // Renamed to MapBoundsTracker
 import LocationControl from "./LocationControl";
 import VenuePopup from "./VenuePopup";
 import { getThemeColorAsHex } from "@/lib/utils";
+import { MapBounds } from "@/lib/distance";
 // import { createRoot } from "react-dom/client"; // Unused
 
 // Enhanced venue type definition
@@ -51,7 +52,7 @@ interface InteractiveMapProps {
   height?: string;
   center?: [number, number];
   zoom?: number;
-  onCenterChange?: (center: [number, number], zoom: number) => void;
+  onBoundsChange?: (center: [number, number], zoom: number, bounds: MapBounds) => void;
   userLocation?: [number, number] | null;
   onLocationRequest?: () => void;
   maxDistanceKm?: number;
@@ -138,7 +139,7 @@ const LeafletMapComponent = memo(function LeafletMapComponent({
   venues,
   center,
   zoom,
-  onCenterChange,
+  onBoundsChange,
   userLocation,
   onLocationRequest,
   maxDistanceKm,
@@ -147,7 +148,7 @@ const LeafletMapComponent = memo(function LeafletMapComponent({
   venues: Venue[];
   center: [number, number];
   zoom: number;
-  onCenterChange?: (center: [number, number], zoom: number) => void;
+  onBoundsChange?: (center: [number, number], zoom: number, bounds: MapBounds) => void;
   userLocation?: [number, number] | null;
   onLocationRequest?: () => void;
   maxDistanceKm?: number;
@@ -222,8 +223,8 @@ const LeafletMapComponent = memo(function LeafletMapComponent({
     >
       <MapUpdater center={center} zoom={zoom} />
       
-      {/* Map center tracking - ISOLATED component for venue cards only */}
-      {onCenterChange && <MapCenterTracker onCenterChange={onCenterChange} />}
+      {/* Map bounds tracking - ISOLATED component for venue cards only */}
+      {onBoundsChange && <MapBoundsTracker onBoundsChange={onBoundsChange} />}
 
       {/* Add location control */}
       <LocationControl 
@@ -322,7 +323,7 @@ const InteractiveMap = memo(function InteractiveMap({
   height = "400px",
   center = [51.5261617, -0.1633234], // Default to London Business School (LBS easter egg! 🎓)
   zoom = Number(process.env.NEXT_PUBLIC_MAP_ZOOM_LEVEL) || 13,
-  onCenterChange,
+  onBoundsChange,
   userLocation,
   onLocationRequest,
   maxDistanceKm,
@@ -342,7 +343,7 @@ const InteractiveMap = memo(function InteractiveMap({
         venues={approvedVenues} 
         center={center} 
         zoom={zoom}
-        onCenterChange={onCenterChange}
+        onBoundsChange={onBoundsChange}
         userLocation={userLocation}
         onLocationRequest={onLocationRequest}
         maxDistanceKm={maxDistanceKm}
