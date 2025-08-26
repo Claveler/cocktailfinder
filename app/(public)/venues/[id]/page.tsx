@@ -304,44 +304,50 @@ export default async function VenuePage({ params }: VenuePageProps) {
             <CardContent>
               {/* Current Pisco Status */}
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    {getPiscoStatusIcon(venue.pisco_status)}
-                    <div>
-                      <h3 className="font-semibold">{getPiscoStatusText(venue.pisco_status)}</h3>
-                    </div>
-                  </div>
-                  <div className="text-right text-xs text-muted-foreground">
-                    {(venue.total_verifications ?? 0) > 0 ? (
-                      <>
-                        <div className="font-medium">
-                          {venue.positive_verifications || 0}/{venue.total_verifications} community positive
-                        </div>
-                        {(venue.unique_verifiers ?? 0) > 1 && (
-                          <div>{venue.unique_verifiers} different verifiers</div>
-                        )}
-                        {venue.last_verified && (
-                          <>
-                            <div className="mt-1 pt-1 border-t border-muted">
-                              Latest: {new Date(venue.last_verified).toLocaleDateString()}
-                            </div>
-                            {venue.verified_by && <div>by {venue.verified_by}</div>}
-                          </>
-                        )}
-                      </>
-                    ) : (
-                      <div>No community verifications yet</div>
-                    )}
-                  </div>
+                {/* Pisco Status */}
+                <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg">
+                  {getPiscoStatusIcon(venue.pisco_status)}
+                  <h3 className="font-semibold">{getPiscoStatusText(venue.pisco_status)}</h3>
                 </div>
 
-                {/* Pisco Notes */}
-                {venue.pisco_notes && (
-                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <h4 className="font-medium text-blue-900 mb-2">Community Notes:</h4>
-                    <p className="text-blue-800 text-sm italic">"{venue.pisco_notes}"</p>
+                {/* Community Trust & Verification Details */}
+                <div className="bg-muted/30 rounded-lg p-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-semibold text-sm">Community Trust</h4>
+                    <div className="text-sm">
+                      {(venue.total_verifications ?? 0) > 0 ? (
+                        <span className="font-medium text-green-600">
+                          {venue.positive_verifications || 0}/{venue.total_verifications} positive
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">Not verified yet</span>
+                      )}
+                    </div>
                   </div>
-                )}
+
+                  {/* Verification Details - Combined */}
+                  {(venue.unique_verifiers ?? 0) > 0 && (
+                    <div className="flex items-center justify-between text-sm text-muted-foreground">
+                      <span>
+                        {venue.unique_verifiers} {venue.unique_verifiers === 1 ? 'verifier' : 'verifiers'}
+                      </span>
+                      {venue.last_verified && (
+                        <span>
+                          Latest: {new Date(venue.last_verified).toLocaleDateString()}
+                          {venue.verified_by && <> by {venue.verified_by}</>}
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Community Notes - Inline */}
+                  {venue.pisco_notes && (
+                    <div className="text-sm text-muted-foreground">
+                      <span className="font-medium">Community note:</span>
+                      <span className="ml-1 italic">"{venue.pisco_notes}"</span>
+                    </div>
+                  )}
+                </div>
 
                 {/* No information available */}
                 {venue.pisco_status === "unverified" && !venue.pisco_notes && (

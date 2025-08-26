@@ -20,9 +20,8 @@ import {
 import Link from "next/link";
 import BasicMapWrapper from "@/components/maps/BasicMapWrapper";
 import VenuesClient from "./VenuesClient";
-import L from "leaflet";
 
-// Helper function to calculate map center based on venue locations using Leaflet's bounds
+// Helper function to calculate map center based on venue locations using simple math (SSR-safe)
 function calculateMapCenter(venues: any[]): [number, number] {
   const venuesWithLocation = venues.filter((venue) => venue.location);
 
@@ -31,14 +30,16 @@ function calculateMapCenter(venues: any[]): [number, number] {
     return [51.5074, -0.1278];
   }
 
-  // Use Leaflet's bounds calculation for accurate center positioning
-  const coordinates = venuesWithLocation.map(venue => [venue.location.lat, venue.location.lng] as [number, number]);
-  const bounds = L.latLngBounds(coordinates);
-  const center = bounds.getCenter();
+  // Calculate center using simple mathematical average (works on server-side)
+  const totalLat = venuesWithLocation.reduce((sum, venue) => sum + venue.location.lat, 0);
+  const totalLng = venuesWithLocation.reduce((sum, venue) => sum + venue.location.lng, 0);
+  
+  const centerLat = totalLat / venuesWithLocation.length;
+  const centerLng = totalLng / venuesWithLocation.length;
 
-  console.log(`🗺️ Using Leaflet's bounds.getCenter(): [${center.lat.toFixed(4)}, ${center.lng.toFixed(4)}] from ${venuesWithLocation.length} venues`);
+  console.log(`🗺️ Using mathematical center: [${centerLat.toFixed(4)}, ${centerLng.toFixed(4)}] from ${venuesWithLocation.length} venues`);
 
-  return [center.lat, center.lng];
+  return [centerLat, centerLng];
 }
 
 interface VenuesPageProps {
