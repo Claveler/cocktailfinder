@@ -19,7 +19,7 @@ const VenueCountOverlay = memo(function VenueCountOverlay({
       >
         <MapPin className="h-3 w-3 mr-1" />
         <span className="font-medium">
-          {venueCount} venue{venueCount !== 1 ? 's' : ''}
+          {venueCount} venue{venueCount !== 1 ? 's' : ''} in view
         </span>
       </Badge>
     </div>

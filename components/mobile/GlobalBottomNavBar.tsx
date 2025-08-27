@@ -74,29 +74,29 @@ export default function GlobalBottomNavBar() {
       {showSearch && (
         <div className="fixed inset-0 bg-black/50 z-40 md:hidden flex items-center justify-center p-4" onClick={() => setShowSearch(false)}>
           <div 
-            className="bg-white rounded-xl shadow-2xl w-full max-w-sm mx-auto transform transition-all duration-200 scale-100"
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-auto transform transition-all duration-200 scale-100"
             onClick={(e) => e.stopPropagation()}
             style={{ maxHeight: '80vh' }}
           >
-            {/* Modal Header */}
-            <div className="px-6 py-4 border-b border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-900">Search Location</h3>
-              <p className="text-sm text-gray-500 mt-1">Find venues near any location</p>
-            </div>
-            
-            {/* Modal Content */}
-            <div className="p-6">
-              <LocationSearch onLocationFound={handleLocationFound} autoFocus={true} />
-            </div>
-            
-            {/* Modal Actions */}
-            <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 rounded-b-xl">
+            {/* Compact Header with Close Button */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 rounded-t-2xl">
+              <h3 className="text-base font-semibold text-gray-900">Search Location</h3>
               <button 
                 onClick={() => setShowSearch(false)}
-                className="w-full py-2 text-sm font-medium text-gray-600 hover:text-gray-800 transition-colors"
+                className="p-1 hover:bg-gray-100 rounded-full transition-colors"
               >
-                Cancel
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
+            </div>
+            
+            {/* Streamlined Content */}
+            <div className="p-5 pb-8 rounded-b-2xl">
+              <LocationSearch onLocationFound={handleLocationFound} autoFocus={true} showButton={false} />
+              <p className="text-xs text-gray-500 mt-3 text-center">
+                Type to search or press Enter to find venues
+              </p>
             </div>
           </div>
         </div>
