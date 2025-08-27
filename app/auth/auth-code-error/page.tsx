@@ -44,7 +44,7 @@ export default function AuthCodeError() {
             <Button variant="outline" asChild className="w-full">
               <Link href="/">
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Home
+                Back to Piscola.net
               </Link>
             </Button>
           </div>

@@ -2,7 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Star, Clock, Wine, DollarSign, ChevronRight, CheckCircle, XCircle, HelpCircle, AlertCircle, Users, ExternalLink } from "lucide-react";
+import { MapPin, Wine, DollarSign, ChevronRight, CheckCircle, XCircle, HelpCircle, AlertCircle, Users, ExternalLink, Shield, Calendar } from "lucide-react";
 import Link from "next/link";
 import type { Venue } from "@/lib/venues";
 
@@ -152,51 +152,47 @@ export default function VenueCard({
 
         {/* Overlaid Content */}
         <div className="relative h-full p-4 flex flex-col justify-between text-white">
-          {/* Top Row - Status badges */}
+          {/* Top Row - Location indicators */}
           <div className="flex items-start justify-between">
-            <div className="flex gap-2">
-              {showDistance && distance !== undefined && (
-                <div className="flex items-center gap-1.5">
-                  <Badge className="text-xs bg-black/60 backdrop-blur-sm text-white border-white/20 hover:bg-black/70">
-                    {distance.toFixed(1)} km
-                  </Badge>
-                  {isSelected && (
-                    <div className="flex items-center gap-1 bg-green-500/90 backdrop-blur-sm px-2 py-1 rounded-full">
-                      <MapPin className="w-3 h-3 text-white" />
-                      <span className="text-xs text-white font-medium">Closest</span>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-            
-            <div className="flex gap-2">
-              {venue.photos && venue.photos.length > 1 && (
-                <Badge className="text-xs bg-black/60 backdrop-blur-sm text-white border-white/20">
-                  +{venue.photos.length - 1} photos
+            {showDistance && distance !== undefined && (
+              <div className="flex items-center gap-2">
+                <Badge className="text-xs bg-black/60 backdrop-blur-sm text-white border-white/20 hover:bg-black/70">
+                  {distance.toFixed(1)} km
                 </Badge>
-              )}
-              <Badge className="text-xs bg-black/60 backdrop-blur-sm text-white border-white/20">
-                <Clock className="h-3 w-3 mr-1" />
-                Open Now
-              </Badge>
+                {isSelected && (
+                  <div className="flex items-center gap-1 bg-green-500/90 backdrop-blur-sm px-2 py-1 rounded-full">
+                    <MapPin className="w-3 h-3 text-white" />
+                    <span className="text-xs text-white font-medium">Closest</span>
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {/* Pisco Status moved to top for prominence */}
+            <div className="flex items-center gap-1.5 bg-black/60 backdrop-blur-sm px-2.5 py-1 rounded-full">
+              {getPiscoStatusIcon(venue.pisco_status)}
+              <span className="text-xs text-white font-medium">
+                {venue.pisco_status === "available" ? "Pisco Available" : 
+                 venue.pisco_status === "unavailable" ? "No Pisco" :
+                 venue.pisco_status === "temporarily_out" ? "Temporarily Out" : "Status Unknown"}
+              </span>
             </div>
           </div>
 
-          {/* Bottom Row - Venue Name & Type */}
-          <div className="space-y-2">
-            <h3 className="font-bold text-lg mb-1 line-clamp-2 text-white drop-shadow-lg">
+          {/* Bottom Row - Venue Name & Type with more space */}
+          <div className="space-y-3">
+            <h3 className="font-bold text-xl leading-tight line-clamp-2 text-white drop-shadow-lg">
               {venue.name}
             </h3>
             
-            <div className="flex items-center gap-2 text-sm">
-              <div className="flex items-center gap-2 bg-black/60 backdrop-blur-sm px-3 py-1 rounded-full">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 bg-black/60 backdrop-blur-sm px-3 py-1.5 rounded-full">
                 {getTypeIcon(venue.type)}
-                <span className="text-white/90">{getTypeLabel(venue.type)}</span>
+                <span className="text-white/90 font-medium">{getTypeLabel(venue.type)}</span>
                 {venue.price_range && (
                   <>
                     <span className="text-white/70">•</span>
-                    <span className="font-medium text-green-300">
+                    <span className="font-semibold text-green-300">
                       {getPriceRangeDisplay(venue.price_range)}
                     </span>
                   </>
@@ -232,73 +228,67 @@ export default function VenueCard({
 
         {/* Brands */}
         {venue.brands && venue.brands.length > 0 && (
-          <div className="mb-3">
-            <div className="flex flex-wrap gap-1">
-              {venue.brands.slice(0, 3).map((brand, index) => (
-                <Badge key={index} className="text-xs bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">
+          <div className="mb-4">
+            <div className="flex flex-wrap gap-2">
+              {venue.brands.slice(0, 4).map((brand, index) => (
+                <Badge key={index} className="text-sm bg-primary/15 text-primary border-primary/20 hover:bg-primary/25 px-3 py-1">
                   {brand}
                 </Badge>
               ))}
-              {venue.brands.length > 3 && (
-                <Badge className="text-xs bg-primary/10 text-primary border-primary/20">
-                  +{venue.brands.length - 3} more
+              {venue.brands.length > 4 && (
+                <Badge className="text-sm bg-muted text-muted-foreground px-3 py-1">
+                  +{venue.brands.length - 4} more
                 </Badge>
               )}
             </div>
           </div>
         )}
 
-        {/* Pisco Info & Footer */}
-        <div className="pt-3 border-t border-border space-y-2">
-          {/* Pisco Status & Community Trust - Same Line */}
-          <div className="flex items-center justify-between">
-            {/* Pisco Status */}
-            <div className="flex items-center">
-              {getPiscoStatusIcon(venue.pisco_status)}
-              <span className="text-sm font-medium ml-2">
-                {getPiscoStatusText(venue.pisco_status)}
-              </span>
-            </div>
-
-            {/* Community Trust Score */}
-            <div className="text-xs">
-              {(venue.total_verifications ?? 0) > 0 ? (
-                <span className="font-medium text-green-600">
-                  {venue.positive_verifications || 0}/{venue.total_verifications} positive
-                </span>
-              ) : (
-                <span className="text-muted-foreground">Not verified</span>
-              )}
-            </div>
-          </div>
-
-          {/* Verification Details */}
-          {(venue.unique_verifiers ?? 0) > 0 && venue.last_verified && (
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
-              {/* Verifier Count with Icon */}
-              <div className="flex items-center gap-1">
-                <Users className="h-3 w-3" />
-                <span>
-                  {venue.unique_verifiers} {venue.unique_verifiers === 1 ? 'verifier' : 'verifiers'}
+        {/* Verification Details - Three Column Layout */}
+        {(venue.unique_verifiers ?? 0) > 0 && venue.last_verified && (
+          <div className="pt-3 border-t border-border">
+            <div className="grid grid-cols-3 gap-4 text-xs mb-3">
+              {/* Column 1: Verifiers - Left Aligned */}
+              <div className="flex items-center justify-start gap-1.5 text-muted-foreground">
+                <Users className="h-3.5 w-3.5" />
+                <span className="font-medium">
+                  {venue.unique_verifiers}
                 </span>
               </div>
               
-              {/* Last Verification Date */}
-              <span>
-                Last verified on {formatDate(venue.last_verified)}
-              </span>
-            </div>
-          )}
-
-          {/* Community Notes - Quote Style with Theme Colors */}
-          {venue.pisco_notes && venue.verified_by && (
-            <div className="bg-foreground/5 border border-foreground/10 rounded-lg p-2.5 mt-3">
-              <div className="text-xs text-foreground/80 italic">
-                "{venue.pisco_notes}" — {venue.verified_by}
+              {/* Column 2: Verification Rate - Center Aligned */}
+              <div className="flex items-center justify-center gap-1.5 text-green-600">
+                <Shield className="h-3.5 w-3.5" />
+                <span className="font-semibold">
+                  {(venue.total_verifications ?? 0) > 0 ? 
+                    `${Math.round(((venue.positive_verifications || 0) / (venue.total_verifications || 1)) * 100)}%` : 
+                    '0%'
+                  }
+                </span>
+              </div>
+              
+              {/* Column 3: Last Verification Date - Right Aligned */}
+              <div className="flex items-center justify-end gap-1.5 text-muted-foreground">
+                <Calendar className="h-3.5 w-3.5" />
+                <span className="font-medium">
+                  {formatDate(venue.last_verified)}
+                </span>
               </div>
             </div>
-          )}
-        </div>
+            
+            {/* Community Notes - More prominent */}
+            {venue.pisco_notes && venue.verified_by && (
+              <div className="bg-primary/5 border border-primary/10 rounded-lg p-3 mt-2">
+                <div className="text-xs text-foreground/90 italic">
+                  "{venue.pisco_notes}"
+                </div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  — {venue.verified_by}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </CardContent>
     </div>
   );

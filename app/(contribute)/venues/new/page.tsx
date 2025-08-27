@@ -32,6 +32,7 @@ import {
   CheckCircle,
   XCircle,
   HelpCircle,
+  ArrowLeft,
 } from "lucide-react";
 import Link from "next/link";
 import { createVenue, updateVenuePhotos } from "@/lib/actions/venues";
@@ -295,9 +296,10 @@ export default function NewVenuePage() {
       <div className="mb-8">
         <Link
           href="/"
-          className="text-primary hover:underline text-sm mb-2 block"
+          className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors mb-4"
         >
-          ← Back to Venues
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Piscola.net
         </Link>
         <h1 className="text-2xl font-bold mb-2">Submit a New Venue</h1>
         <p className="text-muted-foreground">

@@ -62,12 +62,13 @@ export default async function EditVenuePage({ params }: EditVenuePageProps) {
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-4 mb-4">
-          <Button asChild variant="ghost" size="sm">
-            <Link href={`/venues/${venue.id}`}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Venue
-            </Link>
-          </Button>
+          <Link
+            href={`/venues/${venue.id}`}
+            className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Venue
+          </Link>
           <div className="text-sm text-muted-foreground">|</div>
           <Button asChild variant="ghost" size="sm">
             <Link href="/admin/venues">Admin Dashboard</Link>

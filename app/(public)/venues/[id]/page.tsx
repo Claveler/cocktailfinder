@@ -15,16 +15,19 @@ import {
   User,
   MessageCircle,
   ArrowLeft,
-  StarIcon,
   Edit,
   CheckCircle,
   XCircle,
   HelpCircle,
   AlertCircle,
   Users,
+  Shield,
+  Share2,
 } from "lucide-react";
 import PiscoVerificationForm from "./PiscoVerificationForm";
 import PhotoGallery from "./PhotoGallery";
+import ShareButton from "./ShareButton";
+import VenueHero from "./VenueHero";
 import { getVenueGoogleMapsUrl } from "@/lib/maps";
 
 interface VenuePageProps {
@@ -38,15 +41,15 @@ function VenueDetailSkeleton() {
   return (
     <div className="space-y-6">
       <div className="animate-pulse">
-        <div className="h-8 bg-gray-200 rounded w-3/4 mb-4"></div>
-        <div className="h-4 bg-gray-200 rounded w-1/2 mb-6"></div>
+        <div className="h-8 bg-muted rounded w-3/4 mb-4"></div>
+        <div className="h-4 bg-muted rounded w-1/2 mb-6"></div>
         <div className="grid md:grid-cols-2 gap-6">
           <div className="space-y-4">
-            <div className="h-48 bg-gray-200 rounded"></div>
+            <div className="h-48 bg-muted rounded"></div>
           </div>
           <div className="space-y-4">
-            <div className="h-32 bg-gray-200 rounded"></div>
-            <div className="h-24 bg-gray-200 rounded"></div>
+            <div className="h-32 bg-muted rounded"></div>
+            <div className="h-24 bg-muted rounded"></div>
           </div>
         </div>
       </div>
@@ -54,49 +57,6 @@ function VenueDetailSkeleton() {
   );
 }
 
-// Star rating display component
-function StarRating({
-  rating,
-  size = "sm",
-}: {
-  rating: number;
-  size?: "sm" | "lg";
-}) {
-  const stars = [];
-  const fullStars = Math.floor(rating);
-  const hasHalfStar = rating % 1 !== 0;
-
-  const starSize = size === "lg" ? "h-5 w-5" : "h-4 w-4";
-
-  for (let i = 0; i < fullStars; i++) {
-    stars.push(
-      <StarIcon
-        key={i}
-        className={`${starSize} fill-yellow-400 text-yellow-400`}
-      />
-    );
-  }
-
-  if (hasHalfStar) {
-    stars.push(
-      <div key="half" className={`${starSize} relative`}>
-        <StarIcon className={`${starSize} text-gray-300`} />
-        <div className="absolute inset-0 overflow-hidden w-1/2">
-          <StarIcon className={`${starSize} fill-yellow-400 text-yellow-400`} />
-        </div>
-      </div>
-    );
-  }
-
-  const emptyStars = 5 - Math.ceil(rating);
-  for (let i = 0; i < emptyStars; i++) {
-    stars.push(
-      <StarIcon key={`empty-${i}`} className={`${starSize} text-gray-300`} />
-    );
-  }
-
-  return <div className="flex items-center gap-1">{stars}</div>;
-}
 
 // Pisco status helper functions
 function getPiscoStatusIcon(status: string) {
@@ -108,7 +68,7 @@ function getPiscoStatusIcon(status: string) {
     case "temporarily_out":
       return <AlertCircle className="h-5 w-5 text-orange-500" />;
     default: // unverified
-      return <HelpCircle className="h-5 w-5 text-gray-400" />;
+      return <HelpCircle className="h-5 w-5 text-muted-foreground" />;
   }
 }
 
@@ -165,93 +125,60 @@ export default async function VenuePage({ params }: VenuePageProps) {
   const googleMapsUrl = getVenueGoogleMapsUrl(venue);
 
   return (
-    <div className="min-h-screen bg-gray-50 md:bg-background">
-      {/* Mobile-optimized container */}
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-muted/30 md:bg-background">
+      {/* Container matching landing page */}
+      <div className="container mx-auto px-4">
         {/* Back button - mobile sticky header */}
-        <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-gray-200 px-4 py-3 md:relative md:bg-transparent md:border-0 md:px-6 md:py-8">
-          <Button asChild variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
-            <Link href="/">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Venues
-            </Link>
-          </Button>
+        <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border py-3 md:relative md:bg-transparent md:border-0 md:py-8">
+          <Link
+            href="/"
+            className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Piscola.net
+          </Link>
         </div>
 
-        {/* Hero Section - Optimized for mobile */}
-        {venue.photos && venue.photos.length > 0 && (
-          <div className="mb-0 md:mb-8">
-            {venue.photos.length === 1 ? (
-              /* Single Hero Image - Better mobile ratio */
-              <div className="relative aspect-[4/3] md:aspect-[3/1] w-full bg-gray-100 md:rounded-lg overflow-hidden">
-                <img
-                  src={venue.photos[0]}
-                  alt={venue.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            ) : (
-              /* Multiple Photos - Always use gallery for hint behavior */
-              <div className="relative aspect-[4/3] md:aspect-[3/1] w-full bg-gray-50 md:rounded-lg overflow-hidden">
-                <PhotoGallery
-                  photos={venue.photos}
-                  venueName={venue.name}
-                  showTitle={false}
-                />
-              </div>
-            )}
-          </div>
-        )}
+        {/* New Hero Component */}
+        <VenueHero 
+          venue={{
+            id: venue.id,
+            name: venue.name,
+            type: venue.type,
+            price_range: venue.price_range || undefined,
+            photos: venue.photos,
+            address: venue.address,
+            averageRating: venue.averageRating || undefined,
+            totalComments: venue.totalComments || undefined
+          }}
+          isAdmin={isAdmin}
+        />
 
-        {/* Venue Header - Mobile optimized */}
-        <div className="bg-white px-4 py-6 md:px-6 md:py-8 md:bg-transparent">
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex-1 min-w-0">
-              <h1 className="text-xl md:text-2xl font-bold mb-3 leading-tight">{venue.name}</h1>
-              <div className="flex flex-wrap items-center gap-2 md:gap-4 text-muted-foreground">
-                <Badge variant="secondary" className="capitalize text-xs">
-                  {venue.type.replace("_", " ")}
-                </Badge>
-                {venue.price_range && (
-                  <span className="font-medium text-sm">{venue.price_range}</span>
-                )}
-                {venue.averageRating && (
-                  <div className="flex items-center gap-2">
-                    <StarRating rating={venue.averageRating} />
-                    <span className="text-sm">
-                      {venue.averageRating.toFixed(1)} ({venue.totalComments}{" "}
-                      reviews)
+        {/* Hero Extension Table - Attached to hero */}
+        <div className="bg-background md:bg-muted/30 shadow-sm md:rounded-b-lg border-0 md:border md:border-t-0 overflow-hidden -mx-4 md:mx-0 mb-4 md:mb-8 relative z-10">
+          {/* Row 1: Address + Google Maps */}
+          <div className="px-4 py-4 md:px-6 border-b border-border bg-muted/30">
+            <div className="flex items-start gap-2 text-foreground">
+              <MapPin className="h-4 w-4 md:h-5 md:w-5 mt-0.5 shrink-0 text-muted-foreground" />
+              <div className="flex items-start gap-2 flex-1">
+                <span className="flex-1 text-sm md:text-base text-foreground">
+                  {venue.address}
+                  {venue.city && (
+                    <span className="text-muted-foreground">
+                      {venue.address ? ', ' : ''}{venue.city}
                     </span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Admin Edit Button */}
-            {isAdmin && (
-              <div className="flex gap-2 ml-3">
-                <Button asChild variant="outline" size="sm">
-                  <Link href={`/admin/venues/${venue.id}/edit`}>
-                    <Edit className="mr-1 h-3 w-3 md:mr-2 md:h-4 md:w-4" />
-                    <span className="hidden md:inline">Edit Venue</span>
-                    <span className="md:hidden">Edit</span>
-                  </Link>
-                </Button>
-              </div>
-            )}
-          </div>
-
-          {/* Address with Google Maps link */}
-          <div className="flex items-start gap-2 text-muted-foreground">
-            <MapPin className="h-4 w-4 mt-0.5 shrink-0" />
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between">
-                <span className="text-sm leading-relaxed">{venue.address}</span>
-                <a 
-                  href={googleMapsUrl} 
-                  target="_blank" 
+                  )}
+                  {venue.country && (
+                    <span className="text-muted-foreground">
+                      {(venue.address || venue.city) ? ', ' : ''}{venue.country}
+                    </span>
+                  )}
+                </span>
+                <a
+                  href={`https://maps.google.com/?q=${encodeURIComponent([venue.address, venue.city, venue.country].filter(Boolean).join(', '))}`}
+                  target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-primary hover:text-primary/80 transition-colors ml-3 shrink-0"
+                  className="shrink-0 mt-0.5 flex items-center gap-1 text-primary hover:text-primary/80 transition-colors text-sm"
                 >
                   <ExternalLink className="h-3 w-3" />
                   <span className="text-xs font-medium">Google Maps</span>
@@ -259,67 +186,66 @@ export default async function VenuePage({ params }: VenuePageProps) {
               </div>
             </div>
           </div>
+
+          {/* Row 2: Brands & Ambiance in two columns */}
+          {(venue.brands.length > 0 || venue.ambiance.length > 0) && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-px bg-border">
+              {/* Brands Column */}
+              <div className="px-4 py-4 md:px-6 bg-background">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-sm font-medium text-muted-foreground min-w-fit">Brands:</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {venue.brands.length > 0 ? (
+                      venue.brands.map((brand) => (
+                        <Badge key={brand} variant="outline" className="text-xs">
+                          {brand}
+                        </Badge>
+                      ))
+                    ) : (
+                      <span className="text-sm text-muted-foreground italic">None listed</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Ambiance Column */}
+              <div className="px-4 py-4 md:px-6 bg-background border-t md:border-t-0 border-border">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-sm font-medium text-muted-foreground min-w-fit">Ambiance:</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {venue.ambiance.length > 0 ? (
+                      venue.ambiance.map((tag) => (
+                        <Badge key={tag} variant="secondary" className="text-xs">
+                          {tag}
+                        </Badge>
+                      ))
+                    ) : (
+                      <span className="text-sm text-muted-foreground italic">None listed</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
-        <div className="px-4 md:px-6 lg:px-0 pb-20 md:pb-8">
+        <div className="px-4 md:px-6 lg:px-0 pb-20 md:pb-8 pt-4 md:pt-0">
           <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
             {/* Main Content */}
             <div className="lg:col-span-2 space-y-4 md:space-y-6">
-              {/* Venue Details */}
-              <Card className="border-0 md:border shadow-none md:shadow-sm">
+              
+              {/* Community Pisco Insights - Now Primary */}
+              <Card className="relative z-0">
                 <CardHeader className="pb-4">
-                  <CardTitle className="text-lg">Venue Details</CardTitle>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    {getPiscoStatusIcon(venue.pisco_status)}
+                    Community Pisco Insights
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Real information from fellow pisco enthusiasts who've visited this venue
+                  </p>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  {/* Brands */}
-                  {venue.brands.length > 0 && (
-                    <div>
-                      <h4 className="font-semibold mb-3 text-sm uppercase tracking-wide text-muted-foreground">Featured Brands</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {venue.brands.map((brand) => (
-                          <Badge key={brand} variant="outline" className="text-sm py-1 px-3">
-                            {brand}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Ambiance */}
-                  {venue.ambiance.length > 0 && (
-                    <div>
-                      <h4 className="font-semibold mb-3 text-sm uppercase tracking-wide text-muted-foreground">Ambiance</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {venue.ambiance.map((tag) => (
-                          <Badge key={tag} variant="secondary" className="text-sm py-1 px-3">
-                            {tag}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Added by */}
-                  {venue.profile?.full_name && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground pt-4 border-t">
-                      <User className="h-4 w-4" />
-                      <span>Added by {venue.profile.full_name}</span>
-                      <Calendar className="h-4 w-4 ml-4" />
-                      <span>{formatDate(venue.created_at)}</span>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-          {/* Pisco Information Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                {getPiscoStatusIcon(venue.pisco_status)}
-                Pisco Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+                <CardContent>
               {/* Current Pisco Status */}
               <div className="space-y-4">
                 {/* Pisco Status & Community Trust - Same Line */}
@@ -331,32 +257,109 @@ export default async function VenuePage({ params }: VenuePageProps) {
                   </div>
 
                   {/* Community Trust Score */}
-                  <div className="text-sm">
+                  {/* <div className="text-sm">
                     {(venue.total_verifications ?? 0) > 0 ? (
-                      <span className="font-medium text-green-600">
-                        {venue.positive_verifications || 0}/{venue.total_verifications} positive
+                      <span className="font-medium text-emerald-600">
+                        {Math.round(((venue.positive_verifications || 0) / (venue.total_verifications || 1)) * 100)}% verified
                       </span>
                     ) : (
                       <span className="text-muted-foreground">Not verified yet</span>
                     )}
-                  </div>
+                  </div> */}
                 </div>
 
-                {/* Verification Details */}
+                {/* Verification Details - Enhanced with icons and explanations */}
                 {(venue.unique_verifiers ?? 0) > 0 && venue.last_verified && (
-                  <div className="flex items-center justify-between text-sm text-muted-foreground px-4">
-                    {/* Verifier Count with Icon */}
-                    <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4" />
-                      <span>
-                        {venue.unique_verifiers} {venue.unique_verifiers === 1 ? 'verifier' : 'verifiers'}
-                      </span>
+                  <div className="p-4 bg-muted/30 rounded-lg">
+                    {/* Mobile: Three rows layout */}
+                    <div className="grid grid-cols-1 gap-4 md:hidden">
+                      {/* Community Verifiers */}
+                      <div className="flex items-center gap-3 text-sm">
+                        <Users className="h-4 w-4 text-muted-foreground" />
+                        <div>
+                          <div className="font-medium text-foreground">
+                            {venue.unique_verifiers} {venue.unique_verifiers === 1 ? 'Verifier' : 'Verifiers'}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            Community members who verified
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Verification Success Rate */}
+                      <div className="flex items-center gap-3 text-sm">
+                        <Shield className="h-4 w-4 text-emerald-600" />
+                        <div>
+                          <div className="font-medium text-emerald-600">
+                            {(venue.total_verifications ?? 0) > 0 ? 
+                              `${Math.round(((venue.positive_verifications || 0) / (venue.total_verifications || 1)) * 100)}% Verified` : 
+                              '0% Verified'
+                            }
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            Confirmation rate for pisco availability
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Last Verification Date */}
+                      <div className="flex items-center gap-3 text-sm">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <div>
+                          <div className="font-medium text-foreground">
+                            {formatDate(venue.last_verified)}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            Last verification date
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    
-                    {/* Last Verification Date */}
-                    <span>
-                      Last verified on {formatDate(venue.last_verified)}
-                    </span>
+
+                    {/* Desktop: Three columns layout with better spacing */}
+                    <div className="hidden md:grid grid-cols-3 gap-8 text-center">
+                      {/* Community Verifiers */}
+                      <div className="flex flex-col items-center gap-2">
+                        <Users className="h-5 w-5 text-muted-foreground" />
+                        <div>
+                          <div className="font-semibold text-sm text-foreground">
+                            {venue.unique_verifiers} {venue.unique_verifiers === 1 ? 'Verifier' : 'Verifiers'}
+                          </div>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            Community members who verified
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Verification Success Rate */}
+                      <div className="flex flex-col items-center gap-2">
+                        <Shield className="h-5 w-5 text-emerald-600" />
+                        <div>
+                          <div className="font-semibold text-sm text-emerald-600">
+                            {(venue.total_verifications ?? 0) > 0 ? 
+                              `${Math.round(((venue.positive_verifications || 0) / (venue.total_verifications || 1)) * 100)}% Verified` : 
+                              '0% Verified'
+                            }
+                          </div>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            Confirmation rate for pisco availability
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Last Verification Date */}
+                      <div className="flex flex-col items-center gap-2">
+                        <Calendar className="h-5 w-5 text-muted-foreground" />
+                        <div>
+                          <div className="font-semibold text-sm text-foreground">
+                            {formatDate(venue.last_verified)}
+                          </div>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            Last verification date
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 )}
 
@@ -411,72 +414,93 @@ export default async function VenuePage({ params }: VenuePageProps) {
               )}
             </CardContent>
           </Card>
-        </div>
+            </div>
 
-        {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Quick Info */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Quick Info</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Type</span>
-                <span className="capitalize">
-                  {venue.type.replace("_", " ")}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">City</span>
-                <span>{venue.city}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Country</span>
-                <span>{venue.country}</span>
-              </div>
-              {venue.price_range && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Price Range</span>
-                  <span>{venue.price_range}</span>
-                </div>
+            {/* Sidebar */}
+            <div className="space-y-6">
+              {/* Quick Info */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Quick Info</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Type</span>
+                    <span className="capitalize text-foreground">
+                      {venue.type.replace("_", " ")}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">City</span>
+                    <span className="text-foreground">{venue.city}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Country</span>
+                    <span className="text-foreground">{venue.country}</span>
+                  </div>
+                  {venue.price_range && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Price Range</span>
+                      <span className="text-foreground">{venue.price_range}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Status</span>
+                    <Badge
+                      variant={
+                        venue.status === "approved" ? "default" : "secondary"
+                      }
+                      className="capitalize"
+                    >
+                      {venue.status}
+                    </Badge>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Venue History */}
+              {venue.profile?.full_name && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Venue History</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex items-center gap-2 text-sm">
+                      <User className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <div className="font-medium text-foreground">Added by {venue.profile.full_name}</div>
+                        <div className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                          <Calendar className="h-3 w-3" />
+                          {formatDate(venue.created_at)}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               )}
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Status</span>
-                <Badge
-                  variant={
-                    venue.status === "approved" ? "default" : "secondary"
-                  }
-                  className="capitalize"
-                >
-                  {venue.status}
-                </Badge>
-              </div>
-            </CardContent>
-          </Card>
 
-          {/* Actions */}
-          <Card>
-            <CardContent className="pt-6">
-              <div className="space-y-3">
-                <Button asChild className="w-full">
-                  <a
-                    href={googleMapsUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <MapPin className="mr-2 h-4 w-4" />
-                    View on Map
-                  </a>
-                </Button>
-                <Button asChild variant="outline" className="w-full">
-                  <Link href={`/venues?city=${encodeURIComponent(venue.city)}`}>
-                    More in {venue.city}
-                  </Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+              {/* Actions */}
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="space-y-3">
+                    <Button asChild className="w-full">
+                      <a
+                        href={googleMapsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <MapPin className="mr-2 h-4 w-4" />
+                        View on Map
+                      </a>
+                    </Button>
+                    <Button asChild variant="outline" className="w-full">
+                      <Link href={`/venues?city=${encodeURIComponent(venue.city)}`}>
+                        More in {venue.city}
+                      </Link>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
         </div>

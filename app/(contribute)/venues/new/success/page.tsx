@@ -147,7 +147,7 @@ function SuccessContent({ venueId }: { venueId?: string }) {
           <Button asChild variant="outline" size="lg">
             <Link href="/">
               <Home className="mr-2 h-4 w-4" />
-              Back to Home
+              Back to Piscola.net
             </Link>
           </Button>
         </div>

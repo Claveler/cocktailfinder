@@ -58,7 +58,7 @@ export default async function AdminLayout({
           <Button asChild variant="outline">
             <Link href="/">
               <Home className="mr-2 h-4 w-4" />
-              Back to Site
+              Back to Piscola.net
             </Link>
           </Button>
         </div>
