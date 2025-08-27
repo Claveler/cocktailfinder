@@ -145,13 +145,14 @@ export default function VenuesPageClient({
               </CardContent>
             </Card>
           ) : (
-            visibleVenues.map((venue) => (
+            visibleVenues.map((venue, index) => (
               <VenueCard 
                 key={`${venue.id}-${venue.distance.toFixed(2)}`}
                 venue={venue} 
                 showDistance={true}
                 distance={venue.distance}
                 onCardClick={handleVenueCardClick}
+                isSelected={index === 0} // Highlight the first card (closest to map center)
               />
             ))
           )}

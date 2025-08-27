@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+
 import { MapPin, AlertCircle, X } from "lucide-react";
 import VenueCard from "@/components/venues/VenueCard";
 import InteractiveMapWrapper from "@/components/maps/InteractiveMapWrapper";
@@ -32,8 +32,7 @@ export default function InteractiveVenueExplorer({
   const searchZoomLevel = Number(process.env.NEXT_PUBLIC_SEARCH_ZOOM_LEVEL) || 15;
   
 
-  // Map loading state
-  const [isMapLoading, setIsMapLoading] = useState(true);
+
   
   // User location state
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -149,7 +148,6 @@ export default function InteractiveVenueExplorer({
 
   // Get user location on mount
   useEffect(() => {
-    setIsMapLoading(false);
     requestUserLocation();
   }, [requestUserLocation]);
 
@@ -252,7 +250,6 @@ export default function InteractiveVenueExplorer({
 
   // Initial setup: Request user location and set initial venues using bounds
   useEffect(() => {
-    setIsMapLoading(false);
     requestUserLocation();
     
     // Set initial venues using bounds-based filtering
@@ -359,50 +356,29 @@ export default function InteractiveVenueExplorer({
     }));
   }, [allVenues]); // ONLY depends on allVenues, NOT userLocation
 
-  if (isMapLoading) {
-    return (
-      <div className="space-y-8">
-        {/* Map Loading */}
-        <Card className="w-full overflow-hidden" style={{ height: "400px" }}>
-          <CardContent className="p-0 h-full flex items-center justify-center bg-gray-100">
-            <div className="text-center text-gray-500">
-              <MapPin className="w-8 h-8 mx-auto mb-3 animate-pulse" />
-              <div className="text-sm">Finding your location...</div>
-            </div>
-          </CardContent>
-        </Card>
 
-        {/* Venues Loading */}
-        <div className="grid md:grid-cols-3 gap-6">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="animate-pulse">
-              <div className="bg-gray-200 h-80 rounded-lg"></div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
+
+  // Get map height from environment variable (default to 3/7 of viewport = 42.86%)
+  const mapHeightVh = Number(process.env.NEXT_PUBLIC_MAP_HEIGHT_VH) || 42.86;
 
   return (
     <div className="md:space-y-8">
       {/* Interactive Map - Sticky on Mobile */}
-      <div className="sticky top-16 md:relative md:top-auto z-30 h-[calc(50vh-4rem)] md:h-auto">
-        <Card className="w-full overflow-hidden h-full md:h-[400px] !rounded-none md:!rounded-xl border-0 md:border">
-          <CardContent className="p-0 h-full">
-            <InteractiveMapWrapper
-              venues={staticVenuesForMap}
-              height="100%"
-              center={staticMapCenter}
-              zoom={staticMapZoom}
-              onBoundsChange={handleMapMovement}
-              userLocation={staticUserLocation}
-              onLocationRequest={requestUserLocationExplicit}
-              maxDistanceKm={maxDistanceKm}
-              focusedVenueId={focusedVenueId}
-            />
-          </CardContent>
-        </Card>
+      <div 
+        className="sticky top-16 md:relative md:top-auto z-30 md:h-auto"
+        style={{ height: `calc(${mapHeightVh}vh - 4rem)` }}
+      >
+        <InteractiveMapWrapper
+          venues={staticVenuesForMap}
+          height="100%"
+          center={staticMapCenter}
+          zoom={staticMapZoom}
+          onBoundsChange={handleMapMovement}
+          userLocation={staticUserLocation}
+          onLocationRequest={requestUserLocationExplicit}
+          maxDistanceKm={maxDistanceKm}
+          focusedVenueId={focusedVenueId}
+        />
         
         {/* Location Error Banner */}
         {locationError && !isErrorDismissed && (
@@ -433,13 +409,14 @@ export default function InteractiveVenueExplorer({
         <div ref={venueCardsContainerRef} className="p-4 md:p-0 pb-4 space-y-6">
           {/* Venues Grid */}
           <div className="grid md:grid-cols-3 gap-6">
-            {filteredVenues.slice(0, visibleVenueCount).map((venue) => (
+            {filteredVenues.slice(0, visibleVenueCount).map((venue, index) => (
               <VenueCard 
                 key={`${venue.id}-${venue.distance.toFixed(2)}`}
                 venue={venue} 
                 showDistance={true}
                 distance={venue.distance}
                 onCardClick={handleVenueCardClick}
+                isSelected={index === 0} // Highlight the first card (closest to map center)
               />
             ))}
           </div>
@@ -447,7 +424,7 @@ export default function InteractiveVenueExplorer({
           {/* Explanation Text - Desktop Only */}
           <div className="text-center hidden md:block">
             <p className="text-sm text-muted-foreground mb-4">
-              Showing venues closest to map center • Move the map to explore different areas
+              Showing venues closest to map center • The "Closest" indicator matches the green pin • Move the map to explore different areas
             </p>
           </div>
 

@@ -113,8 +113,7 @@ export default function VenueCard({
   // Generate card classes with optional selection highlighting
   const getCardClasses = () => {
     const baseClasses = "hover:shadow-xl hover:scale-[1.02] transition-all duration-300 cursor-pointer overflow-hidden";
-    const selectedClasses = isSelected ? "ring-2 ring-primary border-primary shadow-lg" : "";
-    return `${baseClasses} ${selectedClasses}`.trim();
+    return baseClasses;
   };
 
   const cardContent = (
@@ -157,9 +156,17 @@ export default function VenueCard({
           <div className="flex items-start justify-between">
             <div className="flex gap-2">
               {showDistance && distance !== undefined && (
-                <Badge className="text-xs bg-black/60 backdrop-blur-sm text-white border-white/20 hover:bg-black/70">
-                  {distance.toFixed(1)} km
-                </Badge>
+                <div className="flex items-center gap-1.5">
+                  <Badge className="text-xs bg-black/60 backdrop-blur-sm text-white border-white/20 hover:bg-black/70">
+                    {distance.toFixed(1)} km
+                  </Badge>
+                  {isSelected && (
+                    <div className="flex items-center gap-1 bg-green-500/90 backdrop-blur-sm px-2 py-1 rounded-full">
+                      <MapPin className="w-3 h-3 text-white" />
+                      <span className="text-xs text-white font-medium">Closest</span>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
             

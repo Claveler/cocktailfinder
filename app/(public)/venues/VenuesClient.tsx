@@ -78,11 +78,12 @@ export default function VenuesClient({ venues, initialCenter, pagination }: Venu
       {/* Left Column: Scrollable Venue List */}
       <div className="w-1/3">
         <div className="space-y-4">
-          {venues.map((venue) => (
+          {venues.map((venue, index) => (
             <VenueCard 
               key={venue.id} 
               venue={venue} 
               onCardClick={handleVenueCardClick}
+              isSelected={index === 0} // Highlight the first card (closest to map center)
             />
           ))}
         </div>
