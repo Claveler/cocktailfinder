@@ -45,7 +45,7 @@ export default function LocationSearch({ onLocationFound }: LocationSearchProps)
     console.log('🔍 Fetching suggestions from API');
     try {
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1`
+        `/api/geocode?q=${encodeURIComponent(query)}&limit=5`
       );
 
       if (!response.ok) {
@@ -152,7 +152,7 @@ export default function LocationSearch({ onLocationFound }: LocationSearchProps)
 
     try {
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationName)}&limit=1`
+        `/api/geocode?q=${encodeURIComponent(locationName)}&limit=1`
       );
 
       if (!response.ok) {

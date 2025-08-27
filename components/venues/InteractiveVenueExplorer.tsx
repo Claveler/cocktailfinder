@@ -48,6 +48,10 @@ export default function InteractiveVenueExplorer({
   
   // Venue state
   const [filteredVenues, setFilteredVenues] = useState<(VenueType & { distance: number })[]>([]);
+  const [visibleVenueCount, setVisibleVenueCount] = useState(3);
+  
+  // Ref for venue cards container to handle scrolling
+  const venueCardsContainerRef = useRef<HTMLDivElement>(null);
   
   // Map display props - STATIC after initial user location (never updated to prevent re-renders)
   const [staticMapCenter, setStaticMapCenter] = useState<[number, number]>(fallbackCenter);
@@ -155,17 +159,26 @@ export default function InteractiveVenueExplorer({
     const centerLocation = { lat: center[0], lng: center[1] };
     const visibleVenues = filterVenuesByBounds(venuesWithLocation, bounds, centerLocation);
 
-    // Take only the first 3 venues (closest to center within bounds)
-    const newVenues = visibleVenues.slice(0, 3);
+    // Store all filtered venues (sorted by distance from center)
+    setFilteredVenues(visibleVenues);
     
-    // Create signature that includes both venues and their distances
-    const newDistanceSignature = newVenues.map(v => `${v.id}:${v.distance.toFixed(2)}`).join('|');
+    // Reset visible count to 3 when map bounds change
+    setVisibleVenueCount(3);
     
-    // Force update if venues OR distances changed
-    if (newDistanceSignature !== lastDistanceSignatureRef.current) {
-      lastDistanceSignatureRef.current = newDistanceSignature;
-      setFilteredVenues([...newVenues]); // Force new array reference
+    // Scroll to top of page on mobile when map moves
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      // Small delay to ensure venues have rendered
+      setTimeout(() => {
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+      }, 100);
     }
+    
+    // Create signature that includes all venues and their distances
+    const newDistanceSignature = visibleVenues.map(v => `${v.id}:${v.distance.toFixed(2)}`).join('|');
+    lastDistanceSignatureRef.current = newDistanceSignature;
   }, [allVenues]);
 
   // Stable reference to venue update function
@@ -274,6 +287,12 @@ export default function InteractiveVenueExplorer({
     }
   }, []);
 
+  // Handle see more venues click - show 3 more venues
+  const handleSeeMoreVenues = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setVisibleVenueCount(prev => prev + 3);
+  }, []);
+
   // Cleanup timeouts on unmount
   useEffect(() => {
     return () => {
@@ -373,10 +392,10 @@ export default function InteractiveVenueExplorer({
 
       {/* Dynamic Venues Based on Map Position */}
       {filteredVenues.length > 0 ? (
-        <div className="p-4 md:p-0 pb-20 md:pb-4 space-y-6">
+        <div ref={venueCardsContainerRef} className="p-4 md:p-0 pb-20 md:pb-4 space-y-6">
           {/* Venues Grid */}
           <div className="grid md:grid-cols-3 gap-6">
-            {filteredVenues.map((venue) => (
+            {filteredVenues.slice(0, visibleVenueCount).map((venue) => (
               <VenueCard 
                 key={`${venue.id}-${venue.distance.toFixed(2)}`}
                 venue={venue} 
@@ -394,11 +413,25 @@ export default function InteractiveVenueExplorer({
             </p>
           </div>
 
-          {/* See More Button */}
-          <div className="text-center">
+          {/* See More Button - Only show if more venues available */}
+          {filteredVenues.length > visibleVenueCount && (
+            <div className="text-center">
+              <Button 
+                onClick={handleSeeMoreVenues}
+                size="lg" 
+                variant="outline" 
+                className="px-8 md:hidden"
+              >
+                See More Venues ({Math.min(3, filteredVenues.length - visibleVenueCount)} more)
+              </Button>
+            </div>
+          )}
+          
+          {/* Desktop See All Venues Button */}
+          <div className="text-center hidden md:block">
             <Button asChild size="lg" variant="outline" className="px-8">
               <Link href="/venues">
-                See More Venues
+                See All Venues
               </Link>
             </Button>
           </div>
