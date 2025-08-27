@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 
 interface LocationSearchProps {
   onLocationFound: (coordinates: [number, number], locationName: string) => void;
+  autoFocus?: boolean;
 }
 
 interface SearchSuggestion {
@@ -18,7 +19,7 @@ interface SearchSuggestion {
   class: string;
 }
 
-export default function LocationSearch({ onLocationFound }: LocationSearchProps) {
+export default function LocationSearch({ onLocationFound, autoFocus = false }: LocationSearchProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
@@ -33,16 +34,11 @@ export default function LocationSearch({ onLocationFound }: LocationSearchProps)
 
   // Fetch suggestions as user types
   const fetchSuggestions = async (query: string) => {
-    console.log('🔍 fetchSuggestions called with query:', query);
-    
     if (query.length < 3) {
-      console.log('🔍 Query too short, clearing suggestions');
       setSuggestions([]);
       setShowSuggestions(false);
       return;
     }
-
-    console.log('🔍 Fetching suggestions from API');
     try {
       const response = await fetch(
         `/api/geocode?q=${encodeURIComponent(query)}&limit=5`
@@ -53,7 +49,6 @@ export default function LocationSearch({ onLocationFound }: LocationSearchProps)
       }
 
       const data = await response.json();
-      console.log('🔍 API returned', data.length, 'suggestions, showing dropdown:', data.length > 0);
       setSuggestions(data);
       setShowSuggestions(data.length > 0);
       setActiveSuggestionIndex(-1);
@@ -66,22 +61,18 @@ export default function LocationSearch({ onLocationFound }: LocationSearchProps)
 
   // Debounced search for suggestions
   useEffect(() => {
-    console.log('🔍 useEffect triggered by searchTerm change:', searchTerm, 'isSelectionUpdate:', isSelectionUpdate.current);
     
     // Skip fetching suggestions if this is a programmatic update from selection
     if (isSelectionUpdate.current) {
-      console.log('🔍 Skipping fetchSuggestions - this is a selection update');
       isSelectionUpdate.current = false; // Reset the flag
       return;
     }
     
     if (debounceRef.current) {
-      console.log('🔍 Clearing existing debounce timeout');
       clearTimeout(debounceRef.current);
     }
 
     debounceRef.current = setTimeout(() => {
-      console.log('🔍 Debounce timeout fired, calling fetchSuggestions');
       fetchSuggestions(searchTerm);
     }, 300);
 
@@ -105,11 +96,9 @@ export default function LocationSearch({ onLocationFound }: LocationSearchProps)
   }, []);
 
   const selectLocation = (suggestion: SearchSuggestion) => {
-    console.log('🔍 selectLocation called:', suggestion.display_name);
     
     // Clear any pending debounced search 
     if (debounceRef.current) {
-      console.log('🔍 Clearing debounce timeout');
       clearTimeout(debounceRef.current);
     }
 
@@ -120,11 +109,9 @@ export default function LocationSearch({ onLocationFound }: LocationSearchProps)
     ];
 
     // Call the callback with the coordinates we already have
-    console.log('🔍 Calling onLocationFound with existing coordinates');
     onLocationFound(coordinates, suggestion.display_name);
     
     // Update UI - just set the display value and clear suggestions  
-    console.log('🔍 Updating UI - setting display value and clearing suggestions');
     
     // Set flag to prevent fetchSuggestions when we update the display value
     isSelectionUpdate.current = true;
@@ -135,7 +122,6 @@ export default function LocationSearch({ onLocationFound }: LocationSearchProps)
     
     // Blur input 
     if (inputRef.current) {
-      console.log('🔍 Blurring input');
       inputRef.current.blur();
     }
   };
@@ -212,12 +198,9 @@ export default function LocationSearch({ onLocationFound }: LocationSearchProps)
         break;
       case 'Enter':
         e.preventDefault();
-        console.log('🔍 Enter key pressed, activeSuggestionIndex:', activeSuggestionIndex);
         if (activeSuggestionIndex >= 0 && suggestions[activeSuggestionIndex]) {
-          console.log('🔍 Selecting suggestion via Enter key');
           selectLocation(suggestions[activeSuggestionIndex]);
         } else {
-          console.log('🔍 No active suggestion, calling handleSubmit');
           handleSubmit(e);
         }
         break;
@@ -225,9 +208,7 @@ export default function LocationSearch({ onLocationFound }: LocationSearchProps)
   };
 
   const handleInputFocus = () => {
-    console.log('🔍 Input focus event, suggestions.length:', suggestions.length, 'searchTerm.length:', searchTerm.length);
     if (suggestions.length > 0 && searchTerm.length >= 3) {
-      console.log('🔍 Showing suggestions on focus');
       setShowSuggestions(true);
     }
   };
@@ -246,6 +227,9 @@ export default function LocationSearch({ onLocationFound }: LocationSearchProps)
           className="pl-10 bg-white/95 backdrop-blur-sm border-white/20 text-foreground h-11 md:h-12" 
           disabled={isSearching}
           autoComplete="off"
+          autoFocus={autoFocus}
+          inputMode="search"
+          type="search"
         />
         
         {/* Simple dropdown attached to input */}
@@ -260,7 +244,6 @@ export default function LocationSearch({ onLocationFound }: LocationSearchProps)
                     : 'hover:bg-gray-50 text-gray-900'
                 }`}
                 onClick={() => {
-                  console.log('🔍 Suggestion clicked:', suggestion.display_name);
                   selectLocation(suggestion);
                 }}
               >

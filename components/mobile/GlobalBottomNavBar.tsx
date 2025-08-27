@@ -76,6 +76,7 @@ export default function GlobalBottomNavBar() {
           <div 
             className="bg-white rounded-xl shadow-2xl w-full max-w-sm mx-auto transform transition-all duration-200 scale-100"
             onClick={(e) => e.stopPropagation()}
+            style={{ maxHeight: '80vh' }}
           >
             {/* Modal Header */}
             <div className="px-6 py-4 border-b border-gray-100">
@@ -85,7 +86,7 @@ export default function GlobalBottomNavBar() {
             
             {/* Modal Content */}
             <div className="p-6">
-              <LocationSearch onLocationFound={handleLocationFound} />
+              <LocationSearch onLocationFound={handleLocationFound} autoFocus={true} />
             </div>
             
             {/* Modal Actions */}

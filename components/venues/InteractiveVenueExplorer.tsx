@@ -241,8 +241,6 @@ export default function InteractiveVenueExplorer({
     debounceTimeoutRef.current = setTimeout(() => {
       lastUpdateRef.current = Date.now();
       
-      console.log('🗺️ Using real bounds from getBounds():', bounds);
-      
       // Update venue cards based on what's visible in the map using REAL bounds
       updateVenuesRef.current(bounds, center);
     }, debounceDelayMs);

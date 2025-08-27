@@ -26,14 +26,12 @@ export default function MapBoundsTracker({
       const center = e.target.getCenter();
       const zoom = e.target.getZoom();
       const bounds = convertBounds(e.target.getBounds());
-      console.log('🗺️ Map moveend - getting real bounds via getBounds():', bounds);
       onBoundsChange([center.lat, center.lng], zoom, bounds);
     },
     zoomend: (e) => {
       const center = e.target.getCenter();
       const zoom = e.target.getZoom();
       const bounds = convertBounds(e.target.getBounds());
-      console.log('🗺️ Map zoomend - getting real bounds via getBounds():', bounds);
       onBoundsChange([center.lat, center.lng], zoom, bounds);
     },
   });

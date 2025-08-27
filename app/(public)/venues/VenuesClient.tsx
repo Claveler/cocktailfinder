@@ -27,7 +27,7 @@ function calculateMapCenterWithLeaflet(venues: any[]): [number, number] {
   const bounds = L.latLngBounds(coordinates);
   const center = bounds.getCenter();
 
-  console.log(`🗺️ Using Leaflet's bounds.getCenter(): [${center.lat.toFixed(4)}, ${center.lng.toFixed(4)}] from ${venuesWithLocation.length} venues`);
+
 
   return [center.lat, center.lng];
 }

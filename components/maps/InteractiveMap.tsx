@@ -80,7 +80,6 @@ function ZoomDebugger() {
     const logZoom = () => {
       const currentZoom = map.getZoom();
       const clusteringDisableZoom = Number(process.env.NEXT_PUBLIC_CLUSTERING_DISABLE_ZOOM) || 14;
-      console.log(`🔍 Current zoom level: ${currentZoom} ${currentZoom >= clusteringDisableZoom ? '(clustering disabled)' : '(clustering enabled)'}`);
     };
 
     // Log initial zoom

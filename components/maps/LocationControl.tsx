@@ -70,14 +70,12 @@ export default function LocationControl({ userLocation, onLocationRequest, zoom 
           if (userLocation) {
             // Return to user location with smooth animation
             const flyToDuration = Number(process.env.NEXT_PUBLIC_FLYTO_DURATION) || 1.5;
-            console.log('🎯 Crosshair: Flying to user location', userLocation, 'zoom:', zoom, 'duration:', flyToDuration);
             map.flyTo(userLocation, zoom, {
               animate: true,
               duration: flyToDuration
             });
           } else if (onLocationRequest) {
             // Request location access
-            console.log('🎯 Crosshair: Requesting location access');
             onLocationRequest();
           }
         };

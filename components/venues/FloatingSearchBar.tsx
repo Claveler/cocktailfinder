@@ -99,11 +99,9 @@ export default function FloatingSearchBar({
   };
 
   const selectLocation = (suggestion: SearchSuggestion) => {
-    console.log('🔍 selectLocation called:', suggestion.display_name);
     
     // Clear any pending debounced search 
     if (debounceRef.current) {
-      console.log('🔍 Clearing debounce timeout');
       clearTimeout(debounceRef.current);
     }
 
@@ -114,13 +112,11 @@ export default function FloatingSearchBar({
     ];
 
     // Call the callback with the coordinates we already have
-    console.log('🔍 Calling onLocationFound with existing coordinates');
     if (onLocationFound) {
       onLocationFound(coordinates, suggestion.display_name);
     }
     
     // Update UI - just set the display value and clear suggestions  
-    console.log('🔍 Updating UI - setting display value and clearing suggestions');
     
     // Set flag to prevent fetchSuggestions when we update the display value
     isSelectionUpdate.current = true;
@@ -131,29 +127,24 @@ export default function FloatingSearchBar({
     
     // Blur input if available
     if (inputRef.current) {
-      console.log('🔍 Blurring input');
       inputRef.current.blur();
     }
   };
 
   // Handle search input changes with debouncing
   useEffect(() => {
-    console.log('🔍 useEffect triggered by searchQuery change:', searchQuery, 'isSelectionUpdate:', isSelectionUpdate.current);
     
     // Skip fetching suggestions if this is a programmatic update from selection
     if (isSelectionUpdate.current) {
-      console.log('🔍 Skipping fetchSuggestions - this is a selection update');
       isSelectionUpdate.current = false; // Reset the flag
       return;
     }
     
     if (debounceRef.current) {
-      console.log('🔍 Clearing existing debounce timeout');
       clearTimeout(debounceRef.current);
     }
 
     debounceRef.current = setTimeout(() => {
-      console.log('🔍 Debounce timeout fired, calling fetchSuggestions');
       if (searchQuery && onLocationFound) {
         fetchSuggestions(searchQuery);
       } else {
@@ -203,9 +194,7 @@ export default function FloatingSearchBar({
         break;
       case 'Enter':
         e.preventDefault();
-        console.log('🔍 Enter key pressed, activeSuggestionIndex:', activeSuggestionIndex);
         if (activeSuggestionIndex >= 0 && suggestions[activeSuggestionIndex]) {
-          console.log('🔍 Selecting suggestion via Enter key');
           selectLocation(suggestions[activeSuggestionIndex]);
         }
         break;
@@ -214,9 +203,7 @@ export default function FloatingSearchBar({
 
   // Handle input focus to show existing suggestions
   const handleInputFocus = () => {
-    console.log('🔍 Input focus event, suggestions.length:', suggestions.length, 'searchQuery.length:', searchQuery.length);
     if (suggestions.length > 0 && searchQuery.length >= 3) {
-      console.log('🔍 Showing suggestions on focus');
       setShowSuggestions(true);
     }
   };
@@ -318,7 +305,6 @@ export default function FloatingSearchBar({
                               : 'hover:bg-gray-50 text-gray-900'
                           }`}
                           onClick={() => {
-                            console.log('🔍 Suggestion clicked:', suggestion.display_name);
                             selectLocation(suggestion);
                           }}
                         >
@@ -486,7 +472,6 @@ export default function FloatingSearchBar({
                               : 'hover:bg-gray-50 text-gray-900'
                           }`}
                           onClick={() => {
-                            console.log('🔍 Suggestion clicked:', suggestion.display_name);
                             selectLocation(suggestion);
                           }}
                         >

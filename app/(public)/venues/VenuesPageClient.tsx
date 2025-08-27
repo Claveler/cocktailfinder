@@ -111,8 +111,6 @@ export default function VenuesPageClient({
     setIsUpdatingVenues(true);
     
     debounceTimeoutRef.current = setTimeout(() => {
-      console.log('🗺️ Using real bounds from getBounds():', bounds);
-      
       // Update venue cards based on what's visible in the map using REAL bounds
       updateVenuesForBounds(bounds, center);
       setIsUpdatingVenues(false);

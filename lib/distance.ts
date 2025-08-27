@@ -41,7 +41,6 @@ export function calculateDistance(
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     const distance = R * c;
     
-    console.log(`📏 Using Haversine formula (SSR): ${distance.toFixed(2)}km between [${lat1.toFixed(4)}, ${lng1.toFixed(4)}] and [${lat2.toFixed(4)}, ${lng2.toFixed(4)}]`);
     return Math.round(distance * 100) / 100;
   }
   
@@ -52,8 +51,6 @@ export function calculateDistance(
   // distanceTo returns distance in meters, convert to kilometers
   const distanceInMeters = point1.distanceTo(point2);
   const distanceInKm = distanceInMeters / 1000;
-  
-  console.log(`📏 Using Leaflet's distanceTo: ${distanceInKm.toFixed(2)}km between [${lat1.toFixed(4)}, ${lng1.toFixed(4)}] and [${lat2.toFixed(4)}, ${lng2.toFixed(4)}]`);
   
   return Math.round(distanceInKm * 100) / 100; // Round to 2 decimal places
 }
@@ -118,7 +115,6 @@ export function isPointInBounds(
   if (!L) {
     // Fallback to simple bounds checking for SSR
     const isInBounds = lat >= bounds.south && lat <= bounds.north && lng >= bounds.west && lng <= bounds.east;
-    console.log(`📍 Using simple bounds check (SSR): ${isInBounds} for point [${lat.toFixed(4)}, ${lng.toFixed(4)}] in bounds [S:${bounds.south.toFixed(4)}, N:${bounds.north.toFixed(4)}, W:${bounds.west.toFixed(4)}, E:${bounds.east.toFixed(4)}]`);
     return isInBounds;
   }
   
@@ -127,8 +123,6 @@ export function isPointInBounds(
   const point = L.latLng(lat, lng);
   
   const isInBounds = leafletBounds.contains(point);
-  
-  console.log(`📍 Using Leaflet's bounds.contains(): ${isInBounds} for point [${lat.toFixed(4)}, ${lng.toFixed(4)}] in bounds [S:${bounds.south.toFixed(4)}, N:${bounds.north.toFixed(4)}, W:${bounds.west.toFixed(4)}, E:${bounds.east.toFixed(4)}]`);
   
   return isInBounds;
 }
