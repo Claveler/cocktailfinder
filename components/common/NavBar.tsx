@@ -18,7 +18,7 @@ export default function NavBar() {
     setIsMobileMenuOpen(false);
   };
 
-  // Close menu on escape key
+  // Close menu on escape key and prevent body scroll
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -34,10 +34,16 @@ export default function NavBar() {
     };
 
     if (isMobileMenuOpen) {
+      // Prevent body scroll when menu is open
+      document.body.style.overflow = 'hidden';
+      
       document.addEventListener("keydown", handleEscape);
       window.addEventListener("resize", handleResize);
 
       return () => {
+        // Restore body scroll when menu closes
+        document.body.style.overflow = 'unset';
+        
         document.removeEventListener("keydown", handleEscape);
         window.removeEventListener("resize", handleResize);
       };
@@ -137,46 +143,55 @@ export default function NavBar() {
         </div>
       </div>
 
-      {/* Mobile Menu Panel */}
+      {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden border-t bg-card animate-in slide-in-from-top-2 duration-200">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex flex-col space-y-4">
-              {/* Navigation Links */}
-              <Link
-                href="/venues"
-                className="flex items-center space-x-2 text-sm font-medium transition-colors hover:text-primary py-2"
-                onClick={closeMobileMenu}
-              >
-                <MapPin className="h-4 w-4" />
-                <span>Venues</span>
-              </Link>
-              <Link
-                href="/venues/new"
-                className="flex items-center space-x-2 text-sm font-medium transition-colors hover:text-primary py-2"
-                onClick={closeMobileMenu}
-              >
-                <Plus className="h-4 w-4" />
-                <span>Add venue</span>
-              </Link>
-
-              {/* Language Toggle - Mobile */}
-              <div className="pt-4 border-t">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="w-full justify-start"
+        <>
+          {/* Backdrop */}
+          <div 
+            className="lg:hidden fixed top-16 left-0 right-0 bottom-0 bg-black/50 z-40"
+            onClick={closeMobileMenu}
+          />
+          
+          {/* Mobile Menu Panel */}
+          <div className="lg:hidden fixed top-16 left-0 right-0 bg-card border-t shadow-lg z-50 animate-in slide-in-from-top-2 duration-200">
+            <div className="container mx-auto px-4 py-4">
+              <div className="flex flex-col space-y-4">
+                {/* Navigation Links */}
+                <Link
+                  href="/venues"
+                  className="flex items-center space-x-2 text-sm font-medium transition-colors hover:text-primary py-2"
+                  onClick={closeMobileMenu}
                 >
-                  <Globe className="h-4 w-4 mr-2" />
-                  <span>EN</span>
-                  <Badge variant="secondary" className="ml-2 text-xs">
-                    Soon
-                  </Badge>
-                </Button>
+                  <MapPin className="h-4 w-4" />
+                  <span>Venues</span>
+                </Link>
+                <Link
+                  href="/venues/new"
+                  className="flex items-center space-x-2 text-sm font-medium transition-colors hover:text-primary py-2"
+                  onClick={closeMobileMenu}
+                >
+                  <Plus className="h-4 w-4" />
+                  <span>Add venue</span>
+                </Link>
+
+                {/* Language Toggle - Mobile */}
+                <div className="pt-4 border-t">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-start"
+                  >
+                    <Globe className="h-4 w-4 mr-2" />
+                    <span>EN</span>
+                    <Badge variant="secondary" className="ml-2 text-xs">
+                      Soon
+                    </Badge>
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </>
       )}
     </nav>
   );
