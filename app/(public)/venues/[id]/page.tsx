@@ -165,142 +165,151 @@ export default async function VenuePage({ params }: VenuePageProps) {
   const googleMapsUrl = getVenueGoogleMapsUrl(venue);
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Back button */}
-      <div className="mb-6">
-        <Button asChild variant="ghost" size="sm">
-          <Link href="/">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Venues
-          </Link>
-        </Button>
-      </div>
+    <div className="min-h-screen bg-gray-50 md:bg-background">
+      {/* Mobile-optimized container */}
+      <div className="max-w-4xl mx-auto">
+        {/* Back button - mobile sticky header */}
+        <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-gray-200 px-4 py-3 md:relative md:bg-transparent md:border-0 md:px-6 md:py-8">
+          <Button asChild variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
+            <Link href="/">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Venues
+            </Link>
+          </Button>
+        </div>
 
-      {/* Hero Section - Gallery for multiple photos, single image for one photo */}
-      {venue.photos && venue.photos.length > 0 && (
-        <div className="mb-8">
-          {venue.photos.length === 1 ? (
-            /* Single Hero Image */
-            <div className="relative aspect-[3/1] w-full bg-gray-100 rounded-lg overflow-hidden">
-              <img
-                src={venue.photos[0]}
-                alt={venue.name}
-                className="w-full h-full object-cover"
-              />
-            </div>
-          ) : (
-            /* Multiple Photos - Show Gallery as Hero */
-            <div className="relative aspect-[3/1] w-full bg-gray-50 rounded-lg overflow-hidden">
-              <div className="absolute inset-0 flex items-center">
+        {/* Hero Section - Optimized for mobile */}
+        {venue.photos && venue.photos.length > 0 && (
+          <div className="mb-0 md:mb-8">
+            {venue.photos.length === 1 ? (
+              /* Single Hero Image - Better mobile ratio */
+              <div className="relative aspect-[4/3] md:aspect-[3/1] w-full bg-gray-100 md:rounded-lg overflow-hidden">
+                <img
+                  src={venue.photos[0]}
+                  alt={venue.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            ) : (
+              /* Multiple Photos - Always use gallery for hint behavior */
+              <div className="relative aspect-[4/3] md:aspect-[3/1] w-full bg-gray-50 md:rounded-lg overflow-hidden">
                 <PhotoGallery
                   photos={venue.photos}
                   venueName={venue.name}
                   showTitle={false}
                 />
               </div>
-            </div>
-          )}
-        </div>
-      )}
+            )}
+          </div>
+        )}
 
-      {/* Venue Header */}
-      <div className="mb-8">
-        <div className="flex items-start justify-between mb-4">
-          <div>
-            <h1 className="text-2xl font-bold mb-2">{venue.name}</h1>
-            <div className="flex items-center gap-4 text-muted-foreground">
-              <Badge variant="secondary" className="capitalize">
-                {venue.type.replace("_", " ")}
-              </Badge>
-              {venue.price_range && (
-                <span className="font-medium">{venue.price_range}</span>
-              )}
-              {venue.averageRating && (
-                <div className="flex items-center gap-2">
-                  <StarRating rating={venue.averageRating} />
-                  <span className="text-sm">
-                    {venue.averageRating.toFixed(1)} ({venue.totalComments}{" "}
-                    reviews)
-                  </span>
-                </div>
-              )}
+        {/* Venue Header - Mobile optimized */}
+        <div className="bg-white px-4 py-6 md:px-6 md:py-8 md:bg-transparent">
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-xl md:text-2xl font-bold mb-3 leading-tight">{venue.name}</h1>
+              <div className="flex flex-wrap items-center gap-2 md:gap-4 text-muted-foreground">
+                <Badge variant="secondary" className="capitalize text-xs">
+                  {venue.type.replace("_", " ")}
+                </Badge>
+                {venue.price_range && (
+                  <span className="font-medium text-sm">{venue.price_range}</span>
+                )}
+                {venue.averageRating && (
+                  <div className="flex items-center gap-2">
+                    <StarRating rating={venue.averageRating} />
+                    <span className="text-sm">
+                      {venue.averageRating.toFixed(1)} ({venue.totalComments}{" "}
+                      reviews)
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
+
+            {/* Admin Edit Button */}
+            {isAdmin && (
+              <div className="flex gap-2 ml-3">
+                <Button asChild variant="outline" size="sm">
+                  <Link href={`/admin/venues/${venue.id}/edit`}>
+                    <Edit className="mr-1 h-3 w-3 md:mr-2 md:h-4 md:w-4" />
+                    <span className="hidden md:inline">Edit Venue</span>
+                    <span className="md:hidden">Edit</span>
+                  </Link>
+                </Button>
+              </div>
+            )}
           </div>
 
-          {/* Admin Edit Button */}
-          {isAdmin && (
-            <div className="flex gap-2">
-              <Button asChild variant="outline" size="sm">
-                <Link href={`/admin/venues/${venue.id}/edit`}>
-                  <Edit className="mr-2 h-4 w-4" />
-                  Edit Venue
-                </Link>
-              </Button>
+          {/* Address with Google Maps link */}
+          <div className="flex items-start gap-2 text-muted-foreground">
+            <MapPin className="h-4 w-4 mt-0.5 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between">
+                <span className="text-sm leading-relaxed">{venue.address}</span>
+                <a 
+                  href={googleMapsUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-primary hover:text-primary/80 transition-colors ml-3 shrink-0"
+                >
+                  <ExternalLink className="h-3 w-3" />
+                  <span className="text-xs font-medium">Google Maps</span>
+                </a>
+              </div>
             </div>
-          )}
+          </div>
         </div>
 
-        {/* Address with Google Maps link */}
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <MapPin className="h-4 w-4" />
-          <span>{venue.address}</span>
-          <Button asChild variant="link" size="sm" className="p-0 h-auto">
-            <a href={googleMapsUrl} target="_blank" rel="noopener noreferrer">
-              <ExternalLink className="h-4 w-4 ml-1" />
-              Open in Google Maps
-            </a>
-          </Button>
-        </div>
-      </div>
+        <div className="px-4 md:px-6 lg:px-0 pb-20 md:pb-8">
+          <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
+            {/* Main Content */}
+            <div className="lg:col-span-2 space-y-4 md:space-y-6">
+              {/* Venue Details */}
+              <Card className="border-0 md:border shadow-none md:shadow-sm">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-lg">Venue Details</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Brands */}
+                  {venue.brands.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold mb-3 text-sm uppercase tracking-wide text-muted-foreground">Featured Brands</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {venue.brands.map((brand) => (
+                          <Badge key={brand} variant="outline" className="text-sm py-1 px-3">
+                            {brand}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
-      <div className="grid lg:grid-cols-3 gap-8">
-        {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Venue Details */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Venue Details</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Brands */}
-              {venue.brands.length > 0 && (
-                <div>
-                  <h4 className="font-semibold mb-2">Featured Brands</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {venue.brands.map((brand) => (
-                      <Badge key={brand} variant="outline">
-                        {brand}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
+                  {/* Ambiance */}
+                  {venue.ambiance.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold mb-3 text-sm uppercase tracking-wide text-muted-foreground">Ambiance</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {venue.ambiance.map((tag) => (
+                          <Badge key={tag} variant="secondary" className="text-sm py-1 px-3">
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
-              {/* Ambiance */}
-              {venue.ambiance.length > 0 && (
-                <div>
-                  <h4 className="font-semibold mb-2">Ambiance</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {venue.ambiance.map((tag) => (
-                      <Badge key={tag} variant="secondary">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Added by */}
-              {venue.profile?.full_name && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground pt-4 border-t">
-                  <User className="h-4 w-4" />
-                  <span>Added by {venue.profile.full_name}</span>
-                  <Calendar className="h-4 w-4 ml-2" />
-                  <span>{new Date(venue.created_at).toLocaleDateString()}</span>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                  {/* Added by */}
+                  {venue.profile?.full_name && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground pt-4 border-t">
+                      <User className="h-4 w-4" />
+                      <span>Added by {venue.profile.full_name}</span>
+                      <Calendar className="h-4 w-4 ml-4" />
+                      <span>{formatDate(venue.created_at)}</span>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
 
           {/* Pisco Information Section */}
           <Card>
@@ -468,6 +477,8 @@ export default async function VenuePage({ params }: VenuePageProps) {
               </div>
             </CardContent>
           </Card>
+            </div>
+          </div>
         </div>
       </div>
     </div>

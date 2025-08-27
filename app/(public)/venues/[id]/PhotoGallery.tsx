@@ -20,6 +20,7 @@ export default function PhotoGallery({
   const [canScrollRight, setCanScrollRight] = useState(true);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, scrollLeft: 0 });
+  const [touchStart, setTouchStart] = useState({ x: 0, scrollLeft: 0 });
 
   const checkScrollability = () => {
     const container = scrollContainerRef.current;
@@ -108,6 +109,28 @@ export default function PhotoGallery({
     setIsDragging(false);
   };
 
+  // Touch event handlers for mobile
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const touch = e.touches[0];
+    setTouchStart({
+      x: touch.clientX,
+      scrollLeft: container.scrollLeft,
+    });
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const touch = e.touches[0];
+    const x = touch.clientX;
+    const walk = (touchStart.x - x) * 2; // Multiply by 2 for faster scrolling
+    container.scrollLeft = touchStart.scrollLeft + walk;
+  };
+
   if (photos.length === 0) {
     return (
       <div>
@@ -170,12 +193,12 @@ export default function PhotoGallery({
       <div className="relative w-full h-full">
         {/* Photo Gallery Container with Arrows */}
         <div className="relative group h-full">
-          {/* Left Arrow - positioned at center of photo area (excluding padding) */}
+          {/* Left Arrow - hidden on mobile, visible on desktop */}
           {canScrollLeft && (
             <Button
               variant="outline"
               size="icon"
-              className="absolute left-2 z-50 bg-white/90 hover:bg-white shadow-lg"
+              className="absolute left-2 z-50 bg-white/90 hover:bg-white shadow-lg hidden md:flex"
               style={{
                 top: "50%",
                 transform: "translateY(-50%)",
@@ -187,12 +210,12 @@ export default function PhotoGallery({
             </Button>
           )}
 
-          {/* Right Arrow - positioned at center of photo area (excluding padding) */}
+          {/* Right Arrow - hidden on mobile, visible on desktop */}
           {canScrollRight && (
             <Button
               variant="outline"
               size="icon"
-              className="absolute right-2 z-50 bg-white/90 hover:bg-white shadow-lg"
+              className="absolute right-2 z-50 bg-white/90 hover:bg-white shadow-lg hidden md:flex"
               style={{
                 top: "50%",
                 transform: "translateY(-50%)",
@@ -204,37 +227,57 @@ export default function PhotoGallery({
             </Button>
           )}
 
-          {/* Photo Gallery */}
+          {/* Photo Gallery - Consistent 25px hint for all photos */}
           <div
             ref={scrollContainerRef}
-            className="flex gap-4 overflow-x-auto scrollbar-hide w-full h-full cursor-grab select-none"
-            style={{ cursor: isDragging ? "grabbing" : "grab" }}
+            className="flex gap-1 md:gap-4 overflow-x-auto scrollbar-hide w-full h-full md:cursor-grab select-none snap-x snap-mandatory"
+            style={{ 
+              cursor: isDragging ? "grabbing" : "grab",
+              // Always 25px padding to show hints
+              paddingRight: photos.length > 1 ? "25px" : "0"
+            }}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseLeave}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
           >
-            {photos.map((photo, index) => (
-              <div
-                key={index}
-                className="flex-shrink-0 h-full aspect-[4/3] bg-gray-100 rounded-lg overflow-hidden group relative"
-              >
-                <a
-                  href={photo}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block w-full h-full"
-                  onMouseDown={(e) => e.stopPropagation()}
-                  onDragStart={(e) => e.preventDefault()}
+            {photos.map((photo, index) => {
+              const isLastPhoto = index === photos.length - 1;
+              const isMultiplePhotos = photos.length > 1;
+              
+              return (
+                <div
+                  key={index}
+                  className="flex-shrink-0 h-full bg-gray-100 md:rounded-lg overflow-hidden group relative snap-start"
+                  style={{
+                    // All photos same width - this creates the hint effect naturally
+                    width: isMultiplePhotos 
+                      ? "calc(100% - 25px - 0.25rem)" // All photos leave 25px space for hint
+                      : "100%", // Single photos take full width
+                    aspectRatio: "4/3",
+                    // Last photo snaps to end to show previous photo hint on left
+                    scrollSnapAlign: isLastPhoto ? "end" : "start"
+                  }}
                 >
-                  <img
-                    src={photo}
-                    alt={`${venueName} - Photo ${index + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                </a>
-              </div>
-            ))}
+                  <a
+                    href={photo}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block w-full h-full"
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onDragStart={(e) => e.preventDefault()}
+                  >
+                    <img
+                      src={photo}
+                      alt={`${venueName} - Photo ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </a>
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -242,12 +285,9 @@ export default function PhotoGallery({
         {showTitle && (
           <div className="flex items-center gap-2 mt-2">
             <p className="text-xs text-muted-foreground">
-              Use arrows or scroll horizontally to see all photos
+              <span className="md:hidden">Swipe to see all photos</span>
+              <span className="hidden md:inline">Use arrows or scroll horizontally to see all photos</span>
             </p>
-            <div className="hidden md:flex items-center gap-1 text-xs text-muted-foreground">
-              <span>→</span>
-              <span>Swipe on mobile</span>
-            </div>
           </div>
         )}
       </div>
