@@ -1,24 +1,70 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, Filter, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { useRouter, usePathname } from "next/navigation";
 import LocationSearch from "@/components/search/LocationSearch";
 
-interface BottomNavBarProps {
-  onLocationFound: (coordinates: [number, number], locationName: string) => void;
+// Define a global event system for location search and search modal
+declare global {
+  interface Window {
+    dispatchLocationSearch?: (coordinates: [number, number], locationName: string) => void;
+    dispatchOpenSearch?: () => void;
+  }
 }
 
-export default function BottomNavBar({ onLocationFound }: BottomNavBarProps) {
+export default function GlobalBottomNavBar() {
   const [showSearch, setShowSearch] = useState(false);
+  const router = useRouter();
+  const pathname = usePathname();
+  
+  const isOnLandingPage = pathname === '/';
+
+  // Set up global search modal trigger
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.dispatchOpenSearch = () => {
+        setShowSearch(true);
+      };
+    }
+
+    // Cleanup
+    return () => {
+      if (typeof window !== 'undefined') {
+        delete window.dispatchOpenSearch;
+      }
+    };
+  }, []);
 
   const handleSearchClick = () => {
-    setShowSearch(!showSearch);
+    if (isOnLandingPage) {
+      // On landing page - just show the search modal
+      setShowSearch(!showSearch);
+    } else {
+      // On other pages - navigate to landing page and signal to open search
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('openSearchOnLanding', 'true');
+      }
+      router.push('/');
+    }
   };
 
   const handleLocationFound = (coordinates: [number, number], locationName: string) => {
-    onLocationFound(coordinates, locationName);
+    if (isOnLandingPage && typeof window !== 'undefined' && window.dispatchLocationSearch) {
+      // We're on the landing page - dispatch the location search event
+      window.dispatchLocationSearch(coordinates, locationName);
+    } else {
+      // Store the search data and navigate to landing page
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('pendingLocationSearch', JSON.stringify({
+          coordinates,
+          locationName
+        }));
+      }
+      router.push('/');
+    }
     setShowSearch(false); // Close search after selection
   };
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { MapPin, Search } from "lucide-react";
@@ -8,7 +8,6 @@ import Image from "next/image";
 import LocationSearch from "@/components/search/LocationSearch";
 import InteractiveVenueExplorer from "@/components/venues/InteractiveVenueExplorer";
 import HomePageClient from "@/app/HomePageClient";
-import BottomNavBar from "@/components/mobile/BottomNavBar";
 import type { Venue as VenueType } from "@/lib/venues";
 
 interface LandingPageClientProps {
@@ -25,6 +24,42 @@ export default function LandingPageClient({
   const handleLocationFound = (coordinates: [number, number], locationName: string) => {
     setSearchLocation(coordinates);
   };
+
+  // Set up global location search event system
+  useEffect(() => {
+    // Set up the global location search handler
+    if (typeof window !== 'undefined') {
+      window.dispatchLocationSearch = handleLocationFound;
+      
+      // Check for pending location search from other pages
+      const pendingSearch = sessionStorage.getItem('pendingLocationSearch');
+      if (pendingSearch) {
+        try {
+          const { coordinates, locationName } = JSON.parse(pendingSearch);
+          handleLocationFound(coordinates, locationName);
+          sessionStorage.removeItem('pendingLocationSearch');
+        } catch (error) {
+          console.error('Error parsing pending location search:', error);
+          sessionStorage.removeItem('pendingLocationSearch');
+        }
+      }
+
+      // Check if search should be opened automatically (from other pages)
+      const shouldOpenSearch = sessionStorage.getItem('openSearchOnLanding');
+      if (shouldOpenSearch === 'true') {
+        // Trigger search modal opening on the global bottom navbar
+        window.dispatchOpenSearch?.();
+        sessionStorage.removeItem('openSearchOnLanding');
+      }
+    }
+
+    // Cleanup
+    return () => {
+      if (typeof window !== 'undefined') {
+        delete window.dispatchLocationSearch;
+      }
+    };
+  }, []);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -82,8 +117,6 @@ export default function LandingPageClient({
         </div>
       </section>
 
-      {/* Mobile Bottom Navigation Bar */}
-      <BottomNavBar onLocationFound={handleLocationFound} />
     </div>
   );
 }

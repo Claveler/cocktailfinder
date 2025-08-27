@@ -430,7 +430,7 @@ export default function InteractiveVenueExplorer({
 
       {/* Dynamic Venues Based on Map Position */}
       {filteredVenues.length > 0 ? (
-        <div ref={venueCardsContainerRef} className="p-4 md:p-0 pb-20 md:pb-4 space-y-6">
+        <div ref={venueCardsContainerRef} className="p-4 md:p-0 pb-4 space-y-6">
           {/* Venues Grid */}
           <div className="grid md:grid-cols-3 gap-6">
             {filteredVenues.slice(0, visibleVenueCount).map((venue) => (
@@ -479,7 +479,7 @@ export default function InteractiveVenueExplorer({
         </div>
       ) : (
         /* No Venues Found */
-        <div className="h-[50%] md:h-auto flex flex-col shrink-0 p-4 md:p-0 pb-20 md:pb-4 space-y-6">
+        <div className="h-[50%] md:h-auto flex flex-col shrink-0 p-4 md:p-0 pb-4 space-y-6">
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center py-12">
               <p className="text-muted-foreground mb-4">
