@@ -169,7 +169,7 @@ export default async function VenuePage({ params }: VenuePageProps) {
       {/* Back button */}
       <div className="mb-6">
         <Button asChild variant="ghost" size="sm">
-          <Link href="/venues">
+          <Link href="/">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Venues
           </Link>

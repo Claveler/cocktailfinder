@@ -138,7 +138,7 @@ function SuccessContent({ venueId }: { venueId?: string }) {
       <div className="mt-8 space-y-4">
         <div className="grid md:grid-cols-2 gap-4">
           <Button asChild variant="default" size="lg">
-            <Link href="/venues">
+            <Link href="/">
               <Search className="mr-2 h-4 w-4" />
               Browse Venues
             </Link>

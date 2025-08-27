@@ -294,7 +294,7 @@ export default function NewVenuePage() {
       {/* Header */}
       <div className="mb-8">
         <Link
-          href="/venues"
+          href="/"
           className="text-primary hover:underline text-sm mb-2 block"
         >
           ← Back to Venues

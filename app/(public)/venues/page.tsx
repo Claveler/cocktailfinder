@@ -225,7 +225,7 @@ export default async function VenuesPage({ searchParams }: VenuesPageProps) {
                       Try adjusting your search criteria or filters
                     </p>
                     <Button asChild variant="outline">
-                      <Link href="/venues">View all venues</Link>
+                      <Link href="/">View all venues</Link>
                     </Button>
                   </CardContent>
                 </Card>
@@ -263,7 +263,7 @@ export default async function VenuesPage({ searchParams }: VenuesPageProps) {
                       Try adjusting your search criteria or filters
                     </p>
                     <Button asChild variant="outline">
-                      <Link href="/venues">View all venues</Link>
+                      <Link href="/">View all venues</Link>
                     </Button>
                   </CardContent>
                 </Card>

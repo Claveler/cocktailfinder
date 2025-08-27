@@ -241,7 +241,7 @@ export default function FloatingSearchBar({
     setSuggestions([]);
     setShowSuggestions(false);
     // Navigate to clear all filters
-    router.push("/venues");
+    router.push("/");
   };
 
   // Helper function to navigate with current filter state
@@ -257,7 +257,7 @@ export default function FloatingSearchBar({
     if (type && type !== "all") params.set("type", type);
     if (brand && brand !== "all") params.set("brand", brand);
 
-    router.push(`/venues?${params.toString()}`);
+    router.push(`/?${params.toString()}`);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -276,7 +276,7 @@ export default function FloatingSearchBar({
     if (brand && brand !== "all") params.set("brand", brand);
 
     // Navigate to venues page with filters using client-side navigation
-    router.push(`/venues?${params.toString()}`);
+    router.push(`/?${params.toString()}`);
   };
 
   return (
@@ -666,7 +666,7 @@ export default function FloatingSearchBar({
                 </span>
                 {hasActiveFilters && (
                   <Button asChild variant="ghost" size="sm">
-                    <Link href="/venues">View all venues</Link>
+                    <Link href="/">View all venues</Link>
                   </Button>
                 )}
               </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useEffect, memo } from "react";
+import { useMemo, useEffect, memo, useState, useCallback } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
 import L from "leaflet";
@@ -10,8 +10,9 @@ import "./venue-popup.css";
 import MapBoundsTracker from "./MapCenterTracker"; // Renamed to MapBoundsTracker
 import LocationControl from "./LocationControl";
 import VenuePopup from "./VenuePopup";
+import VenueCountOverlay from "./VenueCountOverlay";
 import { getThemeColorAsHex } from "@/lib/utils";
-import { MapBounds } from "@/lib/distance";
+import { MapBounds, filterVenuesByBounds, calculateApproximateBounds } from "@/lib/distance";
 // import { createRoot } from "react-dom/client"; // Unused
 
 // Enhanced venue type definition
@@ -220,6 +221,7 @@ const LeafletMapComponent = memo(function LeafletMapComponent({
       zoom={zoom}
       style={{ height: "100%", width: "100%" }}
       className="z-0"
+      zoomControl={false}
     >
       <MapUpdater center={center} zoom={zoom} />
       
@@ -329,7 +331,8 @@ const InteractiveMap = memo(function InteractiveMap({
   maxDistanceKm,
   focusedVenueId,
 }: InteractiveMapProps) {
-  
+  // State to track venues visible in current map bounds
+  const [visibleVenueCount, setVisibleVenueCount] = useState(0);
 
   // Filter to only show approved venues
   const approvedVenues = useMemo(
@@ -337,18 +340,48 @@ const InteractiveMap = memo(function InteractiveMap({
     [venues]
   );
 
+  // Internal bounds change handler for venue count overlay
+  const handleInternalBoundsChange = useCallback((mapCenter: [number, number], mapZoom: number, bounds: MapBounds) => {
+    // Filter venues by current bounds to get count of visible venues
+    const venuesWithLocation = approvedVenues.filter(venue => venue.location !== null);
+    const centerLocation = { lat: mapCenter[0], lng: mapCenter[1] };
+    const visibleVenues = filterVenuesByBounds(venuesWithLocation, bounds, centerLocation);
+    
+    // Update visible venue count
+    setVisibleVenueCount(visibleVenues.length);
+    
+    // Call the external onBoundsChange if provided
+    if (onBoundsChange) {
+      onBoundsChange(mapCenter, mapZoom, bounds);
+    }
+  }, [approvedVenues, onBoundsChange]);
+
+  // Initialize venue count on mount and when venues change
+  useEffect(() => {
+    if (approvedVenues.length > 0) {
+      const initialBounds = calculateApproximateBounds(center, zoom);
+      const venuesWithLocation = approvedVenues.filter(venue => venue.location !== null);
+      const centerLocation = { lat: center[0], lng: center[1] };
+      const visibleVenues = filterVenuesByBounds(venuesWithLocation, initialBounds, centerLocation);
+      setVisibleVenueCount(visibleVenues.length);
+    }
+  }, [approvedVenues, center, zoom]);
+
   return (
-    <div style={{ height }} className="w-full !rounded-none md:!rounded-lg overflow-hidden">
+    <div style={{ height }} className="w-full !rounded-none md:!rounded-lg overflow-hidden relative">
       <LeafletMapComponent 
         venues={approvedVenues} 
         center={center} 
         zoom={zoom}
-        onBoundsChange={onBoundsChange}
+        onBoundsChange={handleInternalBoundsChange}
         userLocation={userLocation}
         onLocationRequest={onLocationRequest}
         maxDistanceKm={maxDistanceKm}
         focusedVenueId={focusedVenueId}
       />
+      
+      {/* Venue count overlay - shows venues visible in current map bounds */}
+      <VenueCountOverlay venueCount={visibleVenueCount} />
     </div>
   );
 });

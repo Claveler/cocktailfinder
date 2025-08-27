@@ -468,7 +468,7 @@ export default function InteractiveVenueExplorer({
           {/* Desktop See All Venues Button */}
           <div className="text-center hidden md:block">
             <Button asChild size="lg" variant="outline" className="px-8">
-              <Link href="/venues">
+              <Link href="/">
                 See All Venues
               </Link>
             </Button>
@@ -490,7 +490,7 @@ export default function InteractiveVenueExplorer({
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Button asChild variant="outline">
-                  <Link href="/venues">View All Venues</Link>
+                  <Link href="/">View All Venues</Link>
                 </Button>
                 <Button asChild>
                   <Link href="/venues/new">Add a Venue</Link>
