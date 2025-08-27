@@ -1,4 +1,10 @@
-import L from "leaflet";
+// Conditional import to avoid SSR issues
+const getLeaflet = () => {
+  if (typeof window !== 'undefined') {
+    return require('leaflet');
+  }
+  return null;
+};
 
 // Map bounds interface
 export interface MapBounds {
@@ -22,6 +28,23 @@ export function calculateDistance(
   lat2: number,
   lng2: number
 ): number {
+  const L = getLeaflet();
+  if (!L) {
+    // Fallback to Haversine formula for SSR
+    const R = 6371; // Earth's radius in kilometers
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+      Math.sin(dLng/2) * Math.sin(dLng/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const distance = R * c;
+    
+    console.log(`📏 Using Haversine formula (SSR): ${distance.toFixed(2)}km between [${lat1.toFixed(4)}, ${lng1.toFixed(4)}] and [${lat2.toFixed(4)}, ${lng2.toFixed(4)}]`);
+    return Math.round(distance * 100) / 100;
+  }
+  
   // Use Leaflet's built-in distanceTo method for accurate distance calculation
   const point1 = L.latLng(lat1, lng1);
   const point2 = L.latLng(lat2, lng2);
@@ -65,9 +88,14 @@ export function filterVenuesByDistance<T extends { location: { lat: number; lng:
 /**
  * Convert our MapBounds interface to Leaflet's LatLngBounds
  * @param bounds Map bounds object with north, south, east, west properties
- * @returns Leaflet LatLngBounds object
+ * @returns Leaflet LatLngBounds object or null if Leaflet is not available
  */
-function createLatLngBounds(bounds: MapBounds): L.LatLngBounds {
+function createLatLngBounds(bounds: MapBounds): any {
+  const L = getLeaflet();
+  if (!L) {
+    return null; // Return null for SSR, fallback logic will handle this
+  }
+  
   // Create bounds from southwest and northeast corners
   const southWest = L.latLng(bounds.south, bounds.west);
   const northEast = L.latLng(bounds.north, bounds.east);
@@ -86,6 +114,14 @@ export function isPointInBounds(
   lng: number,
   bounds: MapBounds
 ): boolean {
+  const L = getLeaflet();
+  if (!L) {
+    // Fallback to simple bounds checking for SSR
+    const isInBounds = lat >= bounds.south && lat <= bounds.north && lng >= bounds.west && lng <= bounds.east;
+    console.log(`📍 Using simple bounds check (SSR): ${isInBounds} for point [${lat.toFixed(4)}, ${lng.toFixed(4)}] in bounds [S:${bounds.south.toFixed(4)}, N:${bounds.north.toFixed(4)}, W:${bounds.west.toFixed(4)}, E:${bounds.east.toFixed(4)}]`);
+    return isInBounds;
+  }
+  
   // Use Leaflet's built-in bounds checking for accuracy
   const leafletBounds = createLatLngBounds(bounds);
   const point = L.latLng(lat, lng);

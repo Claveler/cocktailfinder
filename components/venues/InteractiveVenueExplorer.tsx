@@ -53,6 +53,25 @@ export default function InteractiveVenueExplorer({
   // Ref for venue cards container to handle scrolling
   const venueCardsContainerRef = useRef<HTMLDivElement>(null);
   
+  // Track previous map center to detect significant movement
+  const previousMapCenterRef = useRef<[number, number] | null>(null);
+  
+  // Calculate distance between two coordinates in meters
+  const calculateDistance = useCallback((coord1: [number, number], coord2: [number, number]): number => {
+    const R = 6371e3; // Earth's radius in meters
+    const φ1 = (coord1[0] * Math.PI) / 180;
+    const φ2 = (coord2[0] * Math.PI) / 180;
+    const Δφ = ((coord2[0] - coord1[0]) * Math.PI) / 180;
+    const Δλ = ((coord2[1] - coord1[1]) * Math.PI) / 180;
+
+    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return R * c;
+  }, []);
+  
   // Map display props - STATIC after initial user location (never updated to prevent re-renders)
   const [staticMapCenter, setStaticMapCenter] = useState<[number, number]>(fallbackCenter);
   const [staticMapZoom, setStaticMapZoom] = useState<number>(fallbackZoom);
@@ -165,21 +184,40 @@ export default function InteractiveVenueExplorer({
     // Reset visible count to 3 when map bounds change
     setVisibleVenueCount(3);
     
-    // Scroll to top of page on mobile when map moves
+    // Scroll to top of page on mobile when map moves significantly
     if (typeof window !== 'undefined' && window.innerWidth < 768) {
-      // Small delay to ensure venues have rendered
-      setTimeout(() => {
-        window.scrollTo({
-          top: 0,
-          behavior: 'smooth'
-        });
-      }, 100);
+      const currentCenter = center;
+      const previousCenter = previousMapCenterRef.current;
+      
+      // Only scroll if this is a significant movement (>50 meters) or first load
+      let shouldScroll = false;
+      if (previousCenter === null) {
+        // First load - don't scroll
+        shouldScroll = false;
+      } else {
+        const distanceMoved = calculateDistance(previousCenter, currentCenter);
+        // Threshold: 50 meters - enough to filter out browser UI changes
+        shouldScroll = distanceMoved > 50;
+      }
+      
+      if (shouldScroll) {
+        // Small delay to ensure venues have rendered
+        setTimeout(() => {
+          window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+          });
+        }, 100);
+      }
+      
+      // Update previous center for next comparison
+      previousMapCenterRef.current = currentCenter;
     }
     
     // Create signature that includes all venues and their distances
     const newDistanceSignature = visibleVenues.map(v => `${v.id}:${v.distance.toFixed(2)}`).join('|');
     lastDistanceSignatureRef.current = newDistanceSignature;
-  }, [allVenues]);
+  }, [allVenues, calculateDistance]);
 
   // Stable reference to venue update function
   const updateVenuesRef = useRef(updateVenuesForBounds);
@@ -441,21 +479,23 @@ export default function InteractiveVenueExplorer({
         </div>
       ) : (
         /* No Venues Found */
-        <div className="flex items-center justify-center p-4 md:p-0 py-12">
-          <div className="text-center py-12">
-            <p className="text-muted-foreground mb-4">
-              No venues visible in the current map view.
-            </p>
-            <p className="text-sm text-muted-foreground mb-6">
-              Try moving the map to explore different locations, or browse all venues.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button asChild variant="outline">
-                <Link href="/venues">View All Venues</Link>
-              </Button>
-              <Button asChild>
-                <Link href="/venues/new">Add a Venue</Link>
-              </Button>
+        <div className="h-[50%] md:h-auto flex flex-col shrink-0 p-4 md:p-0 pb-20 md:pb-4 space-y-6">
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center py-12">
+              <p className="text-muted-foreground mb-4">
+                No venues visible in the current map view.
+              </p>
+              <p className="text-sm text-muted-foreground mb-6">
+                Try moving the map to explore different locations, or browse all venues.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button asChild variant="outline">
+                  <Link href="/venues">View All Venues</Link>
+                </Button>
+                <Button asChild>
+                  <Link href="/venues/new">Add a Venue</Link>
+                </Button>
+              </div>
             </div>
           </div>
           
