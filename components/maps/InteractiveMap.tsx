@@ -9,10 +9,9 @@ import "./venue-popup.css";
 
 import MapBoundsTracker from "./MapCenterTracker"; // Renamed to MapBoundsTracker
 import LocationControl from "./LocationControl";
-import VenuePopup from "./VenuePopup";
 import VenueCountOverlay from "./VenueCountOverlay";
 import { getThemeColorAsHex } from "@/lib/utils";
-import { MapBounds, filterVenuesByBounds, calculateApproximateBounds } from "@/lib/distance";
+import { MapBounds, filterVenuesByBounds, calculateApproximateBounds, calculateDistance } from "@/lib/distance";
 // import { createRoot } from "react-dom/client"; // Unused
 
 // Enhanced venue type definition
@@ -115,23 +114,34 @@ function VenueFocuser({
     const venue = venues.find(v => v.id === focusedVenueId);
     if (!venue || !venue.location) return;
 
-    // Find the marker for this venue
-    let targetMarker: any = null;
-    map.eachLayer((layer: any) => {
-      if (layer instanceof L.Marker && 
-          layer.getLatLng && 
-          Math.abs(layer.getLatLng().lat - venue.location!.lat) < 0.0001 &&
-          Math.abs(layer.getLatLng().lng - venue.location!.lng) < 0.0001) {
-        targetMarker = layer;
-      }
-    });
+    // Get search zoom level from environment variable
+    const searchZoomLevel = Number(process.env.NEXT_PUBLIC_SEARCH_ZOOM_LEVEL) || 15;
 
-    if (targetMarker) {
-      // Simulate an actual click on the marker to trigger Leaflet's complete built-in behavior
-      // This handles popup opening AND optimal map positioning in one smooth action
-      targetMarker.fire('click');
-    }
+    // Use setView to center the map on the venue location
+    map.setView([venue.location.lat, venue.location.lng], searchZoomLevel);
   }, [focusedVenueId, venues, map]);
+
+  return null;
+}
+
+// Component to handle pin click functionality
+function PinClickHandler() {
+  const map = useMap();
+
+  useEffect(() => {
+    // Store the pin click handler globally so markers can access it
+    (window as any).handlePinClick = (venue: Venue) => {
+      if (!venue.location || !map) return;
+      
+      const searchZoomLevel = Number(process.env.NEXT_PUBLIC_SEARCH_ZOOM_LEVEL) || 15;
+      map.setView([venue.location.lat, venue.location.lng], searchZoomLevel);
+    };
+
+    return () => {
+      // Cleanup
+      delete (window as any).handlePinClick;
+    };
+  }, [map]);
 
   return null;
 }
@@ -145,6 +155,7 @@ const LeafletMapComponent = memo(function LeafletMapComponent({
   onLocationRequest,
   maxDistanceKm,
   focusedVenueId,
+  closestVenueId,
 }: {
   venues: Venue[];
   center: [number, number];
@@ -154,6 +165,7 @@ const LeafletMapComponent = memo(function LeafletMapComponent({
   onLocationRequest?: () => void;
   maxDistanceKm?: number;
   focusedVenueId?: string | null;
+  closestVenueId?: string | null;
 }) {
   useEffect(() => {
     // Ensure this only runs on the client side
@@ -168,7 +180,7 @@ const LeafletMapComponent = memo(function LeafletMapComponent({
     });
   }, []); // Run only once on mount
 
-  // Create custom marker icon for venues using theme primary color
+  // Create custom marker icon for venues using theme primary color (red)
   const venueMarkerIcon = useMemo(() => {
     if (typeof window === 'undefined') return null;
     
@@ -179,6 +191,26 @@ const LeafletMapComponent = memo(function LeafletMapComponent({
       iconUrl: 'data:image/svg+xml;base64,' + btoa(`
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 25 41" fill="none">
           <path d="M12.5 0C5.59644 0 0 5.59644 0 12.5C0 21.875 12.5 41 12.5 41S25 21.875 25 12.5C25 5.59644 19.4036 0 12.5 0Z" fill="${primaryColor}"/>
+          <circle cx="12.5" cy="12.5" r="5" fill="white"/>
+        </svg>
+      `),
+      iconSize: [25, 41],
+      iconAnchor: [12.5, 41],
+      popupAnchor: [0, -41],
+      shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+      shadowSize: [41, 41],
+      shadowAnchor: [12, 41]
+    });
+  }, []);
+
+  // Create custom marker icon for closest venue (green)
+  const closestVenueMarkerIcon = useMemo(() => {
+    if (typeof window === 'undefined') return null;
+    
+    return new L.Icon({
+      iconUrl: 'data:image/svg+xml;base64,' + btoa(`
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 25 41" fill="none">
+          <path d="M12.5 0C5.59644 0 0 5.59644 0 12.5C0 21.875 12.5 41 12.5 41S25 21.875 25 12.5C25 5.59644 19.4036 0 12.5 0Z" fill="#22C55E"/>
           <circle cx="12.5" cy="12.5" r="5" fill="white"/>
         </svg>
       `),
@@ -237,6 +269,9 @@ const LeafletMapComponent = memo(function LeafletMapComponent({
 
       {/* Venue focusing for card clicks */}
       <VenueFocuser focusedVenueId={focusedVenueId ?? null} venues={venues} />
+      
+      {/* Pin click handling */}
+      <PinClickHandler />
 
       {/* Debug zoom levels */}
       <ZoomDebugger />
@@ -299,20 +334,24 @@ const LeafletMapComponent = memo(function LeafletMapComponent({
       >
         {venues
           .filter((venue) => venue.id !== "user-location")
-                    .map((venue) => {
+          .map((venue) => {
+            // Use green icon for closest venue, red for all others
+            const isClosest = venue.id === closestVenueId;
+            const markerIcon = isClosest ? closestVenueMarkerIcon : venueMarkerIcon;
+            
             return (
               <Marker
                 key={venue.id}
                 position={[venue.location.lat, venue.location.lng]}
-                icon={venueMarkerIcon || undefined}
-              >
-                <Popup
-                  maxWidth={320}
-                  className="venue-popup-container"
-                >
-                  <VenuePopup venue={venue} />
-                </Popup>
-              </Marker>
+                icon={markerIcon || undefined}
+                eventHandlers={{
+                  click: () => {
+                    if ((window as any).handlePinClick) {
+                      (window as any).handlePinClick(venue);
+                    }
+                  }
+                }}
+              />
             );
           })}
       </MarkerClusterGroup>
@@ -333,6 +372,9 @@ const InteractiveMap = memo(function InteractiveMap({
 }: InteractiveMapProps) {
   // State to track venues visible in current map bounds
   const [visibleVenueCount, setVisibleVenueCount] = useState(0);
+  
+  // State to track current map center for determining closest venue
+  const [currentMapCenter, setCurrentMapCenter] = useState<[number, number]>(center);
 
   // Filter to only show approved venues
   const approvedVenues = useMemo(
@@ -340,8 +382,42 @@ const InteractiveMap = memo(function InteractiveMap({
     [venues]
   );
 
-  // Internal bounds change handler for venue count overlay
+  // Find the closest venue to the map center
+  const closestVenueId = useMemo(() => {
+    if (approvedVenues.length === 0) return null;
+    
+    const venuesWithLocation = approvedVenues.filter(venue => venue.location !== null);
+    if (venuesWithLocation.length === 0) return null;
+    
+    let closestVenue = venuesWithLocation[0];
+    let minDistance = calculateDistance(
+      currentMapCenter[0], 
+      currentMapCenter[1], 
+      closestVenue.location!.lat, 
+      closestVenue.location!.lng
+    );
+    
+    for (const venue of venuesWithLocation) {
+      const distance = calculateDistance(
+        currentMapCenter[0], 
+        currentMapCenter[1], 
+        venue.location!.lat, 
+        venue.location!.lng
+      );
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestVenue = venue;
+      }
+    }
+    
+    return closestVenue.id;
+  }, [approvedVenues, currentMapCenter]);
+
+  // Internal bounds change handler for venue count overlay and map center tracking
   const handleInternalBoundsChange = useCallback((mapCenter: [number, number], mapZoom: number, bounds: MapBounds) => {
+    // Update current map center state
+    setCurrentMapCenter(mapCenter);
+    
     // Filter venues by current bounds to get count of visible venues
     const venuesWithLocation = approvedVenues.filter(venue => venue.location !== null);
     const centerLocation = { lat: mapCenter[0], lng: mapCenter[1] };
@@ -378,6 +454,7 @@ const InteractiveMap = memo(function InteractiveMap({
         onLocationRequest={onLocationRequest}
         maxDistanceKm={maxDistanceKm}
         focusedVenueId={focusedVenueId}
+        closestVenueId={closestVenueId}
       />
       
       {/* Venue count overlay - shows venues visible in current map bounds */}
