@@ -51,7 +51,10 @@ export default function GlobalBottomNavBar() {
 
   const handleSearchClick = () => {
     if (isOnLandingPage) {
-      // On landing page - just show the search modal
+      // On landing page - toggle search modal and close filter modal
+      if (!showSearch) {
+        setShowFilter(false); // Close filter modal when opening search
+      }
       setShowSearch(!showSearch);
     } else {
       // On other pages - navigate to landing page and signal to open search
@@ -81,12 +84,16 @@ export default function GlobalBottomNavBar() {
 
   const handleFilterClick = () => {
     if (isOnLandingPage) {
-      // On landing page - get fresh brands and show filter modal
-      if (typeof window !== 'undefined' && window.dispatchGetAvailableBrands) {
-        const brands = window.dispatchGetAvailableBrands();
-        setAvailableBrands(brands);
+      // On landing page - toggle filter modal and close search modal
+      if (!showFilter) {
+        setShowSearch(false); // Close search modal when opening filter
+        if (typeof window !== 'undefined' && window.dispatchGetAvailableBrands) {
+          // Only fetch brands when opening the modal
+          const brands = window.dispatchGetAvailableBrands();
+          setAvailableBrands(brands);
+        }
       }
-      setShowFilter(true);
+      setShowFilter(!showFilter);
     } else {
       // On other pages - navigate to landing page first
       // Could store filter state in sessionStorage if needed
