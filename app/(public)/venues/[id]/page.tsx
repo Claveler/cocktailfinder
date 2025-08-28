@@ -13,7 +13,6 @@ import {
   Calendar,
   User,
   MessageCircle,
-  ArrowLeft,
   Edit,
   CheckCircle,
   XCircle,
@@ -126,17 +125,6 @@ export default async function VenuePage({ params }: VenuePageProps) {
     <div className="min-h-screen bg-muted/30 md:bg-background">
       {/* Container matching landing page */}
       <div className="container mx-auto px-4">
-        {/* Back button - mobile sticky header */}
-        <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border py-3 md:relative md:bg-transparent md:border-0 md:py-8">
-          <Link
-            href="/"
-            className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Piscola.net
-          </Link>
-        </div>
-
         {/* Enhanced Hero Component with Extension Table */}
         <VenueHero 
           venue={{

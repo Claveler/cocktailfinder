@@ -95,7 +95,7 @@ export default function VenueHero({ venue, isAdmin = false, className = "" }: Ve
       {/* Unified Hero Layout - Similar on mobile and desktop */}
       <div className="relative mb-0">
         {/* Photo Container */}
-        <div className="relative aspect-[4/3] md:aspect-[3/1] w-full bg-muted md:rounded-t-lg overflow-hidden">
+        <div className="relative aspect-[4/3] md:aspect-[3/1] w-full bg-muted overflow-hidden">
           {venue.photos && venue.photos.length > 0 ? (
             venue.photos.length === 1 ? (
               <img
