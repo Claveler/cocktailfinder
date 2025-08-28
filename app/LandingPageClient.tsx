@@ -111,7 +111,7 @@ export default function LandingPageClient({
   return (
     <div className="flex flex-col min-h-screen">
       {/* Hero Section - Hidden on Mobile */}
-      <section className="hidden md:flex relative w-full h-[320px] md:h-[380px] lg:h-[400px] items-center" style={{ overflow: 'visible' }}>
+      <section className="hidden md:flex relative w-full min-h-[360px] items-center" style={{ overflow: 'visible' }}>
         {/* Full Viewport Background Image */}
         <div className="absolute inset-0 z-0 overflow-hidden">
           <Image
@@ -122,29 +122,36 @@ export default function LandingPageClient({
             priority
             sizes="100vw"
           />
-          {/* Simple dark overlay for text legibility */}
-          <div className="absolute inset-0 bg-black/50" />
-          {/* Gradient overlay for better text contrast */}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
+          {/* Enhanced gradient overlay for better text contrast */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-black/10" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/20" />
         </div>
 
         {/* Content */}
-        <div className="relative z-10 w-full px-4 md:px-6 lg:px-8 py-6 md:py-8">
+        <div className="relative z-10 w-full px-6 lg:px-8 py-8 lg:py-12">
           <div className="container mx-auto">
-            <div className="max-w-xl md:max-w-2xl lg:max-w-3xl">
+            <div className="max-w-xl lg:max-w-3xl">
               <HomePageClient delay={0}>
-                <h1 className="text-4xl lg:text-6xl font-bold mb-4 md:mb-6 text-white leading-tight">
-                  A Taste of Chile,
-                  <br />
-                  <span className="text-white/90">Wherever You Are</span>
-                </h1>
-                <p className="text-sm text-white/90 mb-6 md:mb-8 max-w-xl leading-relaxed">
-                  Discover the best venues to enjoy pisco in your city. From
-                  speakeasies to rooftop bars, find your perfect drink destination.
-                </p>
+                <div className="space-y-6 lg:space-y-8">
+                  <div className="space-y-4 lg:space-y-6">
+                    <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-tight">
+                      A Taste of Chile,
+                      <br />
+                      <span className="text-white/90">Wherever You Are</span>
+                    </h1>
+                    <p className="text-base lg:text-lg text-white/90 max-w-xl leading-relaxed">
+                    Search, explore, and taste Chile's most iconic cocktail. One glass at a time.
+                    </p>
+                  </div>
 
-                {/* Search CTA */}
-                <LocationSearch onLocationFound={handleLocationFound} />
+                  {/* Enhanced Search CTA */}
+                  <div className="bg-white/95 backdrop-blur-sm rounded-xl p-5 lg:p-6 shadow-xl max-w-xl border border-white/20 relative">
+                    <div className="space-y-3">
+                      <h2 className="text-lg lg:text-xl font-semibold text-gray-900">Start Your Discovery</h2>
+                      <LocationSearch onLocationFound={handleLocationFound} />
+                    </div>
+                  </div>
+                </div>
               </HomePageClient>
             </div>
           </div>

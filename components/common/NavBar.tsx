@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Globe, Menu, X } from "lucide-react";
+import { Globe, Menu, X, HelpCircle, Info } from "lucide-react";
 import AuthButton from "./AuthButton";
 import { useState, useEffect } from "react";
 
@@ -71,11 +71,18 @@ export default function NavBar() {
           <div className="flex justify-center">
             <div className="flex items-center space-x-6">
               <Link
-                href="/venues/new"
+                href="/about/what-is-piscola"
                 className="flex items-center space-x-2 text-sm font-medium transition-colors hover:text-primary"
               >
-                <Plus className="h-4 w-4" />
-                <span>Add venue</span>
+                <HelpCircle className="h-4 w-4" />
+                <span>What is piscola?</span>
+              </Link>
+              <Link
+                href="/about/why-piscola-net"
+                className="flex items-center space-x-2 text-sm font-medium transition-colors hover:text-primary"
+              >
+                <Info className="h-4 w-4" />
+                <span>Why Piscola.net?</span>
               </Link>
             </div>
           </div>
@@ -151,12 +158,20 @@ export default function NavBar() {
               <div className="flex flex-col space-y-4">
                 {/* Navigation Links */}
                 <Link
-                  href="/venues/new"
+                  href="/about/what-is-piscola"
                   className="flex items-center space-x-2 text-sm font-medium transition-colors hover:text-primary py-2"
                   onClick={closeMobileMenu}
                 >
-                  <Plus className="h-4 w-4" />
-                  <span>Add venue</span>
+                  <HelpCircle className="h-4 w-4" />
+                  <span>What is piscola?</span>
+                </Link>
+                <Link
+                  href="/about/why-piscola-net"
+                  className="flex items-center space-x-2 text-sm font-medium transition-colors hover:text-primary py-2"
+                  onClick={closeMobileMenu}
+                >
+                  <Info className="h-4 w-4" />
+                  <span>Why Piscola.net?</span>
                 </Link>
 
                 {/* Language Toggle - Mobile */}
