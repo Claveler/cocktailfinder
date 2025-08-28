@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import NavBar from "@/components/common/NavBar";
 import Footer from "@/components/common/Footer";
-import GlobalBottomNavBar from "@/components/mobile/GlobalBottomNavBar";
+import GlobalBottomNavBar from "@/components/common/GlobalBottomNavBar";
 import { primaryFont, monoFont, headingFont } from "@/lib/fonts";
 import { Toaster } from "sonner";
 import ServerThemeProvider from "@/components/theme/ServerThemeProvider";
@@ -29,7 +29,7 @@ export default function RootLayout({
       >
         <ServerThemeProvider>
           <NavBar />
-          <main className="min-h-screen pb-16 md:pb-0">{children}</main>
+          <main className="min-h-screen pb-16 md:pb-20">{children}</main>
           <Footer />
           <GlobalBottomNavBar />
           <Toaster richColors position="top-right" />
