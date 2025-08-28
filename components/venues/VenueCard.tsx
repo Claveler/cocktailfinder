@@ -2,7 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Wine, DollarSign, Ellipsis, CheckCircle, XCircle, HelpCircle, AlertCircle, Users, ExternalLink, Shield, Calendar } from "lucide-react";
+import { MapPin, Wine, DollarSign, ChevronRight, CheckCircle, XCircle, HelpCircle, AlertCircle, Users, ExternalLink, Shield, Calendar } from "lucide-react";
 import Link from "next/link";
 import type { Venue } from "@/lib/venues";
 
@@ -146,7 +146,7 @@ export default function VenueCard({
             onClick={handleNavigateClick}
             className="absolute right-3 top-1/2 -translate-y-1/2 z-10 bg-black/60 backdrop-blur-sm hover:bg-black/80 transition-all duration-200 rounded-full p-2.5 group"
           >
-            <Ellipsis className="h-4 w-4 text-white group-hover:text-white/90 transition-all duration-200" />
+            <ChevronRight className="h-4 w-4 text-white group-hover:text-white/90 group-hover:translate-x-0.5 transition-all duration-200" />
           </Link>
         )}
 

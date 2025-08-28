@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { MapPin, Search } from "lucide-react";
@@ -19,11 +20,57 @@ export default function LandingPageClient({
   allVenues,
   maxDistanceKm,
 }: LandingPageClientProps) {
+  const searchParams = useSearchParams();
   const [searchLocation, setSearchLocation] = useState<[number, number] | null>(null);
+  const [initialMapCenter, setInitialMapCenter] = useState<[number, number] | null>(null);
+  const [initialFocusedVenueId, setInitialFocusedVenueId] = useState<string | null>(null);
+  const [initialZoom, setInitialZoom] = useState<number | null>(null);
 
   const handleLocationFound = (coordinates: [number, number], locationName: string) => {
     setSearchLocation(coordinates);
   };
+
+  // Parse query parameters for initial map state
+  useEffect(() => {
+    const venueId = searchParams.get('venueId');
+    const lat = searchParams.get('lat');
+    const lng = searchParams.get('lng');
+    const zoom = searchParams.get('zoom');
+
+    // Handle venue ID parameter
+    if (venueId && allVenues.length > 0) {
+      const targetVenue = allVenues.find(venue => venue.id === venueId);
+      
+      if (targetVenue && targetVenue.location) {
+        setInitialMapCenter([targetVenue.location.lat, targetVenue.location.lng]);
+        setInitialFocusedVenueId(venueId);
+        if (zoom) {
+          const zoomNum = parseFloat(zoom);
+          if (!isNaN(zoomNum) && zoomNum >= 1 && zoomNum <= 20) {
+            setInitialZoom(zoomNum);
+          }
+        }
+        return;
+      }
+    }
+
+    // Handle direct lat/lng parameters
+    if (lat && lng) {
+      const latNum = parseFloat(lat);
+      const lngNum = parseFloat(lng);
+      if (!isNaN(latNum) && !isNaN(lngNum)) {
+        setInitialMapCenter([latNum, lngNum]);
+        
+        // Handle zoom parameter for direct coordinates
+        if (zoom) {
+          const zoomNum = parseFloat(zoom);
+          if (!isNaN(zoomNum) && zoomNum >= 1 && zoomNum <= 20) {
+            setInitialZoom(zoomNum);
+          }
+        }
+      }
+    }
+  }, [searchParams, allVenues]);
 
   // Set up global location search event system
   useEffect(() => {
@@ -111,8 +158,11 @@ export default function LandingPageClient({
           <InteractiveVenueExplorer 
             allVenues={allVenues}
             maxDistanceKm={maxDistanceKm}
-            fallbackCenter={[51.5261617, -0.1633234]} // London Business School as fallback (LBS easter egg! 🎓)
+            fallbackCenter={initialMapCenter || [51.5261617, -0.1633234]} // Use query param center or London Business School as fallback (LBS easter egg! 🎓)
+            fallbackZoom={initialZoom || undefined}
             searchLocation={searchLocation}
+            initialFocusedVenueId={initialFocusedVenueId}
+            hasQueryParams={!!(initialMapCenter || initialFocusedVenueId)}
           />
         </div>
       </section>

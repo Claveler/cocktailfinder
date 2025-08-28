@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { Suspense } from "react";
 import type { Venue as VenueType } from "@/lib/venues";
 import LandingPageClient from "./LandingPageClient";
 
@@ -108,9 +109,11 @@ export default async function Home() {
   const availableVenues = await getVenuesForLocationFiltering();
 
   return (
-    <LandingPageClient 
-      allVenues={availableVenues}
-      maxDistanceKm={VENUE_SEARCH_RADIUS_KM}
-    />
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+      <LandingPageClient 
+        allVenues={availableVenues}
+        maxDistanceKm={VENUE_SEARCH_RADIUS_KM}
+      />
+    </Suspense>
   );
 }

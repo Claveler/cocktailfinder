@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Plus, Globe, Menu, X } from "lucide-react";
+import { Plus, Globe, Menu, X } from "lucide-react";
 import AuthButton from "./AuthButton";
 import { useState, useEffect } from "react";
 
@@ -70,13 +70,6 @@ export default function NavBar() {
           {/* Center Section - Main Navigation */}
           <div className="flex justify-center">
             <div className="flex items-center space-x-6">
-              <Link
-                href="/"
-                className="flex items-center space-x-2 text-sm font-medium transition-colors hover:text-primary"
-              >
-                <MapPin className="h-4 w-4" />
-                <span>Venues</span>
-              </Link>
               <Link
                 href="/venues/new"
                 className="flex items-center space-x-2 text-sm font-medium transition-colors hover:text-primary"
@@ -157,14 +150,6 @@ export default function NavBar() {
             <div className="container mx-auto px-4 py-4">
               <div className="flex flex-col space-y-4">
                 {/* Navigation Links */}
-                              <Link
-                href="/"
-                className="flex items-center space-x-2 text-sm font-medium transition-colors hover:text-primary py-2"
-                onClick={closeMobileMenu}
-              >
-                <MapPin className="h-4 w-4" />
-                <span>Venues</span>
-              </Link>
                 <Link
                   href="/venues/new"
                   className="flex items-center space-x-2 text-sm font-medium transition-colors hover:text-primary py-2"

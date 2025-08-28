@@ -18,6 +18,8 @@ interface InteractiveVenueExplorerProps {
   fallbackCenter?: [number, number];
   fallbackZoom?: number;
   searchLocation?: [number, number] | null;
+  initialFocusedVenueId?: string | null;
+  hasQueryParams?: boolean;
 }
 
 export default function InteractiveVenueExplorer({ 
@@ -26,6 +28,8 @@ export default function InteractiveVenueExplorer({
   fallbackCenter = [51.5261617, -0.1633234], // London Business School default (LBS easter egg! 🎓)
   fallbackZoom = Number(process.env.NEXT_PUBLIC_MAP_ZOOM_LEVEL) || 13,
   searchLocation = null,
+  initialFocusedVenueId = null,
+  hasQueryParams = false,
 }: InteractiveVenueExplorerProps) {
   
   // Environment variables for zoom levels
@@ -42,8 +46,11 @@ export default function InteractiveVenueExplorer({
   // Track if user has explicitly searched for a location (takes precedence over geolocation)
   const [hasSearchedLocation, setHasSearchedLocation] = useState(false);
   
+  // Track if user has manually requested their location (overrides query params)
+  const [isManualLocationRequest, setIsManualLocationRequest] = useState(false);
+  
   // Track venue to focus on map (for card clicks)
-  const [focusedVenueId, setFocusedVenueId] = useState<string | null>(null);
+  const [focusedVenueId, setFocusedVenueId] = useState<string | null>(initialFocusedVenueId);
   
   // Venue state
   const [filteredVenues, setFilteredVenues] = useState<(VenueType & { distance: number })[]>([]);
@@ -75,13 +82,14 @@ export default function InteractiveVenueExplorer({
   const [staticMapCenter, setStaticMapCenter] = useState<[number, number]>(fallbackCenter);
   const [staticMapZoom, setStaticMapZoom] = useState<number>(fallbackZoom);
   const [staticUserLocation, setStaticUserLocation] = useState<[number, number] | null>(null);
-  
 
-  
   // Refs for debouncing
   const debounceTimeoutRef = useRef<NodeJS.Timeout>();
   const lastUpdateRef = useRef<number>(0);
   const lastDistanceSignatureRef = useRef<string>('');
+  
+  // Track if we've already updated the map center from fallback changes
+  const hasUpdatedFromFallbackRef = useRef<boolean>(false);
 
   // Request user location (internal - for automatic geolocation on load)
   const requestUserLocation = useCallback(() => {
@@ -124,6 +132,9 @@ export default function InteractiveVenueExplorer({
 
     // Reset search location flag - user explicitly wants their actual location
     setHasSearchedLocation(false);
+    
+    // Mark this as a manual location request (should override query params)
+    setIsManualLocationRequest(true);
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -217,6 +228,29 @@ export default function InteractiveVenueExplorer({
     lastDistanceSignatureRef.current = newDistanceSignature;
   }, [allVenues, calculateDistance]);
 
+  // Update map center when fallbackCenter changes (for query params)
+  useEffect(() => {
+    // Only update if we have query params and haven't already updated from fallback
+    if (hasQueryParams && !hasUpdatedFromFallbackRef.current && !userLocation) {
+      // Check if fallbackCenter is different from current staticMapCenter
+      const [currentLat, currentLng] = staticMapCenter;
+      const [newLat, newLng] = fallbackCenter;
+      
+      // Only update if the center actually changed (to avoid unnecessary updates)
+      if (Math.abs(currentLat - newLat) > 0.001 || Math.abs(currentLng - newLng) > 0.001) {
+        setStaticMapCenter(fallbackCenter);
+        setStaticMapZoom(fallbackZoom); // Also update zoom!
+        
+        // Update venues for the new center
+        const newBounds = calculateApproximateBounds(fallbackCenter, fallbackZoom);
+        updateVenuesForBounds(newBounds, fallbackCenter);
+        
+        // Mark that we've updated from fallback
+        hasUpdatedFromFallbackRef.current = true;
+      }
+    }
+  }, [fallbackCenter, hasQueryParams, userLocation, staticMapCenter, fallbackZoom, updateVenuesForBounds]);
+
   // Stable reference to venue update function
   const updateVenuesRef = useRef(updateVenuesForBounds);
   updateVenuesRef.current = updateVenuesForBounds;
@@ -248,16 +282,28 @@ export default function InteractiveVenueExplorer({
 
   // Initial setup: Request user location and set initial venues using bounds
   useEffect(() => {
-    requestUserLocation();
+    // Only request user location if we don't have query parameters
+    if (!hasQueryParams) {
+      requestUserLocation();
+    }
     
     // Set initial venues using bounds-based filtering
     const initialBounds = calculateApproximateBounds(fallbackCenter, fallbackZoom);
     updateVenuesForBounds(initialBounds, fallbackCenter);
-  }, [requestUserLocation, updateVenuesForBounds, fallbackCenter, fallbackZoom]);
+  }, [requestUserLocation, updateVenuesForBounds, fallbackCenter, fallbackZoom, hasQueryParams]);
   
-  // Update map center ONLY ONCE when user location is obtained (but only if user hasn't searched)
+  // Update map center ONLY ONCE when user location is obtained
   useEffect(() => {
-    if (userLocation && !hasSearchedLocation) {
+    
+    // Allow user location updates if:
+    // 1. No search location has been set AND no query params (automatic behavior)
+    // 2. OR this is a manual location request (crosshair button - overrides everything)
+    const shouldUpdateLocation = userLocation && (
+      (!hasSearchedLocation && !hasQueryParams) || // Automatic: only if no search and no query params
+      isManualLocationRequest // Manual: always allow (user clicked crosshair)
+    );
+    
+    if (shouldUpdateLocation) {
       const newCenter: [number, number] = [userLocation.lat, userLocation.lng];
       
       // Set static map center AND user location ONCE - these will never change again to prevent re-renders
@@ -267,8 +313,14 @@ export default function InteractiveVenueExplorer({
       // Update venues using bounds-based filtering
       const newBounds = calculateApproximateBounds(newCenter, fallbackZoom);
       updateVenuesForBounds(newBounds, newCenter);
+      
+      // Reset manual location request flag and clear focused venue (user wants their location, not query param venue)
+      if (isManualLocationRequest) {
+        setIsManualLocationRequest(false);
+        setFocusedVenueId(null); // Clear focused venue when user manually requests their location
+      }
     }
-  }, [userLocation, updateVenuesForBounds, fallbackZoom, hasSearchedLocation]);
+  }, [userLocation, updateVenuesForBounds, fallbackZoom, hasSearchedLocation, hasQueryParams, isManualLocationRequest]);
 
   // Handle search location updates
   useEffect(() => {

@@ -144,7 +144,7 @@ export default async function VenuePage({ params }: VenuePageProps) {
           isAdmin={isAdmin}
         />
 
-        <div className="px-4 md:px-6 lg:px-0 pb-20 md:pb-8 pt-4 md:pt-0">
+        <div className="px-4 md:px-6 lg:px-0 pb-4 md:pb-8 pt-4 md:pt-0">
           <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
             {/* Main Content */}
             <div className="lg:col-span-2 space-y-4 md:space-y-6">
@@ -409,7 +409,7 @@ export default async function VenuePage({ params }: VenuePageProps) {
                       </a>
                     </Button>
                     <Button asChild variant="outline" className="w-full">
-                      <Link href={`/venues?city=${encodeURIComponent(venue.city)}`}>
+                      <Link href={`/?venueId=${venue.id}&zoom=12`}>
                         More in {venue.city}
                       </Link>
                     </Button>
