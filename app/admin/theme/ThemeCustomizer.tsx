@@ -380,8 +380,8 @@ export default function ThemeCustomizer() {
                   <h5 className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">
                     Venue Hero Component
                   </h5>
-                  <Card className="max-w-2xl">
-                    <div className="aspect-[4/3] md:aspect-[3/1] bg-muted animate-pulse" />
+                  <Card className="w-full">
+                    <div className="aspect-[3/1] bg-muted animate-pulse" />
                     <div className="p-4 space-y-3 border-t">
                       <div className="h-5 bg-muted animate-pulse rounded" />
                       <div className="grid grid-cols-2 gap-4">
@@ -412,21 +412,21 @@ export default function ThemeCustomizer() {
                   <h5 className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">
                     Venue Hero Component
                   </h5>
-                  <div className="max-w-2xl">
+                  <div className="w-full">
                     <VenueHero 
                       venue={{
                         id: sampleVenue.id,
                         name: sampleVenue.name,
                         type: sampleVenue.type,
-                        price_range: sampleVenue.price_range,
+                        price_range: sampleVenue.price_range || undefined,
                         photos: sampleVenue.photos,
                         address: sampleVenue.address,
                         city: sampleVenue.city,
                         country: sampleVenue.country,
                         brands: sampleVenue.brands || [],
                         ambiance: sampleVenue.ambiance || [],
-                        averageRating: sampleVenue.averageRating,
-                        totalComments: sampleVenue.totalComments
+                        averageRating: (sampleVenue as any).averageRating || undefined,
+                        totalComments: (sampleVenue as any).totalComments || undefined
                       }}
                       isAdmin={true}
                     />

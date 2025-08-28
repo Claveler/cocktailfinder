@@ -22,6 +22,7 @@ import {
   Users,
   Shield,
   Share2,
+  MessageCircleMore,
 } from "lucide-react";
 import PiscoVerificationForm from "./PiscoVerificationForm";
 import PhotoGallery from "./PhotoGallery";
@@ -164,8 +165,8 @@ export default async function VenuePage({ params }: VenuePageProps) {
               <Card className="relative z-0">
                 <CardHeader className="pb-4">
                   <CardTitle className="flex items-center gap-2 text-lg">
-                    {getPiscoStatusIcon(venue.pisco_status)}
-                    Community Pisco Insights
+                    <MessageCircleMore className="h-5 w-5" />
+                    Piscoleros Say...
                   </CardTitle>
                   <p className="text-sm text-muted-foreground mt-2">
                     Real information from fellow pisco enthusiasts who've visited this venue

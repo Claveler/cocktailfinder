@@ -134,11 +134,11 @@ export default function VenueHero({ venue, isAdmin = false, className = "" }: Ve
                   <div className="flex flex-wrap items-center gap-2 md:gap-4">
                     <div className="flex items-center gap-2 bg-black/40 backdrop-blur-sm px-3 py-1.5 md:px-4 md:py-2 rounded-full md:hidden">
                       {getTypeIcon(venue.type)}
-                      <span className="text-white/90 text-sm md:text-base font-medium">{getTypeLabel(venue.type)}</span>
+                      <span className="text-xs text-white/90 font-medium">{getTypeLabel(venue.type)}</span>
                       {venue.price_range && (
                         <>
-                          <span className="text-white/70">•</span>
-                          <span className="font-semibold text-green-300 text-sm md:text-base">
+                          <span className="text-xs text-white/70">•</span>
+                          <span className="text-xs font-semibold text-green-300">
                             {getPriceRangeDisplay(venue.price_range)}
                           </span>
                         </>
