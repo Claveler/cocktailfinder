@@ -1,7 +1,7 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Wine, DollarSign, Star } from "lucide-react";
+import { MapPin, Wine, DollarSign, Star, ExternalLink } from "lucide-react";
 import PhotoGallery from "./PhotoGallery";
 import ShareButton from "./ShareButton";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,10 @@ interface VenueHeroProps {
     price_range?: string;
     photos?: string[];
     address: string;
+    city?: string;
+    country?: string;
+    brands: string[];
+    ambiance: string[];
     averageRating?: number;
     totalComments?: number;
   };
@@ -113,8 +117,12 @@ export default function VenueHero({ venue, isAdmin = false, className = "" }: Ve
             </div>
           )}
           
+          {/* Enhanced Gradient Overlay for better readability - Matches VenueCard */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/20 pointer-events-none" />
+          <div className="absolute inset-0 bg-black/30 pointer-events-none" />
+          
           {/* Overlay Container - Non-interfering with gallery */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none">
+          <div className="absolute inset-0 pointer-events-none">
             {/* Bottom Overlay - Like venue cards */}
             <div className="absolute bottom-0 left-0 right-0 p-4 md:p-8 text-white">
               <div className="flex items-end justify-between">
@@ -155,7 +163,8 @@ export default function VenueHero({ venue, isAdmin = false, className = "" }: Ve
                       id: venue.id,
                       name: venue.name,
                       address: venue.address
-                    }} 
+                    }}
+                    className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20"
                   />
                   {isAdmin && (
                     <Button asChild variant="outline" size="sm" className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20">
@@ -178,6 +187,70 @@ export default function VenueHero({ venue, isAdmin = false, className = "" }: Ve
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Hero Extension Table - Attached to hero */}
+      <div className="bg-background md:bg-muted/30 shadow-sm md:rounded-b-lg border-0 md:border md:border-t-0 overflow-hidden mb-4 md:mb-8 relative z-10">
+        {/* Row 1: Address + Google Maps */}
+        <div className="px-4 py-4 md:px-6 border-b border-border bg-muted/30">
+          <div className="flex items-start gap-2">
+            <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+            <div className="flex-1 text-sm text-muted-foreground">
+              <div className="font-medium text-foreground">{venue.address}</div>
+              <div>{venue.city}, {venue.country}</div>
+            </div>
+            <a
+              href={`https://maps.google.com/?q=${encodeURIComponent([venue.address, venue.city, venue.country].filter(Boolean).join(', '))}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 text-primary hover:text-primary/80 transition-colors mt-0.5 shrink-0 text-xs font-medium"
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+              <span>Google Maps</span>
+            </a>
+          </div>
+        </div>
+
+        {/* Row 2: Brands & Ambiance in two columns */}
+        {(venue.brands.length > 0 || venue.ambiance.length > 0) && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-px bg-border">
+            {/* Brands Column */}
+            <div className="px-4 py-4 md:px-6 bg-background">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-sm font-medium text-muted-foreground min-w-fit">Brands:</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {venue.brands.length > 0 ? (
+                    venue.brands.map((brand) => (
+                      <Badge key={brand} className="text-sm bg-primary/15 text-primary border-primary/20 hover:bg-primary/25 px-3 py-1">
+                        {brand}
+                      </Badge>
+                    ))
+                  ) : (
+                    <span className="text-sm text-muted-foreground italic">None listed</span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Ambiance Column */}
+            <div className="px-4 py-4 md:px-6 bg-background border-t md:border-t-0 border-border">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-sm font-medium text-muted-foreground min-w-fit">Ambiance:</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {venue.ambiance.length > 0 ? (
+                    venue.ambiance.map((tag) => (
+                      <Badge key={tag} className="text-sm bg-secondary/50 text-secondary-foreground border-secondary/30 hover:bg-secondary/60 px-3 py-1">
+                        {tag}
+                      </Badge>
+                    ))
+                  ) : (
+                    <span className="text-sm text-muted-foreground italic">None listed</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
     </div>

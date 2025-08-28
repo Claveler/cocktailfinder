@@ -10,7 +10,6 @@ import { Separator } from "@/components/ui/separator";
 import {
   MapPin,
   Star,
-  ExternalLink,
   Calendar,
   User,
   MessageCircle,
@@ -28,7 +27,6 @@ import PiscoVerificationForm from "./PiscoVerificationForm";
 import PhotoGallery from "./PhotoGallery";
 import ShareButton from "./ShareButton";
 import VenueHero from "./VenueHero";
-import { getVenueGoogleMapsUrl } from "@/lib/maps";
 
 interface VenuePageProps {
   params: {
@@ -121,8 +119,7 @@ export default async function VenuePage({ params }: VenuePageProps) {
     notFound();
   }
 
-  // Generate Google Maps URL (prefers stored URL, falls back to coordinates)
-  const googleMapsUrl = getVenueGoogleMapsUrl(venue);
+
 
   return (
     <div className="min-h-screen bg-muted/30 md:bg-background">
@@ -139,7 +136,7 @@ export default async function VenuePage({ params }: VenuePageProps) {
           </Link>
         </div>
 
-        {/* New Hero Component */}
+        {/* Enhanced Hero Component with Extension Table */}
         <VenueHero 
           venue={{
             id: venue.id,
@@ -148,86 +145,15 @@ export default async function VenuePage({ params }: VenuePageProps) {
             price_range: venue.price_range || undefined,
             photos: venue.photos,
             address: venue.address,
+            city: venue.city,
+            country: venue.country,
+            brands: venue.brands,
+            ambiance: venue.ambiance,
             averageRating: venue.averageRating || undefined,
             totalComments: venue.totalComments || undefined
           }}
           isAdmin={isAdmin}
         />
-
-        {/* Hero Extension Table - Attached to hero */}
-        <div className="bg-background md:bg-muted/30 shadow-sm md:rounded-b-lg border-0 md:border md:border-t-0 overflow-hidden -mx-4 md:mx-0 mb-4 md:mb-8 relative z-10">
-          {/* Row 1: Address + Google Maps */}
-          <div className="px-4 py-4 md:px-6 border-b border-border bg-muted/30">
-            <div className="flex items-start gap-2 text-foreground">
-              <MapPin className="h-4 w-4 md:h-5 md:w-5 mt-0.5 shrink-0 text-muted-foreground" />
-              <div className="flex items-start gap-2 flex-1">
-                <span className="flex-1 text-sm md:text-base text-foreground">
-                  {venue.address}
-                  {venue.city && (
-                    <span className="text-muted-foreground">
-                      {venue.address ? ', ' : ''}{venue.city}
-                    </span>
-                  )}
-                  {venue.country && (
-                    <span className="text-muted-foreground">
-                      {(venue.address || venue.city) ? ', ' : ''}{venue.country}
-                    </span>
-                  )}
-                </span>
-                <a
-                  href={`https://maps.google.com/?q=${encodeURIComponent([venue.address, venue.city, venue.country].filter(Boolean).join(', '))}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="shrink-0 mt-0.5 flex items-center gap-1 text-primary hover:text-primary/80 transition-colors text-sm"
-                >
-                  <ExternalLink className="h-3 w-3" />
-                  <span className="text-xs font-medium">Google Maps</span>
-                </a>
-              </div>
-            </div>
-          </div>
-
-          {/* Row 2: Brands & Ambiance in two columns */}
-          {(venue.brands.length > 0 || venue.ambiance.length > 0) && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-px bg-border">
-              {/* Brands Column */}
-              <div className="px-4 py-4 md:px-6 bg-background">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-sm font-medium text-muted-foreground min-w-fit">Brands:</span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {venue.brands.length > 0 ? (
-                      venue.brands.map((brand) => (
-                        <Badge key={brand} variant="outline" className="text-xs">
-                          {brand}
-                        </Badge>
-                      ))
-                    ) : (
-                      <span className="text-sm text-muted-foreground italic">None listed</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Ambiance Column */}
-              <div className="px-4 py-4 md:px-6 bg-background border-t md:border-t-0 border-border">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-sm font-medium text-muted-foreground min-w-fit">Ambiance:</span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {venue.ambiance.length > 0 ? (
-                      venue.ambiance.map((tag) => (
-                        <Badge key={tag} variant="secondary" className="text-xs">
-                          {tag}
-                        </Badge>
-                      ))
-                    ) : (
-                      <span className="text-sm text-muted-foreground italic">None listed</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
 
         <div className="px-4 md:px-6 lg:px-0 pb-20 md:pb-8 pt-4 md:pt-0">
           <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
@@ -485,7 +411,7 @@ export default async function VenuePage({ params }: VenuePageProps) {
                   <div className="space-y-3">
                     <Button asChild className="w-full">
                       <a
-                        href={googleMapsUrl}
+                        href={`https://maps.google.com/?q=${encodeURIComponent([venue.address, venue.city, venue.country].filter(Boolean).join(', '))}`}
                         target="_blank"
                         rel="noopener noreferrer"
                       >

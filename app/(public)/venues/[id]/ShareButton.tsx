@@ -10,9 +10,10 @@ interface ShareButtonProps {
     name: string;
     address: string;
   };
+  className?: string;
 }
 
-export default function ShareButton({ venue }: ShareButtonProps) {
+export default function ShareButton({ venue, className }: ShareButtonProps) {
   const [copied, setCopied] = useState(false);
 
   const handleShare = async () => {
@@ -60,11 +61,11 @@ export default function ShareButton({ venue }: ShareButtonProps) {
       onClick={handleShare} 
       variant="outline" 
       size="sm"
-      className="flex items-center gap-2"
+      className={`flex items-center gap-2 ${className || ''}`}
     >
       {copied ? (
         <>
-          <Check className="h-3 w-3 md:h-4 md:w-4 text-green-600" />
+          <Check className={`h-3 w-3 md:h-4 md:w-4 ${className?.includes('text-white') ? 'text-green-300' : 'text-green-600'}`} />
           <span className="hidden md:inline">Copied!</span>
           <span className="md:hidden">Copied</span>
         </>

@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Palette, RotateCcw, Save, Shuffle } from "lucide-react";
 import VenueCard from "@/components/venues/VenueCard";
+import VenueHero from "@/app/(public)/venues/[id]/VenueHero";
 import type { Venue } from "@/lib/venues";
 
 interface ColorConfig {
@@ -339,11 +340,11 @@ export default function ThemeCustomizer() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Real Venue Card */}
+          {/* Real Venue Components */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <h4 className="text-sm font-medium text-muted-foreground">
-                Real Venue Card (from /venues)
+                Real Components (Venue Card & Hero)
               </h4>
               <Button
                 size="sm"
@@ -358,20 +359,79 @@ export default function ThemeCustomizer() {
             </div>
 
             {isLoadingVenue ? (
-              <Card className="w-full max-w-none">
-                <div className="aspect-[4/3] bg-muted animate-pulse" />
-                <div className="p-4 space-y-3">
-                  <div className="h-6 bg-muted animate-pulse rounded" />
-                  <div className="h-4 bg-muted animate-pulse rounded w-3/4" />
-                  <div className="h-4 bg-muted animate-pulse rounded w-1/2" />
+              <div className="space-y-6">
+                {/* Venue Card Loading */}
+                <div>
+                  <h5 className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">
+                    Venue Card Component
+                  </h5>
+                  <Card className="max-w-sm">
+                    <div className="aspect-[4/3] bg-muted animate-pulse" />
+                    <div className="p-4 space-y-3">
+                      <div className="h-6 bg-muted animate-pulse rounded" />
+                      <div className="h-4 bg-muted animate-pulse rounded w-3/4" />
+                      <div className="h-4 bg-muted animate-pulse rounded w-1/2" />
+                    </div>
+                  </Card>
                 </div>
-              </Card>
+
+                {/* Venue Hero Loading */}
+                <div>
+                  <h5 className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">
+                    Venue Hero Component
+                  </h5>
+                  <Card className="max-w-2xl">
+                    <div className="aspect-[4/3] md:aspect-[3/1] bg-muted animate-pulse" />
+                    <div className="p-4 space-y-3 border-t">
+                      <div className="h-5 bg-muted animate-pulse rounded" />
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="h-4 bg-muted animate-pulse rounded" />
+                        <div className="h-4 bg-muted animate-pulse rounded" />
+                      </div>
+                    </div>
+                  </Card>
+                </div>
+              </div>
             ) : sampleVenue ? (
-              <div className="max-w-sm">
-                <VenueCard 
-                  venue={sampleVenue} 
-                  onCardClick={() => {}} // Dummy function to enable full interactive layout
-                />
+              <div className="space-y-6">
+                {/* Venue Card */}
+                <div>
+                  <h5 className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">
+                    Venue Card Component
+                  </h5>
+                  <div className="max-w-sm">
+                    <VenueCard 
+                      venue={sampleVenue} 
+                      onCardClick={() => {}} // Dummy function to enable full interactive layout
+                    />
+                  </div>
+                </div>
+
+                {/* Venue Hero */}
+                <div>
+                  <h5 className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">
+                    Venue Hero Component
+                  </h5>
+                  <div className="max-w-2xl">
+                    <VenueHero 
+                      venue={{
+                        id: sampleVenue.id,
+                        name: sampleVenue.name,
+                        type: sampleVenue.type,
+                        price_range: sampleVenue.price_range,
+                        photos: sampleVenue.photos,
+                        address: sampleVenue.address,
+                        city: sampleVenue.city,
+                        country: sampleVenue.country,
+                        brands: sampleVenue.brands || [],
+                        ambiance: sampleVenue.ambiance || [],
+                        averageRating: sampleVenue.averageRating,
+                        totalComments: sampleVenue.totalComments
+                      }}
+                      isAdmin={true}
+                    />
+                  </div>
+                </div>
               </div>
             ) : (
               <Card className="w-full max-w-none p-8 text-center text-muted-foreground">
