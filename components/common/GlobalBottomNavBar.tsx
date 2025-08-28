@@ -6,27 +6,37 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import LocationSearch from "@/components/search/LocationSearch";
+import FilterModal, { FilterState } from "@/components/filters/FilterModal";
 
-// Define a global event system for location search and search modal
+// Define a global event system for location search, search modal, and filters
 declare global {
   interface Window {
     dispatchLocationSearch?: (coordinates: [number, number], locationName: string) => void;
     dispatchOpenSearch?: () => void;
+    dispatchApplyFilters?: (filters: FilterState) => void;
+    dispatchGetAvailableBrands?: () => string[];
   }
 }
 
 export default function GlobalBottomNavBar() {
   const [showSearch, setShowSearch] = useState(false);
+  const [showFilter, setShowFilter] = useState(false);
+  const [currentFilters, setCurrentFilters] = useState<FilterState>({ venueTypes: [], brands: [] });
+  const [availableBrands, setAvailableBrands] = useState<string[]>([]);
   const router = useRouter();
   const pathname = usePathname();
   
   const isOnLandingPage = pathname === '/';
 
-  // Set up global search modal trigger
+  // Set up global event handlers
   useEffect(() => {
     if (typeof window !== 'undefined') {
       window.dispatchOpenSearch = () => {
         setShowSearch(true);
+      };
+      
+      window.dispatchGetAvailableBrands = () => {
+        return availableBrands;
       };
     }
 
@@ -34,9 +44,10 @@ export default function GlobalBottomNavBar() {
     return () => {
       if (typeof window !== 'undefined') {
         delete window.dispatchOpenSearch;
+        delete window.dispatchGetAvailableBrands;
       }
     };
-  }, []);
+  }, [availableBrands]);
 
   const handleSearchClick = () => {
     if (isOnLandingPage) {
@@ -66,6 +77,34 @@ export default function GlobalBottomNavBar() {
       router.push('/');
     }
     setShowSearch(false); // Close search after selection
+  };
+
+  const handleFilterClick = () => {
+    if (isOnLandingPage) {
+      // On landing page - get fresh brands and show filter modal
+      if (typeof window !== 'undefined' && window.dispatchGetAvailableBrands) {
+        const brands = window.dispatchGetAvailableBrands();
+        setAvailableBrands(brands);
+      }
+      setShowFilter(true);
+    } else {
+      // On other pages - navigate to landing page first
+      // Could store filter state in sessionStorage if needed
+      router.push('/');
+    }
+  };
+
+  const handleApplyFilters = (filters: FilterState) => {
+    setCurrentFilters(filters);
+    if (isOnLandingPage && typeof window !== 'undefined' && window.dispatchApplyFilters) {
+      window.dispatchApplyFilters(filters);
+    } else {
+      // Store filters and navigate to landing page
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('pendingFilters', JSON.stringify(filters));
+      }
+      router.push('/');
+    }
   };
 
   return (
@@ -102,6 +141,15 @@ export default function GlobalBottomNavBar() {
         </div>
       )}
 
+      {/* Filter Modal */}
+      <FilterModal
+        isOpen={showFilter}
+        onClose={() => setShowFilter(false)}
+        onApplyFilters={handleApplyFilters}
+        initialFilters={currentFilters}
+        availableBrands={availableBrands}
+      />
+
       {/* Bottom Navigation Bar */}
       <div className="fixed bottom-0 left-0 right-0 z-50 md:bottom-6 md:left-1/2 md:transform md:-translate-x-1/2 md:w-[425px]">
         <div className="bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 border-t md:border border-gray-200 shadow-lg md:shadow-xl md:rounded-full md:border-gray-300 md:bg-white/90">
@@ -119,11 +167,22 @@ export default function GlobalBottomNavBar() {
             {/* Filter Button */}
             <Button
               variant="ghost"
-              className="h-full rounded-none flex flex-col items-center justify-center gap-1 text-gray-600 hover:text-primary hover:bg-gray-50 md:hover:bg-gray-100/80"
-              disabled
+              className={`h-full rounded-none flex flex-col items-center justify-center gap-1 hover:bg-gray-50 md:hover:bg-gray-100/80 ${
+                currentFilters.venueTypes.length > 0 || currentFilters.brands.length > 0
+                  ? 'text-primary bg-primary/5'
+                  : 'text-gray-600 hover:text-primary'
+              }`}
+              onClick={handleFilterClick}
             >
               <Filter className="h-5 w-5 md:h-4 md:w-4" />
-              <span className="text-xs font-medium">Filter</span>
+              <span className="text-xs font-medium">
+                Filter
+                {(currentFilters.venueTypes.length > 0 || currentFilters.brands.length > 0) && (
+                  <span className="ml-1 inline-flex items-center justify-center w-4 h-4 text-xs font-bold text-white bg-primary rounded-full">
+                    {currentFilters.venueTypes.length + currentFilters.brands.length}
+                  </span>
+                )}
+              </span>
             </Button>
 
             {/* Add Venue Button */}

@@ -11,6 +11,7 @@ import Link from "next/link";
 import type { Venue as VenueType } from "@/lib/venues";
 import { filterVenuesByDistance, filterVenuesByBounds, calculateApproximateBounds } from "@/lib/distance";
 import type { MapBounds } from "@/lib/distance";
+import type { FilterState } from "@/components/filters/FilterModal";
 
 interface InteractiveVenueExplorerProps {
   allVenues: VenueType[];
@@ -20,6 +21,7 @@ interface InteractiveVenueExplorerProps {
   searchLocation?: [number, number] | null;
   initialFocusedVenueId?: string | null;
   hasQueryParams?: boolean;
+  currentFilters?: FilterState;
 }
 
 export default function InteractiveVenueExplorer({ 
@@ -30,6 +32,7 @@ export default function InteractiveVenueExplorer({
   searchLocation = null,
   initialFocusedVenueId = null,
   hasQueryParams = false,
+  currentFilters = { venueTypes: [], brands: [] },
 }: InteractiveVenueExplorerProps) {
   
   // Environment variables for zoom levels
@@ -77,6 +80,8 @@ export default function InteractiveVenueExplorer({
 
     return R * c;
   }, []);
+
+
   
   // Map display props - STATIC after initial user location (never updated to prevent re-renders)
   const [staticMapCenter, setStaticMapCenter] = useState<[number, number]>(fallbackCenter);
@@ -157,6 +162,35 @@ export default function InteractiveVenueExplorer({
     );
   }, []);
 
+  // Create venues array with filters applied for map display
+  // Apply filters to determine which venues show on map
+  const staticVenuesForMap = useMemo(() => {
+    // Start with venues that have location
+    const venuesWithLocation = allVenues.filter(venue => venue.location !== null);
+    
+    // Apply filters first
+    let filteredVenues = venuesWithLocation;
+    
+    if (currentFilters && (currentFilters.venueTypes.length > 0 || currentFilters.brands.length > 0)) {
+      filteredVenues = venuesWithLocation.filter(venue => {
+        // Check venue type filter
+        const typeMatch = currentFilters.venueTypes.length === 0 || 
+                         currentFilters.venueTypes.includes(venue.type);
+
+        // Check brand filter
+        const brandMatch = currentFilters.brands.length === 0 || 
+                          currentFilters.brands.some(filterBrand => 
+                            venue.brands.includes(filterBrand)
+                          );
+
+        return typeMatch && brandMatch;
+      });
+    }
+    
+    // Return filtered venues for map (include all properties to match Venue type)
+    return filteredVenues;
+  }, [allVenues, currentFilters]); // Depends on allVenues AND currentFilters
+
   // Get user location on mount
   useEffect(() => {
     requestUserLocation();
@@ -164,11 +198,11 @@ export default function InteractiveVenueExplorer({
 
   // Filter venues based on current map center
   const updateVenuesForLocation = useCallback((center: [number, number]) => {
-    const venuesWithLocation = allVenues.filter(venue => venue.location !== null);
+    // Use the filtered venues from the map instead of all venues
     const centerLocation = { lat: center[0], lng: center[1] };
-    const nearby = filterVenuesByDistance(venuesWithLocation, centerLocation, maxDistanceKm);
+    const nearby = filterVenuesByDistance(staticVenuesForMap, centerLocation, maxDistanceKm);
 
-    // Take only the first 3 venues
+    // Take only the first 3 venues (no need to apply filters since staticVenuesForMap is already filtered)
     const newVenues = nearby.slice(0, 3);
     
     // Create signature that includes both venues and their distances
@@ -179,15 +213,17 @@ export default function InteractiveVenueExplorer({
       lastDistanceSignatureRef.current = newDistanceSignature;
       setFilteredVenues([...newVenues]); // Force new array reference
     }
-  }, [allVenues, maxDistanceKm]);
+  }, [staticVenuesForMap, maxDistanceKm]);
 
   // Bounds-based venue filtering (for venues visible in map)
+  // NOTE: Filters are now applied at map level via staticVenuesForMap
   const updateVenuesForBounds = useCallback((bounds: MapBounds, center: [number, number]) => {
-    const venuesWithLocation = allVenues.filter(venue => venue.location !== null);
+    // Use the filtered venues from the map instead of all venues
     const centerLocation = { lat: center[0], lng: center[1] };
-    const visibleVenues = filterVenuesByBounds(venuesWithLocation, bounds, centerLocation);
+    const visibleVenues = filterVenuesByBounds(staticVenuesForMap, bounds, centerLocation);
 
-    // Store all filtered venues (sorted by distance from center)
+    // Store all visible venues (sorted by distance from center)
+    // No need to apply filters here since staticVenuesForMap is already filtered
     setFilteredVenues(visibleVenues);
     
     // Reset visible count to 3 when map bounds change
@@ -226,7 +262,7 @@ export default function InteractiveVenueExplorer({
     // Create signature that includes all venues and their distances
     const newDistanceSignature = visibleVenues.map(v => `${v.id}:${v.distance.toFixed(2)}`).join('|');
     lastDistanceSignatureRef.current = newDistanceSignature;
-  }, [allVenues, calculateDistance]);
+  }, [staticVenuesForMap, calculateDistance]);
 
   // Update map center when fallbackCenter changes (for query params)
   useEffect(() => {
@@ -338,6 +374,8 @@ export default function InteractiveVenueExplorer({
     }
   }, [searchLocation, updateVenuesForBounds, searchZoomLevel]);
 
+
+
   // Handle window resize to update venue filtering for responsive viewport changes
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -387,24 +425,7 @@ export default function InteractiveVenueExplorer({
     };
   }, []);
 
-  // Create venues array with user location marker for map display
-  // STATIC venues for map - NEVER changes to prevent popup redraws
-  const staticVenuesForMap = useMemo(() => {
-    // Only include actual venues, no user location to prevent re-renders
-    return allVenues.filter(venue => venue.location !== null).map(venue => ({
-      id: venue.id,
-      name: venue.name,
-      type: venue.type,
-      address: venue.address,
-      city: venue.city,
-      country: venue.country,
-      brands: venue.brands,
-      photos: venue.photos,
-      google_maps_url: venue.google_maps_url,
-      location: venue.location!,
-      status: venue.status as "pending" | "approved" | "rejected",
-    }));
-  }, [allVenues]); // ONLY depends on allVenues, NOT userLocation
+
 
 
 

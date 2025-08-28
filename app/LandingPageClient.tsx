@@ -10,6 +10,7 @@ import LocationSearch from "@/components/search/LocationSearch";
 import InteractiveVenueExplorer from "@/components/venues/InteractiveVenueExplorer";
 import HomePageClient from "@/app/HomePageClient";
 import type { Venue as VenueType } from "@/lib/venues";
+import type { FilterState } from "@/components/filters/FilterModal";
 
 interface LandingPageClientProps {
   allVenues: VenueType[];
@@ -25,6 +26,7 @@ export default function LandingPageClient({
   const [initialMapCenter, setInitialMapCenter] = useState<[number, number] | null>(null);
   const [initialFocusedVenueId, setInitialFocusedVenueId] = useState<string | null>(null);
   const [initialZoom, setInitialZoom] = useState<number | null>(null);
+  const [currentFilters, setCurrentFilters] = useState<FilterState>({ venueTypes: [], brands: [] });
 
   const handleLocationFound = (coordinates: [number, number], locationName: string) => {
     setSearchLocation(coordinates);
@@ -72,11 +74,27 @@ export default function LandingPageClient({
     }
   }, [searchParams, allVenues]);
 
-  // Set up global location search event system
+  // Filter handler
+  const handleApplyFilters = (filters: FilterState) => {
+    setCurrentFilters(filters);
+  };
+
+  // Get available brands
+  const getAvailableBrands = (): string[] => {
+    const brandsSet = new Set<string>();
+    allVenues.forEach(venue => {
+      venue.brands.forEach(brand => brandsSet.add(brand));
+    });
+    return Array.from(brandsSet).sort();
+  };
+
+  // Set up global event system
   useEffect(() => {
-    // Set up the global location search handler
+    // Set up the global event handlers
     if (typeof window !== 'undefined') {
       window.dispatchLocationSearch = handleLocationFound;
+      window.dispatchApplyFilters = handleApplyFilters;
+      window.dispatchGetAvailableBrands = getAvailableBrands;
       
       // Check for pending location search from other pages
       const pendingSearch = sessionStorage.getItem('pendingLocationSearch');
@@ -88,6 +106,19 @@ export default function LandingPageClient({
         } catch (error) {
           console.error('Error parsing pending location search:', error);
           sessionStorage.removeItem('pendingLocationSearch');
+        }
+      }
+
+      // Check for pending filters from other pages
+      const pendingFilters = sessionStorage.getItem('pendingFilters');
+      if (pendingFilters) {
+        try {
+          const filters = JSON.parse(pendingFilters);
+          handleApplyFilters(filters);
+          sessionStorage.removeItem('pendingFilters');
+        } catch (error) {
+          console.error('Error parsing pending filters:', error);
+          sessionStorage.removeItem('pendingFilters');
         }
       }
 
@@ -104,9 +135,11 @@ export default function LandingPageClient({
     return () => {
       if (typeof window !== 'undefined') {
         delete window.dispatchLocationSearch;
+        delete window.dispatchApplyFilters;
+        delete window.dispatchGetAvailableBrands;
       }
     };
-  }, []);
+  }, [allVenues]);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -170,6 +203,7 @@ export default function LandingPageClient({
             searchLocation={searchLocation}
             initialFocusedVenueId={initialFocusedVenueId}
             hasQueryParams={!!(initialMapCenter || initialFocusedVenueId)}
+            currentFilters={currentFilters}
           />
         </div>
       </section>
