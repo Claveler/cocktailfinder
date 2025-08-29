@@ -495,7 +495,7 @@ export default function InteractiveVenueExplorer({
           {/* Explanation Text - Desktop Only */}
           <div className="text-center hidden md:block">
             <p className="text-sm text-muted-foreground mb-4">
-              Showing venues closest to map center • The "Closest" indicator matches the green pin • Move the map to explore different areas
+              Showing venues closest to map center • Move the map to explore different areas
             </p>
           </div>
 

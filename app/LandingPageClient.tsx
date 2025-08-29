@@ -129,6 +129,14 @@ export default function LandingPageClient({
         window.dispatchOpenSearch?.();
         sessionStorage.removeItem('openSearchOnLanding');
       }
+
+      // Check if filter should be opened automatically (from other pages)
+      const shouldOpenFilter = sessionStorage.getItem('openFilterOnLanding');
+      if (shouldOpenFilter === 'true') {
+        // Trigger filter modal opening on the global bottom navbar
+        window.dispatchOpenFilter?.();
+        sessionStorage.removeItem('openFilterOnLanding');
+      }
     }
 
     // Cleanup

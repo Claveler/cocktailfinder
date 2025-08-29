@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { Search, Filter, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import LocationSearch from "@/components/search/LocationSearch";
 import FilterModal, { FilterState } from "@/components/filters/FilterModal";
@@ -13,6 +12,7 @@ declare global {
   interface Window {
     dispatchLocationSearch?: (coordinates: [number, number], locationName: string) => void;
     dispatchOpenSearch?: () => void;
+    dispatchOpenFilter?: () => void;
     dispatchApplyFilters?: (filters: FilterState) => void;
     dispatchGetAvailableBrands?: () => string[];
   }
@@ -35,6 +35,15 @@ export default function GlobalBottomNavBar() {
         setShowSearch(true);
       };
       
+      window.dispatchOpenFilter = () => {
+        setShowFilter(true);
+        // Also fetch brands when opening filter modal
+        if (window.dispatchGetAvailableBrands) {
+          const brands = window.dispatchGetAvailableBrands();
+          setAvailableBrands(brands);
+        }
+      };
+      
       window.dispatchGetAvailableBrands = () => {
         return availableBrands;
       };
@@ -44,6 +53,7 @@ export default function GlobalBottomNavBar() {
     return () => {
       if (typeof window !== 'undefined') {
         delete window.dispatchOpenSearch;
+        delete window.dispatchOpenFilter;
         delete window.dispatchGetAvailableBrands;
       }
     };
@@ -95,8 +105,10 @@ export default function GlobalBottomNavBar() {
       }
       setShowFilter(!showFilter);
     } else {
-      // On other pages - navigate to landing page first
-      // Could store filter state in sessionStorage if needed
+      // On other pages - navigate to landing page and signal to open filter
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('openFilterOnLanding', 'true');
+      }
       router.push('/');
     }
   };
@@ -112,6 +124,15 @@ export default function GlobalBottomNavBar() {
       }
       router.push('/');
     }
+  };
+
+  const handleAddVenueClick = () => {
+    // Close any open modals (mutual exclusivity)
+    setShowSearch(false);
+    setShowFilter(false);
+    
+    // Navigate to add venue page
+    router.push('/venues/new');
   };
 
   return (
@@ -194,14 +215,12 @@ export default function GlobalBottomNavBar() {
 
             {/* Add Venue Button */}
             <Button
-              asChild
               variant="ghost"
               className="h-full rounded-none md:rounded-r-full flex flex-col items-center justify-center gap-1 text-gray-600 hover:text-primary hover:bg-gray-50 md:hover:bg-gray-100/80"
+              onClick={handleAddVenueClick}
             >
-              <Link href="/venues/new">
-                <Plus className="h-5 w-5 md:h-4 md:w-4" />
-                <span className="text-xs font-medium">Add Venue</span>
-              </Link>
+              <Plus className="h-5 w-5 md:h-4 md:w-4" />
+              <span className="text-xs font-medium">Add Venue</span>
             </Button>
           </div>
         </div>
