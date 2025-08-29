@@ -2,7 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Martini, Beer, Store, ChevronRight, CheckCircle, XCircle, HelpCircle, AlertCircle, Users, ExternalLink, Shield, Calendar, Star } from "lucide-react";
+import { MapPin, Martini, Beer, Store, ChevronRight, CheckCircle, XCircle, HelpCircle, AlertCircle, Users, ExternalLink, Shield, Calendar } from "lucide-react";
 import Link from "next/link";
 import type { Venue } from "@/lib/venues";
 
@@ -12,6 +12,19 @@ interface VenueCardProps {
   distance?: number; // in km
   onCardClick?: (venue: Venue) => void; // Optional click handler for map focus
   isSelected?: boolean; // Highlight when corresponding map pin is selected
+}
+
+function formatDate(dateString: string): string {
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  } catch {
+    return "Unknown date";
+  }
 }
 
 export default function VenueCard({
@@ -276,30 +289,18 @@ export default function VenueCard({
               </div>
             </div>
             
-            {/* Community Notes - Featured verification takes priority */}
-            {venue.featured_verification && venue.featured_verification.pisco_notes ? (
-              <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 mt-2">
-                <div className="flex items-center gap-1 mb-1">
-                  <Star className="h-3 w-3 text-primary" />
-                  <span className="text-xs font-medium text-primary">Featured</span>
-                </div>
+            {/* Community Notes - Only featured verification, no fallback */}
+            {venue.featured_verification && venue.featured_verification.pisco_notes && (
+              <div className="bg-foreground/5 border border-foreground/10 rounded-lg p-3 mt-2">
                 <div className="text-xs text-foreground/90 italic">
                   "{venue.featured_verification.pisco_notes}"
                 </div>
-                <div className="text-xs text-muted-foreground mt-1">
-                  — {venue.featured_verification.verified_by}
+                <div className="flex items-center justify-between text-xs mt-1">
+                  <span className="text-muted-foreground">— {venue.featured_verification.verified_by}</span>
+                  <span className="text-muted-foreground/60">{formatDate(venue.featured_verification.created_at)}</span>
                 </div>
               </div>
-            ) : venue.pisco_notes && venue.verified_by ? (
-              <div className="bg-foreground/5 border border-foreground/10 rounded-lg p-3 mt-2">
-                <div className="text-xs text-foreground/90 italic">
-                  "{venue.pisco_notes}"
-                </div>
-                <div className="text-xs text-muted-foreground mt-1">
-                  — {venue.verified_by}
-                </div>
-              </div>
-            ) : null}
+            )}
           </div>
         )}
       </CardContent>

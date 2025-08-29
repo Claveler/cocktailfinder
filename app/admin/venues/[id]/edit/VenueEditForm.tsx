@@ -18,6 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Save, Loader2, X, Plus, Upload, Trash2, Image } from "lucide-react";
 import { updateVenueAction } from "@/lib/actions/admin";
+import DeleteConfirmationModal from "@/components/admin/DeleteConfirmationModal";
 import { uploadPhoto, deletePhoto } from "@/lib/storage";
 import { toast } from "sonner";
 import type { VenueWithComments } from "@/lib/venues";
@@ -75,6 +76,7 @@ export default function VenueEditForm({ venue }: VenueEditFormProps) {
   const [photosToDelete, setPhotosToDelete] = useState<string[]>([]);
   const [newPhotos, setNewPhotos] = useState<File[]>([]);
   const [uploadingPhotos, setUploadingPhotos] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
   // Brand management
   const [newBrand, setNewBrand] = useState("");
@@ -742,7 +744,29 @@ export default function VenueEditForm({ venue }: VenueEditFormProps) {
         >
           Cancel
         </Button>
+
+        <Button
+          type="button"
+          variant="destructive"
+          onClick={() => setDeleteModalOpen(true)}
+          disabled={isSubmitting}
+          className="sm:ml-auto"
+        >
+          <Trash2 className="mr-2 h-4 w-4" />
+          Delete Venue
+        </Button>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        venue={{
+          id: venue.id,
+          name: venue.name,
+        }}
+        redirectAfterDelete="/admin/venues"
+      />
     </form>
   );
 }

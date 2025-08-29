@@ -1,54 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { logger } from "@/lib/logger";
+import { getVenuesList, fetchVerificationStats } from "@/lib/venues/core";
 
-// Helper function to fetch verification stats for venues
-async function fetchVerificationStats(venueIds: string[]) {
-  if (venueIds.length === 0) return {};
-  
-  const supabase = createClient();
-  
-  try {
-    const { data: verifications } = await supabase
-      .from("pisco_verifications")
-      .select("venue_id, pisco_status, user_id")
-      .in("venue_id", venueIds);
 
-    if (!verifications) return {};
-
-    // Calculate stats for each venue
-    const stats: Record<string, { positive_verifications: number; total_verifications: number; unique_verifiers: number }> = {};
-    
-    verifications.forEach(verification => {
-      if (!stats[verification.venue_id]) {
-        stats[verification.venue_id] = {
-          positive_verifications: 0,
-          total_verifications: 0,
-          unique_verifiers: 0
-        };
-      }
-      
-      stats[verification.venue_id].total_verifications++;
-      if (verification.pisco_status === 'available') {
-        stats[verification.venue_id].positive_verifications++;
-      }
-    });
-
-    // Count unique verifiers
-    Object.keys(stats).forEach(venueId => {
-      const uniqueUsers = new Set(
-        verifications
-          .filter(v => v.venue_id === venueId)
-          .map(v => v.user_id)
-      );
-      stats[venueId].unique_verifiers = uniqueUsers.size;
-    });
-
-    return stats;
-  } catch (error) {
-    console.warn("Error fetching verification stats:", error);
-    return {};
-  }
-}
 
 
 
@@ -129,7 +83,7 @@ export interface VenueWithComments extends Venue {
   comments: Comment[];
   averageRating: number | null;
   totalComments: number;
-  verifications: PiscoVerification[];
+  verifications?: PiscoVerification[]; // Optional - fetched separately via pagination
   featured_verification?: PiscoVerification | null;
   profile?: {
     full_name: string | null;
@@ -141,121 +95,37 @@ const PAGE_SIZE = Number(process.env.NEXT_PUBLIC_VENUES_LIMIT) || 20;
 export async function listVenues(
   filters: VenueFilters = {}
 ): Promise<{ data: VenueListResult | null; error: Error | null }> {
-  try {
-    const supabase = createClient();
-    const { q, city, brand, type, page = 1 } = filters;
-
-    // Use database view that handles coordinate extraction
-    logger.debug("Starting venue query", { q, city, brand, type, page });
-
-    let query = supabase
-      .from("venues")
-      .select("*, latitude, longitude, google_maps_url, featured_verification_id", { count: "exact" })
-      .eq("status", "approved");
-
-    // Apply filters
-    if (q) {
-      query = query.ilike("name", `%${q}%`);
-    }
-
-    if (city) {
-      query = query.ilike("city", `%${city}%`);
-    }
-
-    if (brand) {
-      query = query.contains("brands", [brand]);
-    }
-
-    if (type) {
-      query = query.eq("type", type);
-    }
-
-    // Apply pagination
-    const from = (page - 1) * PAGE_SIZE;
-    const to = from + PAGE_SIZE - 1;
-
-    // Execute query with pagination
-    const {
-      data: venues,
-      error,
-      count,
-    } = await query.order("created_at", { ascending: false }).range(from, to);
-
-    if (error) {
-      logger.error("Supabase query error", { error, filters: { q, city, brand, type, page } });
-      return { data: null, error: new Error(error.message) };
-    }
-
-    const totalCount = count || 0;
-    const totalPages = Math.ceil(totalCount / PAGE_SIZE);
-
-    logger.debug("Query completed", { venueCount: venues?.length, totalCount });
-
-    // Fetch verification stats for all venues
-    const venueIds = (venues || []).map((venue: any) => venue.id);
-    const verificationStats = await fetchVerificationStats(venueIds);
-
-    // Fetch featured verifications for venues that have them
-    const venuesWithFeatured = (venues || []).filter((venue: any) => venue.featured_verification_id);
-    const featuredVerificationIds = venuesWithFeatured.map((venue: any) => venue.featured_verification_id);
-    
-    let featuredVerifications: { [key: string]: PiscoVerification } = {};
-    if (featuredVerificationIds.length > 0) {
-      const { data: featured, error: featuredError } = await supabase
-        .from("pisco_verifications")
-        .select("*")
-        .in("id", featuredVerificationIds);
-      
-      if (featured) {
-        featuredVerifications = featured.reduce((acc: any, verification: any) => {
-          acc[verification.id] = verification;
-          return acc;
-        }, {});
-      }
-    }
-
-    // Transform the data to match our interface (now with direct coordinate columns!)
-    const transformedVenues: Venue[] = (venues || []).map((venue: any) => {
-      const location =
-        venue.latitude && venue.longitude
-          ? { lat: venue.latitude, lng: venue.longitude }
-          : null;
-
-      const stats = verificationStats[venue.id] || {
-        positive_verifications: 0,
-        total_verifications: 0,
-        unique_verifiers: 0
-      };
-
-          const featuredVerification = venue.featured_verification_id 
-      ? featuredVerifications[venue.featured_verification_id] || null
-      : null;
-
-    return {
-      ...venue,
-      location,
-      ...stats,
-      featured_verification: featuredVerification
-    };
+  const { page = 1 } = filters;
+  
+  logger.debug("Starting venue query", filters);
+  
+  // Use the new consolidated function
+  const result = await getVenuesList(filters, page, PAGE_SIZE);
+  
+  if (result.error) {
+    logger.error("Error listing venues", { error: result.error, filters });
+  } else {
+    logger.debug("Query completed", { 
+      venueCount: result.data?.venues.length, 
+      totalCount: result.data?.totalCount 
     });
-
-    const result: VenueListResult = {
-      venues: transformedVenues,
-      totalCount,
-      currentPage: page,
-      totalPages,
-      hasNextPage: page < totalPages,
-      hasPrevPage: page > 1,
-    };
-
-    return { data: result, error: null };
-  } catch (error) {
-    logger.error("Error listing venues", { error });
-    return {
-      data: null,
-      error: error instanceof Error ? error : new Error("Unknown error"),
-    };
   }
+  
+  // Transform to match the old interface (hasPrevPage vs hasPreviousPage)
+  if (result.data) {
+    const transformedResult: VenueListResult = {
+      venues: result.data.venues,
+      totalCount: result.data.totalCount,
+      currentPage: result.data.currentPage,
+      totalPages: result.data.totalPages,
+      hasNextPage: result.data.hasNextPage,
+      hasPrevPage: result.data.hasPreviousPage, // Note: mapping hasPreviousPage to hasPrevPage
+    };
+    
+    return { data: transformedResult, error: null };
+  }
+  
+  return result;
 }
 
 // Helper function to get unique cities for filter dropdown
@@ -400,17 +270,8 @@ export async function getVenueById(
       // Don't fail the whole request for comments error
     }
 
-    // Fetch pisco verifications for this venue
-    const { data: verifications, error: verificationsError } = await supabase
-      .from("pisco_verifications")
-      .select("*")
-      .eq("venue_id", id)
-      .order("created_at", { ascending: false });
-
-    if (verificationsError) {
-      console.error("🚨 Error fetching pisco verifications:", verificationsError);
-      // Don't fail the whole request for verifications error
-    }
+    // Note: Verifications are now fetched separately via pagination
+    // Only fetch the featured verification here
 
     // Fetch featured verification if it exists
     let featuredVerification: PiscoVerification | null = null;
@@ -445,7 +306,6 @@ export async function getVenueById(
       comments: transformedComments,
       averageRating,
       totalComments: transformedComments.length,
-      verifications: verifications || [],
       featured_verification: featuredVerification,
     };
 

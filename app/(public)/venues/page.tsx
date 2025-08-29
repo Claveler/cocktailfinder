@@ -5,6 +5,7 @@ import {
   getBrands,
   type VenueFilters,
 } from "@/lib/venues";
+import { getVenuesForMap } from "@/lib/venues/core";
 import { createClient } from "@/lib/supabase/server";
 import VenueCard from "@/components/venues/VenueCard";
 import FloatingSearchBar from "@/components/venues/FloatingSearchBar";
@@ -57,93 +58,9 @@ function VenueListSkeleton() {
 // Get all venues for map display (same as landing page)
 async function getVenuesForLocationFiltering() {
   const VENUE_POOL_SIZE = 1000; // Maximum venues to load for location filtering
-
-  // Helper to fetch verification stats
-  async function fetchVerificationStats(venueIds: string[]) {
-    if (venueIds.length === 0) return {};
-    const supabase = createClient();
-    const { data: stats, error } = await supabase
-      .from('venue_verification_stats')
-      .select('venue_id, total_verifications, positive_verifications, unique_verifiers')
-      .in('venue_id', venueIds);
-    if (error) {
-      console.error('Error fetching verification stats:', error);
-      return {};
-    }
-    return stats.reduce((acc, stat) => {
-      acc[stat.venue_id] = stat;
-      return acc;
-    }, {} as Record<string, any>);
-  }
-
-  try {
-    const supabase = createClient();
-
-    const { data: venues, error } = await supabase
-      .from("venues")
-      .select("*, latitude, longitude, featured_verification_id")
-      .eq("status", "approved")
-      .not("latitude", "is", null)
-      .not("longitude", "is", null)
-      .limit(VENUE_POOL_SIZE); // Fetch more venues for location filtering
-
-    if (error) {
-      console.error("Error fetching venues:", error);
-      return [];
-    }
-
-    if (!venues || venues.length === 0) {
-      return [];
-    }
-
-    // Fetch verification stats for all venues
-    const verificationStats = await fetchVerificationStats(venues.map(v => v.id));
-
-    // Fetch featured verifications for venues that have them
-    const venuesWithFeatured = venues.filter((venue: any) => venue.featured_verification_id);
-    const featuredVerificationIds = venuesWithFeatured.map((venue: any) => venue.featured_verification_id);
-    
-    let featuredVerifications: { [key: string]: any } = {};
-    if (featuredVerificationIds.length > 0) {
-      const { data: featured, error: featuredError } = await supabase
-        .from("pisco_verifications")
-        .select("*")
-        .in("id", featuredVerificationIds);
-      
-      if (!featuredError && featured) {
-        featuredVerifications = featured.reduce((acc: any, verification: any) => {
-          acc[verification.id] = verification;
-          return acc;
-        }, {});
-      }
-    }
-
-    // Transform to match our interface with verification stats and featured verifications
-    return venues.map((venue: any) => {
-      const stats = verificationStats[venue.id] || {
-        positive_verifications: 0,
-        total_verifications: 0,
-        unique_verifiers: 0
-      };
-
-      const featuredVerification = venue.featured_verification_id 
-        ? featuredVerifications[venue.featured_verification_id] || null
-        : null;
-
-      return {
-        ...venue,
-        location:
-          venue.latitude && venue.longitude
-            ? { lat: venue.latitude, lng: venue.longitude }
-            : null,
-        ...stats,
-        featured_verification: featuredVerification
-      };
-    });
-  } catch (error) {
-    console.error("Unexpected error fetching venues:", error);
-    return [];
-  }
+  
+  // Use the new consolidated function
+  return await getVenuesForMap(VENUE_POOL_SIZE);
 }
 
 export default async function VenuesPage({ searchParams }: VenuesPageProps) {

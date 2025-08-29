@@ -9,15 +9,14 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
   MapPin,
-  Star,
   Calendar,
   User,
   MessageCircle,
   Edit,
   CheckCircle,
   XCircle,
-  HelpCircle,
   AlertCircle,
+  HelpCircle,
   Users,
   Shield,
   Share2,
@@ -27,6 +26,8 @@ import PiscoVerificationForm from "./PiscoVerificationForm";
 import PhotoGallery from "./PhotoGallery";
 import ShareButton from "./ShareButton";
 import VenueHero from "./VenueHero";
+import FeaturedComment from "./FeaturedComment";
+import OtherComments from "./OtherComments";
 
 interface VenuePageProps {
   params: {
@@ -278,52 +279,8 @@ export default async function VenuePage({ params }: VenuePageProps) {
                   </div>
                 )}
 
-                {/* Featured Verification Comment */}
-                {venue.featured_verification && venue.featured_verification.pisco_notes && (
-                  <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 mt-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Star className="h-4 w-4 text-primary" />
-                      <span className="text-xs font-medium text-primary">Featured Comment</span>
-                    </div>
-                    <div className="text-sm text-foreground/90 italic mb-2">
-                      "{venue.featured_verification.pisco_notes}"
-                    </div>
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span>— {venue.featured_verification.verified_by}</span>
-                      <span>{formatDate(venue.featured_verification.created_at)}</span>
-                    </div>
-                  </div>
-                )}
-
-                {/* All Other Verification Comments - Chronological */}
-                {venue.verifications && venue.verifications.length > 0 && (
-                  <div className="space-y-3 mt-4">
-                    {venue.verifications
-                      .filter(verification => 
-                        verification.pisco_notes && 
-                        verification.id !== venue.featured_verification?.id
-                      ) // Only show verifications with notes that aren't featured
-                      .map((verification, index) => (
-                        <div key={verification.id} className="bg-foreground/5 border border-foreground/10 rounded-lg p-4">
-                          <div className="text-sm text-foreground/80 italic mb-2">
-                            "{verification.pisco_notes}"
-                          </div>
-                          <div className="flex items-center justify-between text-xs text-muted-foreground">
-                            <span>— {verification.verified_by}</span>
-                            <span>{formatDate(verification.created_at)}</span>
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                )}
-
-                {/* No information available */}
-                {venue.pisco_status === "unverified" && (!venue.verifications || venue.verifications.length === 0) && (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <HelpCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>No pisco information available yet. Help the community by verifying!</p>
-                  </div>
-                )}
+                {/* Featured Comment Only */}
+                <FeaturedComment featuredVerification={venue.featured_verification} />
               </div>
 
               {/* Verification Form */}
@@ -446,6 +403,12 @@ export default async function VenuePage({ params }: VenuePageProps) {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Other Comments Section */}
+              <OtherComments 
+                venueId={venue.id} 
+                featuredVerificationId={venue.featured_verification?.id}
+              />
             </div>
           </div>
         </div>

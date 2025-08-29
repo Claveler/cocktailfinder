@@ -32,10 +32,12 @@ import {
   MoreHorizontal,
   Loader2,
   ExternalLink,
+  Trash2,
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { approveVenue, rejectVenue, updateVenue } from "@/lib/actions/admin";
+import DeleteConfirmationModal from "@/components/admin/DeleteConfirmationModal";
 
 interface Venue {
   id: string;
@@ -76,6 +78,7 @@ const PRICE_RANGES = [
 export default function VenueActions({ venue }: VenueActionsProps) {
   const [isPending, startTransition] = useTransition();
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [editForm, setEditForm] = useState({
     name: venue.name,
     type: venue.type,
@@ -402,8 +405,26 @@ export default function VenueActions({ venue }: VenueActionsProps) {
               View Details
             </Link>
           </DropdownMenuItem>
+
+          <DropdownMenuItem 
+            onClick={() => setDeleteModalOpen(true)}
+            className="text-red-600 focus:text-red-600 focus:bg-red-50"
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            Delete Venue
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        venue={{
+          id: venue.id,
+          name: venue.name,
+        }}
+      />
     </div>
   );
 }

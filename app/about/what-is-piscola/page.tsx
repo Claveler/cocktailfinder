@@ -174,7 +174,10 @@ export default function WhatIsPiscola() {
                 </p>
                 
                 <p>
-                  Piscola.net exists to bring that feeling closer to Chileans abroad and to anyone curious about discovering our culture. It is more than just a directory—it's a way to make sure that no matter where you are in the world, you can find pisco and enjoy a taste of Chile when you need it most. At its heart, Piscola.net is about connection: to our roots, to our traditions, and to the people we share them with.
+                  Piscola.net exists to bring that feeling closer to Chileans abroad and to anyone curious about discovering our culture. It is more than just a directory—it's a way to make sure that no matter where you are in the world, you can find pisco and enjoy a taste of Chile when you need it most.
+                </p>  
+                <p>  
+                  At its heart, Piscola.net is about connection: to our roots, to our traditions, and to the people we share them with. <b>A Piscola Network.</b>
                 </p>
               </div>
               

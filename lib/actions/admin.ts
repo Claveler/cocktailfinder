@@ -25,6 +25,61 @@ export async function checkAdminRole(): Promise<boolean> {
   }
 }
 
+export async function deleteVenue(venueId: string) {
+  try {
+    const isAdmin = await checkAdminRole();
+    if (!isAdmin) {
+      return { success: false, error: "Admin privileges required" };
+    }
+
+    const supabase = createClient();
+
+    // Delete in order to handle foreign key constraints
+    // 1. Delete comments first
+    const { error: commentsError } = await supabase
+      .from("comments")
+      .delete()
+      .eq("venue_id", venueId);
+
+    if (commentsError) {
+      console.error("Error deleting venue comments:", commentsError);
+      return { success: false, error: "Failed to delete venue comments" };
+    }
+
+    // 2. Delete pisco verifications
+    const { error: verificationsError } = await supabase
+      .from("pisco_verifications")
+      .delete()
+      .eq("venue_id", venueId);
+
+    if (verificationsError) {
+      console.error("Error deleting venue verifications:", verificationsError);
+      return { success: false, error: "Failed to delete venue verifications" };
+    }
+
+    // 3. Finally delete the venue itself
+    const { error: venueError } = await supabase
+      .from("venues")
+      .delete()
+      .eq("id", venueId);
+
+    if (venueError) {
+      console.error("Error deleting venue:", venueError);
+      return { success: false, error: "Failed to delete venue" };
+    }
+
+    // Revalidate relevant paths
+    revalidatePath("/admin/venues");
+    revalidatePath("/venues");
+    revalidatePath("/");
+
+    return { success: true, message: "Venue and all related data deleted successfully" };
+  } catch (error) {
+    console.error("Error deleting venue:", error);
+    return { success: false, error: "Failed to delete venue" };
+  }
+}
+
 export async function approveVenue(venueId: string) {
   try {
     const isAdmin = await checkAdminRole();
