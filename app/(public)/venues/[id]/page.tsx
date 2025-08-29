@@ -140,7 +140,8 @@ export default async function VenuePage({ params }: VenuePageProps) {
             brands: venue.brands,
             ambiance: venue.ambiance,
             averageRating: venue.averageRating || undefined,
-            totalComments: venue.totalComments || undefined
+            totalComments: venue.totalComments || undefined,
+            google_maps_url: venue.google_maps_url
           }}
           isAdmin={isAdmin}
         />

@@ -426,7 +426,8 @@ export default function ThemeCustomizer() {
                         brands: sampleVenue.brands || [],
                         ambiance: sampleVenue.ambiance || [],
                         averageRating: (sampleVenue as any).averageRating || undefined,
-                        totalComments: (sampleVenue as any).totalComments || undefined
+                        totalComments: (sampleVenue as any).totalComments || undefined,
+                        google_maps_url: sampleVenue.google_maps_url
                       }}
                       isAdmin={true}
                     />

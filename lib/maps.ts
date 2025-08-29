@@ -80,10 +80,22 @@ async function parseGoogleMapsUrlDirect(url: string): Promise<ParseResult> {
 
     let extractionMethod = 'unknown';
 
-    // 1. PRIORITY: Extract venue-specific coordinates from place URLs
-    // Format: https://www.google.com/maps/place/Name/@lat,lng,zoom
-    // These coordinates in place URLs are more likely to be venue-specific
+    // Extract venue name from place URLs first (independent of coordinates)
     if (url.includes('/place/')) {
+      const placeMatch = url.match(/\/place\/([^/@]+)/);
+      if (placeMatch) {
+        venueName = decodeURIComponent(placeMatch[1]).replace(/\+/g, ' ');
+      }
+    }
+
+    // 1. HIGHEST PRIORITY: Search for !3d!4d precise coordinate patterns
+    coordinates = extractPreciseCoordinates(url);
+    if (coordinates) {
+      extractionMethod = 'precise_patterns(!3d!4d)';
+    }
+
+    // 2. MEDIUM PRIORITY: Extract place-specific @ coordinates (more reliable than general @)
+    if (!coordinates && url.includes('/place/')) {
       const placeCoordinateMatch = url.match(/\/place\/[^/@]*\/@(-?\d+\.?\d*),(-?\d+\.?\d*),/);
       if (placeCoordinateMatch) {
         const lat = parseFloat(placeCoordinateMatch[1]);
@@ -91,26 +103,12 @@ async function parseGoogleMapsUrlDirect(url: string): Promise<ParseResult> {
 
         if (isValidCoordinate(lat, lng)) {
           coordinates = { lat, lng };
-          extractionMethod = 'place_url_coords';
-          
-          // Extract venue name from place URLs
-          const placeMatch = url.match(/\/place\/([^/@]+)/);
-          if (placeMatch) {
-            venueName = decodeURIComponent(placeMatch[1]).replace(/\+/g, ' ');
-          }
+          extractionMethod = 'place_url_coords(@pattern)';
         }
       }
     }
 
-    // 2. Search for more precise coordinate patterns in the URL
-    if (!coordinates) {
-      coordinates = extractPreciseCoordinates(url);
-      if (coordinates) {
-        extractionMethod = 'precise_patterns';
-      }
-    }
-
-    // 3. Fallback to general coordinate extraction (less precise)
+    // 3. LOWEST PRIORITY: Fallback to general @ coordinate extraction
     if (!coordinates) {
       const coordinateMatch = url.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*),/);
       if (coordinateMatch) {
@@ -119,13 +117,7 @@ async function parseGoogleMapsUrlDirect(url: string): Promise<ParseResult> {
 
         if (isValidCoordinate(lat, lng)) {
           coordinates = { lat, lng };
-          extractionMethod = 'general_at_pattern';
-          
-          // Try to extract venue name from place URLs
-          const placeMatch = url.match(/\/place\/([^/@]+)/);
-          if (placeMatch) {
-            venueName = decodeURIComponent(placeMatch[1]).replace(/\+/g, ' ');
-          }
+          extractionMethod = 'general_at_pattern(fallback)';
         }
       }
     }

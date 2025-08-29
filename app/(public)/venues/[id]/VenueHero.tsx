@@ -22,6 +22,7 @@ interface VenueHeroProps {
     ambiance: string[];
     averageRating?: number;
     totalComments?: number;
+    google_maps_url?: string | null;
   };
   isAdmin?: boolean;
   className?: string;
@@ -200,7 +201,10 @@ export default function VenueHero({ venue, isAdmin = false, className = "" }: Ve
               <div>{venue.city}, {venue.country}</div>
             </div>
             <a
-              href={`https://maps.google.com/?q=${encodeURIComponent([venue.address, venue.city, venue.country].filter(Boolean).join(', '))}`}
+              href={
+                venue.google_maps_url || 
+                `https://maps.google.com/?q=${encodeURIComponent([venue.address, venue.city, venue.country].filter(Boolean).join(', '))}`
+              }
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1 text-primary hover:text-primary/80 transition-colors mt-0.5 shrink-0 text-xs font-medium"
