@@ -27,6 +27,67 @@ function formatDate(dateString: string): string {
   }
 }
 
+function formatRelativeTime(dateString: string): string {
+  try {
+    const date = new Date(dateString);
+    const now = new Date();
+    
+    // Check if it's the same calendar day
+    const isSameDay = date.toDateString() === now.toDateString();
+    if (isSameDay) {
+      return "Today";
+    }
+
+    const diffMs = now.getTime() - date.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const diffWeeks = Math.floor(diffDays / 7);
+    const diffMonths = Math.floor(diffDays / 30.44); // Average days per month
+    const diffYears = Math.floor(diffDays / 365.25); // Account for leap years
+
+    // Future dates
+    if (diffMs < 0) {
+      return "Recently";
+    }
+
+    // Recent days (1-7 days)
+    if (diffDays === 1) {
+      return "Yesterday";
+    }
+    if (diffDays <= 7) {
+      return `${diffDays} days ago`;
+    }
+
+    // Recent weeks (1-4 weeks)
+    if (diffWeeks === 1) {
+      return "A week ago";
+    }
+    if (diffWeeks <= 4) {
+      return `${diffWeeks} weeks ago`;
+    }
+
+    // Recent months (1-12 months)
+    if (diffMonths === 1) {
+      return "A month ago";
+    }
+    if (diffMonths <= 12) {
+      return `${diffMonths} months ago`;
+    }
+
+    // Years
+    if (diffYears === 1) {
+      return "A year ago";
+    }
+    if (diffYears <= 2) {
+      return `${diffYears} years ago`;
+    }
+
+    // More than 2 years
+    return "More than 2 years ago";
+  } catch {
+    return "Unknown";
+  }
+}
+
 export default function VenueCard({
   venue,
   showDistance = false,
@@ -284,7 +345,7 @@ export default function VenueCard({
               <div className="flex items-center justify-end gap-1.5 text-muted-foreground">
                 <Calendar className="h-3.5 w-3.5" />
                 <span className="font-medium">
-                  {formatDate(venue.last_verified)}
+                  {formatRelativeTime(venue.last_verified)}
                 </span>
               </div>
             </div>
