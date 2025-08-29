@@ -63,7 +63,7 @@ async function getVenuesForLocationFiltering(): Promise<VenueType[]> {
 
     const { data: venues, error } = await supabase
       .from("venues")
-      .select("*, latitude, longitude")
+      .select("*, latitude, longitude, featured_verification_id")
       .eq("status", "approved")
       .not("latitude", "is", null)
       .not("longitude", "is", null)
@@ -81,7 +81,26 @@ async function getVenuesForLocationFiltering(): Promise<VenueType[]> {
     // Fetch verification stats for all venues
     const verificationStats = await fetchVerificationStats(venues.map(v => v.id));
 
-    // Transform to match our interface with verification stats
+    // Fetch featured verifications for venues that have them
+    const venuesWithFeatured = venues.filter((venue: any) => venue.featured_verification_id);
+    const featuredVerificationIds = venuesWithFeatured.map((venue: any) => venue.featured_verification_id);
+    
+    let featuredVerifications: { [key: string]: any } = {};
+    if (featuredVerificationIds.length > 0) {
+      const { data: featured, error: featuredError } = await supabase
+        .from("pisco_verifications")
+        .select("*")
+        .in("id", featuredVerificationIds);
+      
+      if (!featuredError && featured) {
+        featuredVerifications = featured.reduce((acc: any, verification: any) => {
+          acc[verification.id] = verification;
+          return acc;
+        }, {});
+      }
+    }
+
+    // Transform to match our interface with verification stats and featured verifications
     return venues.map((venue: any) => {
       const stats = verificationStats[venue.id] || {
         positive_verifications: 0,
@@ -89,13 +108,18 @@ async function getVenuesForLocationFiltering(): Promise<VenueType[]> {
         unique_verifiers: 0
       };
 
+      const featuredVerification = venue.featured_verification_id 
+        ? featuredVerifications[venue.featured_verification_id] || null
+        : null;
+
       return {
         ...venue,
         location:
           venue.latitude && venue.longitude
             ? { lat: venue.latitude, lng: venue.longitude }
             : null,
-        ...stats
+        ...stats,
+        featured_verification: featuredVerification
       };
     });
   } catch (error) {

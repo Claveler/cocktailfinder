@@ -77,10 +77,13 @@ export interface Venue {
   last_verified: string | null;
   verified_by: string | null;
   pisco_notes: string | null;
+  featured_verification_id?: string | null;
   // Verification stats from community
   positive_verifications?: number;
   total_verifications?: number;
   unique_verifiers?: number;
+  // Featured verification for display
+  featured_verification?: PiscoVerification | null;
 }
 
 export interface VenueFilters {
@@ -112,10 +115,22 @@ export interface Comment {
   };
 }
 
+export interface PiscoVerification {
+  id: string;
+  venue_id: string;
+  user_id: string;
+  verified_by: string;
+  pisco_status: string;
+  pisco_notes: string | null;
+  created_at: string;
+}
+
 export interface VenueWithComments extends Venue {
   comments: Comment[];
   averageRating: number | null;
   totalComments: number;
+  verifications: PiscoVerification[];
+  featured_verification?: PiscoVerification | null;
   profile?: {
     full_name: string | null;
   } | null;
@@ -135,7 +150,7 @@ export async function listVenues(
 
     let query = supabase
       .from("venues")
-      .select("*, latitude, longitude, google_maps_url", { count: "exact" })
+      .select("*, latitude, longitude, google_maps_url, featured_verification_id", { count: "exact" })
       .eq("status", "approved");
 
     // Apply filters
@@ -180,6 +195,25 @@ export async function listVenues(
     const venueIds = (venues || []).map((venue: any) => venue.id);
     const verificationStats = await fetchVerificationStats(venueIds);
 
+    // Fetch featured verifications for venues that have them
+    const venuesWithFeatured = (venues || []).filter((venue: any) => venue.featured_verification_id);
+    const featuredVerificationIds = venuesWithFeatured.map((venue: any) => venue.featured_verification_id);
+    
+    let featuredVerifications: { [key: string]: PiscoVerification } = {};
+    if (featuredVerificationIds.length > 0) {
+      const { data: featured, error: featuredError } = await supabase
+        .from("pisco_verifications")
+        .select("*")
+        .in("id", featuredVerificationIds);
+      
+      if (featured) {
+        featuredVerifications = featured.reduce((acc: any, verification: any) => {
+          acc[verification.id] = verification;
+          return acc;
+        }, {});
+      }
+    }
+
     // Transform the data to match our interface (now with direct coordinate columns!)
     const transformedVenues: Venue[] = (venues || []).map((venue: any) => {
       const location =
@@ -193,11 +227,16 @@ export async function listVenues(
         unique_verifiers: 0
       };
 
-      return {
-        ...venue,
-        location,
-        ...stats
-      };
+          const featuredVerification = venue.featured_verification_id 
+      ? featuredVerifications[venue.featured_verification_id] || null
+      : null;
+
+    return {
+      ...venue,
+      location,
+      ...stats,
+      featured_verification: featuredVerification
+    };
     });
 
     const result: VenueListResult = {
@@ -302,6 +341,7 @@ export async function getVenueById(
         latitude,
         longitude,
         google_maps_url,
+        featured_verification_id,
         profile:created_by(full_name)
       `
       )
@@ -360,6 +400,32 @@ export async function getVenueById(
       // Don't fail the whole request for comments error
     }
 
+    // Fetch pisco verifications for this venue
+    const { data: verifications, error: verificationsError } = await supabase
+      .from("pisco_verifications")
+      .select("*")
+      .eq("venue_id", id)
+      .order("created_at", { ascending: false });
+
+    if (verificationsError) {
+      console.error("🚨 Error fetching pisco verifications:", verificationsError);
+      // Don't fail the whole request for verifications error
+    }
+
+    // Fetch featured verification if it exists
+    let featuredVerification: PiscoVerification | null = null;
+    if (venue.featured_verification_id) {
+      const { data: featured, error: featuredError } = await supabase
+        .from("pisco_verifications")
+        .select("*")
+        .eq("id", venue.featured_verification_id)
+        .single();
+      
+      if (!featuredError && featured) {
+        featuredVerification = featured;
+      }
+    }
+
     const transformedComments: Comment[] = (comments || []).map(
       (comment: any) => ({
         ...comment,
@@ -379,6 +445,8 @@ export async function getVenueById(
       comments: transformedComments,
       averageRating,
       totalComments: transformedComments.length,
+      verifications: verifications || [],
+      featured_verification: featuredVerification,
     };
 
     return { data: result, error: null };

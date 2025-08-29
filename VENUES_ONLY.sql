@@ -1,0 +1,106 @@
+-- Insert ONLY venues first (no comments that require user_id)
+INSERT INTO public.venues (
+  name, type, address, city, country, latitude, longitude,
+  brands, price_range, ambiance, photos, status, 
+  pisco_status, last_verified, verified_by, pisco_notes,
+  website_url, google_maps_url, phone
+) VALUES 
+
+('Bar Constitución', 'bar', 'Constitución 172', 'Santiago', 'Chile',
+  -33.4372, -70.6506,
+  ARRAY['Pisco Capel', 'Pisco Control C'],
+  'moderate',
+  ARRAY['cozy', 'historic', 'intimate'],
+  ARRAY['https://picsum.photos/800/600?random=1', 'https://picsum.photos/800/600?random=2'],
+  'approved',
+  'available',
+  TIMESTAMP WITH TIME ZONE '2024-01-15 18:30:00+00',
+  'María González',
+  'Great selection of premium piscos. Capel and Control C available. Excellent piscolas!',
+  'https://barcons.cl',
+  'https://maps.google.com/?q=Bar+Constitución+Santiago',
+  '+56 2 2664 1570'
+),
+
+('La Piojera', 'pub', 'Aillavilú 1030', 'Santiago', 'Chile',
+  -33.4378, -70.6504,
+  ARRAY['Pisco Mistral', 'Pisco Tres Erres'],
+  'budget',
+  ARRAY['traditional', 'lively', 'authentic'],
+  ARRAY['https://picsum.photos/800/600?random=3', 'https://picsum.photos/800/600?random=4'],
+  'approved',
+  'available',
+  TIMESTAMP WITH TIME ZONE '2024-01-10 16:20:00+00',
+  'Carlos Mendoza',
+  'Classic Chilean pub experience. Traditional piscolas with Mistral pisco.',
+  'https://lapiojera.cl',
+  'https://maps.google.com/?q=La+Piojera+Santiago',
+  '+56 2 2681 9582'
+),
+
+('Pisco Bar Madrid', 'bar', 'Calle de Hortaleza 92', 'Madrid', 'Spain',
+  40.4168, -3.7038,
+  ARRAY['Pisco Capel', 'Pisco Alto del Carmen'],
+  'premium',
+  ARRAY['upscale', 'modern', 'sophisticated'],
+  ARRAY['https://picsum.photos/800/600?random=5', 'https://picsum.photos/800/600?random=6'],
+  'approved',
+  'available',
+  TIMESTAMP WITH TIME ZONE '2024-01-12 20:45:00+00',
+  'Ana Rodríguez',
+  'Best pisco selection in Madrid! Authentic Chilean piscolas and cocktails.',
+  'https://piscobar.madrid',
+  'https://maps.google.com/?q=Pisco+Bar+Madrid',
+  '+34 91 123 4567'
+),
+
+('Andes Lounge', 'bar', '87 MacDougal St', 'New York', 'United States',
+  40.7282, -74.0021,
+  ARRAY['Pisco Capel', 'Pisco Alto del Carmen'],
+  'premium',
+  ARRAY['upscale', 'cocktail focused', 'Latin American'],
+  ARRAY['https://picsum.photos/800/600?random=10', 'https://picsum.photos/800/600?random=11'],
+  'approved',
+  'available',
+  TIMESTAMP WITH TIME ZONE '2024-01-18 21:00:00+00',
+  'Sofia Martinez',
+  'Excellent pisco cocktails and authentic piscolas. Great atmosphere for Chilean expats.',
+  'https://andeslounge.nyc',
+  'https://maps.google.com/?q=Andes+Lounge+New+York',
+  '+1 212 555 0123'
+),
+
+('Chilean Corner', 'bar', '15 Goodge Street', 'London', 'United Kingdom',
+  51.5186, -0.1339,
+  ARRAY['Pisco Tres Erres'],
+  'premium',
+  ARRAY['modern', 'trendy', 'international'],
+  ARRAY['https://picsum.photos/800/600?random=8', 'https://picsum.photos/800/600?random=9'],
+  'approved',
+  'temporarily_out',
+  TIMESTAMP WITH TIME ZONE '2024-01-05 19:15:00+00',
+  'James Wilson',
+  'Usually has Tres Erres but currently out of stock. Check back next week!',
+  'https://chileancorner.london',
+  'https://maps.google.com/?q=Chilean+Corner+London',
+  '+44 20 7123 4567'
+),
+
+('El Almacén del Pisco', 'liquor_store', 'Calle Mayor 84', 'Madrid', 'Spain',
+  40.4150, -3.7067,
+  ARRAY['Pisco Capel', 'Pisco Control C', 'Pisco Mistral'],
+  'moderate',
+  ARRAY['specialty store', 'knowledgeable staff'],
+  ARRAY['https://picsum.photos/800/600?random=7'],
+  'approved',
+  'available',
+  TIMESTAMP WITH TIME ZONE '2024-01-08 14:30:00+00',
+  'Pedro Silva',
+  'Great selection of Chilean piscos. Staff knows their stuff about piscola preparation.',
+  'https://almacendelpisco.es',
+  'https://maps.google.com/?q=El+Almacén+del+Pisco+Madrid',
+  '+34 91 987 6543'
+);
+
+-- Show what was inserted
+SELECT 'Successfully inserted ' || count(*) || ' venues' as result FROM public.venues;

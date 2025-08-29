@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getVenueById } from "@/lib/venues";
+import { getVenueById, PiscoVerification } from "@/lib/venues";
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -278,17 +278,47 @@ export default async function VenuePage({ params }: VenuePageProps) {
                   </div>
                 )}
 
-                {/* Community Notes - Quote Style with Theme Colors */}
-                {venue.pisco_notes && venue.verified_by && (
-                  <div className="bg-foreground/5 border border-foreground/10 rounded-lg p-4 mt-4">
-                    <div className="text-sm text-foreground/80 italic">
-                      "{venue.pisco_notes}" — {venue.verified_by}
+                {/* Featured Verification Comment */}
+                {venue.featured_verification && venue.featured_verification.pisco_notes && (
+                  <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 mt-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Star className="h-4 w-4 text-primary" />
+                      <span className="text-xs font-medium text-primary">Featured Comment</span>
+                    </div>
+                    <div className="text-sm text-foreground/90 italic mb-2">
+                      "{venue.featured_verification.pisco_notes}"
+                    </div>
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span>— {venue.featured_verification.verified_by}</span>
+                      <span>{formatDate(venue.featured_verification.created_at)}</span>
                     </div>
                   </div>
                 )}
 
+                {/* All Other Verification Comments - Chronological */}
+                {venue.verifications && venue.verifications.length > 0 && (
+                  <div className="space-y-3 mt-4">
+                    {venue.verifications
+                      .filter(verification => 
+                        verification.pisco_notes && 
+                        verification.id !== venue.featured_verification?.id
+                      ) // Only show verifications with notes that aren't featured
+                      .map((verification, index) => (
+                        <div key={verification.id} className="bg-foreground/5 border border-foreground/10 rounded-lg p-4">
+                          <div className="text-sm text-foreground/80 italic mb-2">
+                            "{verification.pisco_notes}"
+                          </div>
+                          <div className="flex items-center justify-between text-xs text-muted-foreground">
+                            <span>— {verification.verified_by}</span>
+                            <span>{formatDate(verification.created_at)}</span>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                )}
+
                 {/* No information available */}
-                {venue.pisco_status === "unverified" && !venue.pisco_notes && (
+                {venue.pisco_status === "unverified" && (!venue.verifications || venue.verifications.length === 0) && (
                   <div className="text-center py-8 text-muted-foreground">
                     <HelpCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
                     <p>No pisco information available yet. Help the community by verifying!</p>

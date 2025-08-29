@@ -2,7 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Martini, Beer, Store, ChevronRight, CheckCircle, XCircle, HelpCircle, AlertCircle, Users, ExternalLink, Shield, Calendar } from "lucide-react";
+import { MapPin, Martini, Beer, Store, ChevronRight, CheckCircle, XCircle, HelpCircle, AlertCircle, Users, ExternalLink, Shield, Calendar, Star } from "lucide-react";
 import Link from "next/link";
 import type { Venue } from "@/lib/venues";
 
@@ -276,8 +276,21 @@ export default function VenueCard({
               </div>
             </div>
             
-            {/* Community Notes - More prominent */}
-            {venue.pisco_notes && venue.verified_by && (
+            {/* Community Notes - Featured verification takes priority */}
+            {venue.featured_verification && venue.featured_verification.pisco_notes ? (
+              <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 mt-2">
+                <div className="flex items-center gap-1 mb-1">
+                  <Star className="h-3 w-3 text-primary" />
+                  <span className="text-xs font-medium text-primary">Featured</span>
+                </div>
+                <div className="text-xs text-foreground/90 italic">
+                  "{venue.featured_verification.pisco_notes}"
+                </div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  — {venue.featured_verification.verified_by}
+                </div>
+              </div>
+            ) : venue.pisco_notes && venue.verified_by ? (
               <div className="bg-foreground/5 border border-foreground/10 rounded-lg p-3 mt-2">
                 <div className="text-xs text-foreground/90 italic">
                   "{venue.pisco_notes}"
@@ -286,7 +299,7 @@ export default function VenueCard({
                   — {venue.verified_by}
                 </div>
               </div>
-            )}
+            ) : null}
           </div>
         )}
       </CardContent>

@@ -65,6 +65,7 @@ export default function VenueEditForm({ venue }: VenueEditFormProps) {
     ambiance: venue.ambiance,
     status: venue.status,
     google_maps_url: venue.google_maps_url || "",
+    featured_verification_id: venue.featured_verification_id || "",
   });
 
   // Photo management state
@@ -227,6 +228,8 @@ export default function VenueEditForm({ venue }: VenueEditFormProps) {
         ...formData,
         photos: finalPhotos,
       };
+
+
 
       const result = await updateVenueAction(venue.id, venueUpdateData);
 
@@ -648,6 +651,68 @@ export default function VenueEditForm({ venue }: VenueEditFormProps) {
           </Select>
         </div>
       </div>
+
+      {/* Featured Verification */}
+      {venue.verifications && venue.verifications.length > 0 && (
+        <>
+          <Separator />
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Featured Community Comment</h3>
+            <p className="text-sm text-muted-foreground">
+              Select one verification comment to highlight in venue cards and the venue page.
+            </p>
+            
+            <div className="space-y-2">
+              <Label htmlFor="featured_verification">Featured Comment</Label>
+              <Select
+                value={formData.featured_verification_id}
+                onValueChange={(value) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    featured_verification_id: value === "none" ? "" : value,
+                  }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a comment to feature" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No featured comment</SelectItem>
+                  {venue.verifications
+                    .filter(verification => verification.pisco_notes)
+                    .map((verification) => (
+                      <SelectItem key={verification.id} value={verification.id}>
+                        <div className="max-w-md">
+                          <div className="font-medium">{verification.verified_by}</div>
+                          <div className="text-sm text-muted-foreground truncate">
+                            "{verification.pisco_notes}"
+                          </div>
+                        </div>
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {/* Preview of selected comment */}
+            {formData.featured_verification_id && (
+              <div className="p-3 bg-muted/50 rounded-lg border">
+                <div className="text-sm font-medium mb-1">Preview:</div>
+                {(() => {
+                  const selectedVerification = venue.verifications?.find(
+                    v => v.id === formData.featured_verification_id
+                  );
+                  return selectedVerification ? (
+                    <div className="text-sm italic">
+                      "{selectedVerification.pisco_notes}" — {selectedVerification.verified_by}
+                    </div>
+                  ) : null;
+                })()}
+              </div>
+            )}
+          </div>
+        </>
+      )}
 
       {/* Action Buttons */}
       <div className="flex gap-4 pt-4">

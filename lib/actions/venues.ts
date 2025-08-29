@@ -138,7 +138,9 @@ export async function createVenue(formData: FormData) {
         address: address.trim(),
         city: city.trim(),
         country: country.trim(),
-        // Convert lat/lng to PostGIS geography point
+        // Store coordinates in both formats for compatibility
+        latitude: latitude,
+        longitude: longitude,
         location: `POINT(${longitude} ${latitude})`,
         brands: brands,
         price_range: price_range || null,

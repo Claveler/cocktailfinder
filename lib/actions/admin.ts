@@ -105,13 +105,12 @@ export async function updateVenue(
 
     const supabase = createClient();
 
-    // Convert coordinates to PostGIS if provided
+    // Store coordinates in both formats for compatibility
     const venueUpdates: any = { ...updates };
     if (updates.latitude !== undefined && updates.longitude !== undefined) {
+      venueUpdates.latitude = updates.latitude;
+      venueUpdates.longitude = updates.longitude;
       venueUpdates.location = `POINT(${updates.longitude} ${updates.latitude})`;
-      // Remove the separate lat/lng fields since we're using location
-      delete venueUpdates.latitude;
-      delete venueUpdates.longitude;
     }
 
     const { error } = await supabase
@@ -151,6 +150,7 @@ export async function updateVenueAction(
     status: "pending" | "approved" | "rejected";
     photos?: string[];
     google_maps_url?: string;
+    featured_verification_id?: string | null;
   }
 ) {
   try {
@@ -174,6 +174,7 @@ export async function updateVenueAction(
       status: formData.status,
       updated_at: new Date().toISOString(),
       google_maps_url: formData.google_maps_url?.trim() || null,
+      featured_verification_id: formData.featured_verification_id || null,
     };
 
     // Include photos if provided
@@ -181,8 +182,10 @@ export async function updateVenueAction(
       venueUpdates.photos = formData.photos;
     }
 
-    // Convert coordinates to PostGIS
+    // Store coordinates in both formats for compatibility
     if (formData.latitude && formData.longitude) {
+      venueUpdates.latitude = formData.latitude;
+      venueUpdates.longitude = formData.longitude;
       venueUpdates.location = `POINT(${formData.longitude} ${formData.latitude})`;
     }
 
