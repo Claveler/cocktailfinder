@@ -77,7 +77,7 @@ export default function NavBar() {
                 What is piscola?
               </Link>
               <Link
-                href="/about/why-piscola-net"
+                href="/about/what-is-piscola#why-piscola-net"
                 className="text-sm font-medium transition-colors hover:text-primary"
               >
                 Why Piscola.net?
@@ -163,7 +163,7 @@ export default function NavBar() {
                   What is piscola?
                 </Link>
                 <Link
-                  href="/about/why-piscola-net"
+                  href="/about/what-is-piscola#why-piscola-net"
                   className="text-sm font-medium transition-colors hover:text-primary py-2 block"
                   onClick={closeMobileMenu}
                 >
