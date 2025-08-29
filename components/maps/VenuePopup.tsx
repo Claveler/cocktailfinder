@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import { Wine, MapPin, ExternalLink, Star, Clock } from "lucide-react";
+import { Martini, Beer, Store, MapPin, ExternalLink, Star, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getVenueGoogleMapsUrl } from "@/lib/maps";
@@ -28,7 +28,16 @@ interface VenuePopupProps {
 
 const VenuePopup = memo(function VenuePopup({ venue }: VenuePopupProps) {
   const getTypeIcon = (type?: string) => {
-    return <Wine className="h-3 w-3" />;
+    switch (type) {
+      case "bar":
+        return <Martini className="h-3 w-3" />;
+      case "pub":
+        return <Beer className="h-3 w-3" />;
+      case "liquor_store":
+        return <Store className="h-3 w-3" />;
+      default:
+        return <Martini className="h-3 w-3" />;
+    }
   };
 
   const getTypeLabel = (type?: string) => {

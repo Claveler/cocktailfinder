@@ -1,7 +1,7 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Wine, DollarSign, Star, ExternalLink } from "lucide-react";
+import { MapPin, Martini, Beer, Store, Star, ExternalLink } from "lucide-react";
 import PhotoGallery from "./PhotoGallery";
 import ShareButton from "./ShareButton";
 import { Button } from "@/components/ui/button";
@@ -31,13 +31,13 @@ interface VenueHeroProps {
 const getTypeIcon = (type: string) => {
   switch (type) {
     case "bar":
-      return <Wine className="h-4 w-4" />;
+      return <Martini className="h-4 w-4" />;
     case "pub":
-      return <Wine className="h-4 w-4" />;
+      return <Beer className="h-4 w-4" />;
     case "liquor_store":
-      return <DollarSign className="h-4 w-4" />;
+      return <Store className="h-4 w-4" />;
     default:
-      return <Wine className="h-4 w-4" />;
+      return <Martini className="h-4 w-4" />;
   }
 };
 
@@ -113,7 +113,7 @@ export default function VenueHero({ venue, isAdmin = false, className = "" }: Ve
           ) : (
             /* Placeholder when no photos - same as venue cards */
             <div className="w-full h-full bg-gradient-to-br from-gray-400 to-gray-600 flex items-center justify-center">
-              <Wine className="w-16 h-16 md:w-24 md:h-24 text-white opacity-40" />
+              <Martini className="w-16 h-16 md:w-24 md:h-24 text-white opacity-40" />
             </div>
           )}
           

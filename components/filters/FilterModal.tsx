@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Wine, Building, Check } from "lucide-react";
+import { X, Martini, Beer, Store, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -19,9 +19,9 @@ export interface FilterState {
 }
 
 const VENUE_TYPES = [
-  { value: "bar", label: "Cocktail Bar", icon: Wine },
-  { value: "pub", label: "Pub", icon: Building },
-  { value: "liquor_store", label: "Liquor Store", icon: Building },
+  { value: "bar", label: "Cocktail Bar", icon: Martini },
+  { value: "pub", label: "Pub", icon: Beer },
+  { value: "liquor_store", label: "Liquor Store", icon: Store },
 ];
 
 export default function FilterModal({ 

@@ -332,7 +332,7 @@ export default function LocationSearch({ onLocationFound, autoFocus = false, sho
           ) : (
             <MapPin className="mr-2 h-4 w-4" />
           )}
-          {isSearching ? "Searching..." : "Take Me There"}
+          {isSearching ? "Searching..." : "Pisc-go!"}
         </Button>
       )}
       

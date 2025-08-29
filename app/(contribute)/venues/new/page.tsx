@@ -24,8 +24,9 @@ import {
   X,
   Plus,
   Loader2,
-  Wine,
-  Building,
+  Martini,
+  Beer,
+  Store,
   Camera,
   AlertCircle,
   Link as LinkIcon,
@@ -40,9 +41,9 @@ import GoogleMapsLinkInput from "@/components/forms/GoogleMapsLinkInput";
 import type { Coordinates, VenueInfo } from "@/lib/maps";
 
 const VENUE_TYPES = [
-  { value: "bar", label: "Cocktail Bar", icon: Wine },
-  { value: "pub", label: "Pub", icon: Building },
-  { value: "liquor_store", label: "Liquor Store", icon: Building },
+  { value: "bar", label: "Cocktail Bar", icon: Martini },
+  { value: "pub", label: "Pub", icon: Beer },
+  { value: "liquor_store", label: "Liquor Store", icon: Store },
 ] as const;
 
 const PRICE_RANGES = [
@@ -339,7 +340,7 @@ export default function NewVenuePage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Building className="h-5 w-5" />
+              <MapPin className="h-5 w-5" />
               Step 2: Venue Details
             </CardTitle>
             <p className="text-muted-foreground text-sm">
@@ -671,7 +672,7 @@ export default function NewVenuePage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Wine className="h-5 w-5" />
+              <Martini className="h-5 w-5" />
               Step 5: Pisco Information
             </CardTitle>
             <p className="text-muted-foreground text-sm">

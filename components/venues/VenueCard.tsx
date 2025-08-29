@@ -2,7 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Wine, DollarSign, ChevronRight, CheckCircle, XCircle, HelpCircle, AlertCircle, Users, ExternalLink, Shield, Calendar } from "lucide-react";
+import { MapPin, Martini, Beer, Store, ChevronRight, CheckCircle, XCircle, HelpCircle, AlertCircle, Users, ExternalLink, Shield, Calendar } from "lucide-react";
 import Link from "next/link";
 import type { Venue } from "@/lib/venues";
 
@@ -24,13 +24,13 @@ export default function VenueCard({
   const getTypeIcon = (type: string) => {
     switch (type) {
       case "bar":
-        return <Wine className="h-4 w-4" />;
+        return <Martini className="h-4 w-4" />;
       case "pub":
-        return <Wine className="h-4 w-4" />;
+        return <Beer className="h-4 w-4" />;
       case "liquor_store":
-        return <DollarSign className="h-4 w-4" />;
+        return <Store className="h-4 w-4" />;
       default:
-        return <Wine className="h-4 w-4" />;
+        return <Martini className="h-4 w-4" />;
     }
   };
 
@@ -130,7 +130,7 @@ export default function VenueCard({
             />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-gray-400 to-gray-600 flex items-center justify-center">
-              <Wine className="w-12 h-12 text-white opacity-40" />
+              <Martini className="w-12 h-12 text-white opacity-40" />
             </div>
           )}
           
