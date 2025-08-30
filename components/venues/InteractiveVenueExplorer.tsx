@@ -534,12 +534,12 @@ export default function InteractiveVenueExplorer({
                 No venues visible in the current map view.
               </p>
               <p className="text-sm text-muted-foreground mb-6">
-                Try moving the map to explore different locations, or browse all venues.
+                Try moving the map to explore different locations.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Button asChild variant="outline">
+                {/* <Button asChild variant="outline">
                   <Link href="/">View All Venues</Link>
-                </Button>
+                </Button> */}
                 <Button asChild>
                   <Link href="/venues/new">Add a Venue</Link>
                 </Button>

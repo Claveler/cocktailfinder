@@ -152,7 +152,7 @@ export default function LandingPageClient({
   return (
     <div className="flex flex-col min-h-screen">
       {/* Hero Section - Hidden on Mobile */}
-      <section className="hidden md:flex relative w-full min-h-[360px] items-center" style={{ overflow: 'visible' }}>
+      <section className="hidden md:flex relative w-full min-h-[360px] items-center z-50" style={{ overflow: 'visible' }}>
         {/* Full Viewport Background Image */}
         <div className="absolute inset-0 z-0 overflow-hidden">
           <Image
