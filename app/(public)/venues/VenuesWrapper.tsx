@@ -27,8 +27,12 @@ export default function VenuesWrapper({
 }: VenuesWrapperProps) {
   const [searchLocation, setSearchLocation] = useState<[number, number] | null>(null);
 
-  const handleLocationFound = (coordinates: [number, number], locationName: string) => {
+  const handleLocationFound = (coordinates: [number, number], locationName: string, venueId?: string) => {
     setSearchLocation(coordinates);
+    
+    // Note: VenuesWrapper doesn't currently support venue focusing
+    // When a venue is selected, we center the map but don't focus on the specific venue
+    // This could be enhanced in the future if needed
   };
 
   return (

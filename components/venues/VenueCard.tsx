@@ -2,7 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Martini, Beer, Store, ChevronRight, CheckCircle, XCircle, HelpCircle, AlertCircle, Users, ExternalLink, Shield, Calendar } from "lucide-react";
+import { MapPin, Martini, Beer, Store, UtensilsCrossed, ChevronRight, CheckCircle, XCircle, HelpCircle, AlertCircle, Users, ExternalLink, Shield, Calendar } from "lucide-react";
 import Link from "next/link";
 import type { Venue } from "@/lib/venues";
 
@@ -103,6 +103,8 @@ export default function VenueCard({
         return <Beer className="h-4 w-4" />;
       case "liquor_store":
         return <Store className="h-4 w-4" />;
+      case "restaurant":
+        return <UtensilsCrossed className="h-4 w-4" />;
       default:
         return <Martini className="h-4 w-4" />;
     }
@@ -116,6 +118,8 @@ export default function VenueCard({
         return "Pub";
       case "liquor_store":
         return "Liquor Store";
+      case "restaurant":
+        return "Restaurant";
       default:
         return type;
     }

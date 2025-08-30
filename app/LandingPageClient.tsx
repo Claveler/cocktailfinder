@@ -28,8 +28,13 @@ export default function LandingPageClient({
   const [initialZoom, setInitialZoom] = useState<number | null>(null);
   const [currentFilters, setCurrentFilters] = useState<FilterState>({ venueTypes: [], brands: [] });
 
-  const handleLocationFound = (coordinates: [number, number], locationName: string) => {
+  const handleLocationFound = (coordinates: [number, number], locationName: string, venueId?: string) => {
     setSearchLocation(coordinates);
+    
+    // If a venue was selected, also set it as the focused venue
+    if (venueId) {
+      setInitialFocusedVenueId(venueId);
+    }
   };
 
   // Parse query parameters for initial map state

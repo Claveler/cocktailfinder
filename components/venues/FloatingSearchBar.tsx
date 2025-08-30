@@ -21,6 +21,10 @@ import {
   X,
   MapPin,
   Loader2,
+  Martini,
+  Beer,
+  Store,
+  UtensilsCrossed,
 } from "lucide-react";
 import Link from "next/link";
 import type { VenueFilters } from "@/lib/venues";
@@ -32,6 +36,8 @@ interface SearchSuggestion {
   lon: string;
   type: string;
   class: string;
+  venue_id?: string;
+  venue_type?: string;
 }
 
 interface FloatingSearchBarProps {
@@ -39,7 +45,7 @@ interface FloatingSearchBarProps {
   cities: string[]; // Will be removed - keeping for now to avoid breaking changes
   brands: string[];
   resultCount: number;
-  onLocationFound?: (coordinates: [number, number], locationName: string) => void;
+  onLocationFound?: (coordinates: [number, number], locationName: string, venueId?: string) => void;
 }
 
 export default function FloatingSearchBar({
@@ -64,6 +70,22 @@ export default function FloatingSearchBar({
   
   const debounceRef = useRef<NodeJS.Timeout>();
   const searchCacheRef = useRef<Map<string, SearchSuggestion[]>>(new Map());
+
+  // Helper function to get venue type icon
+  const getVenueTypeIcon = (venueType?: string) => {
+    switch (venueType) {
+      case "bar":
+        return <Martini className="h-3 w-3" />;
+      case "pub":
+        return <Beer className="h-3 w-3" />;
+      case "liquor_store":
+        return <Store className="h-3 w-3" />;
+      case "restaurant":
+        return <UtensilsCrossed className="h-3 w-3" />;
+      default:
+        return <Martini className="h-3 w-3" />;
+    }
+  };
 
   // Location search functionality
   const fetchSuggestions = async (query: string) => {
@@ -138,9 +160,9 @@ export default function FloatingSearchBar({
       parseFloat(suggestion.lon)
     ];
 
-    // Call the callback with the coordinates we already have
+    // Call the callback with coordinates and venue ID if it's a venue
     if (onLocationFound) {
-      onLocationFound(coordinates, suggestion.display_name);
+      onLocationFound(coordinates, suggestion.display_name, suggestion.venue_id);
     }
   };
 
@@ -268,11 +290,23 @@ export default function FloatingSearchBar({
                                 : 'hover:bg-gray-50 text-gray-900'
                             }`}
                           >
-                            <div className="font-medium text-sm">
-                              {suggestion.display_name.split(',')[0]}
-                            </div>
-                            <div className="text-xs text-gray-500 mt-1">
-                              {suggestion.display_name.split(',').slice(1).join(',').trim()}
+                            <div className="flex items-center gap-2">
+                              {suggestion.type === 'venue' ? (
+                                <div className="flex items-center gap-1">
+                                  {getVenueTypeIcon(suggestion.venue_type)}
+                                  <span className="text-xs text-primary bg-primary/10 px-1.5 py-0.5 rounded">Venue</span>
+                                </div>
+                              ) : (
+                                <MapPin className="h-3 w-3 text-gray-400" />
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <div className="font-medium text-sm truncate">
+                                  {suggestion.display_name.split(',')[0]}
+                                </div>
+                                <div className="text-xs text-gray-500 mt-1 truncate">
+                                  {suggestion.display_name.split(',').slice(1).join(',').trim()}
+                                </div>
+                              </div>
                             </div>
                           </div>
                         ))}
@@ -434,11 +468,23 @@ export default function FloatingSearchBar({
                                 : 'hover:bg-gray-50 text-gray-900'
                             }`}
                           >
-                            <div className="font-medium text-sm">
-                              {suggestion.display_name.split(',')[0]}
-                            </div>
-                            <div className="text-xs text-gray-500 mt-1">
-                              {suggestion.display_name.split(',').slice(1).join(',').trim()}
+                            <div className="flex items-center gap-2">
+                              {suggestion.type === 'venue' ? (
+                                <div className="flex items-center gap-1">
+                                  {getVenueTypeIcon(suggestion.venue_type)}
+                                  <span className="text-xs text-primary bg-primary/10 px-1.5 py-0.5 rounded">Venue</span>
+                                </div>
+                              ) : (
+                                <MapPin className="h-3 w-3 text-gray-400" />
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <div className="font-medium text-sm truncate">
+                                  {suggestion.display_name.split(',')[0]}
+                                </div>
+                                <div className="text-xs text-gray-500 mt-1 truncate">
+                                  {suggestion.display_name.split(',').slice(1).join(',').trim()}
+                                </div>
+                              </div>
                             </div>
                           </div>
                         ))}

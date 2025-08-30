@@ -2,12 +2,12 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useCombobox } from "downshift";
-import { Search, MapPin, Loader2 } from "lucide-react";
+import { Search, MapPin, Loader2, Martini, Beer, Store, UtensilsCrossed } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 interface LocationSearchProps {
-  onLocationFound: (coordinates: [number, number], locationName: string) => void;
+  onLocationFound: (coordinates: [number, number], locationName: string, venueId?: string) => void;
   autoFocus?: boolean;
   showButton?: boolean;
 }
@@ -19,6 +19,8 @@ interface SearchSuggestion {
   lon: string;
   type: string;
   class: string;
+  venue_id?: string;
+  venue_type?: string;
 }
 
 export default function LocationSearch({ onLocationFound, autoFocus = false, showButton = true }: LocationSearchProps) {
@@ -29,6 +31,22 @@ export default function LocationSearch({ onLocationFound, autoFocus = false, sho
   const debounceRef = useRef<NodeJS.Timeout>();
   const searchCacheRef = useRef<Map<string, SearchSuggestion[]>>(new Map());
   const buttonSearching = useRef(false);
+
+  // Helper function to get venue type icon
+  const getVenueTypeIcon = (venueType?: string) => {
+    switch (venueType) {
+      case "bar":
+        return <Martini className="h-3 w-3" />;
+      case "pub":
+        return <Beer className="h-3 w-3" />;
+      case "liquor_store":
+        return <Store className="h-3 w-3" />;
+      case "restaurant":
+        return <UtensilsCrossed className="h-3 w-3" />;
+      default:
+        return <Martini className="h-3 w-3" />;
+    }
+  };
 
   // Fetch suggestions as user types
   const fetchSuggestions = async (query: string) => {
@@ -105,8 +123,8 @@ export default function LocationSearch({ onLocationFound, autoFocus = false, sho
       parseFloat(suggestion.lon)
     ];
 
-    // Call the callback with the coordinates we already have
-    onLocationFound(coordinates, suggestion.display_name);
+    // Call the callback with coordinates and venue ID if it's a venue
+    onLocationFound(coordinates, suggestion.display_name, suggestion.venue_id);
     setError(null);
   };
 
@@ -239,11 +257,23 @@ export default function LocationSearch({ onLocationFound, autoFocus = false, sho
                       : 'hover:bg-gray-50 text-gray-900'
                   }`}
                 >
-                  <div className="font-medium text-sm">
-                    {suggestion.display_name.split(',')[0]}
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    {suggestion.display_name.split(',').slice(1).join(',').trim()}
+                  <div className="flex items-center gap-2">
+                    {suggestion.type === 'venue' ? (
+                      <div className="flex items-center gap-1">
+                        {getVenueTypeIcon(suggestion.venue_type)}
+                        <span className="text-xs text-primary bg-primary/10 px-1.5 py-0.5 rounded">Venue</span>
+                      </div>
+                    ) : (
+                      <MapPin className="h-3 w-3 text-gray-400" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-sm truncate">
+                        {suggestion.display_name.split(',')[0]}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1 truncate">
+                        {suggestion.display_name.split(',').slice(1).join(',').trim()}
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -265,7 +295,7 @@ export default function LocationSearch({ onLocationFound, autoFocus = false, sho
           ) : (
             <MapPin className="mr-2 h-4 w-4" />
           )}
-          {buttonSearching.current ? "Searching..." : "Take Me There"}
+          {buttonSearching.current ? "Searching..." : "Pisc-go!"}
         </Button>
       )}
     </div>

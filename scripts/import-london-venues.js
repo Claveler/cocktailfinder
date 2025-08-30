@@ -110,7 +110,7 @@ function mapVenueType(category) {
   } else if (categoryLower.includes('store') || categoryLower.includes('online')) {
     return 'liquor_store';
   } else if (categoryLower.includes('restaurant') || categoryLower.includes('hotel')) {
-    return 'bar'; // Map restaurants and hotels to bar as closest equivalent
+    return 'restaurant'; // Map restaurants and hotels to restaurant type
   } else {
     return 'bar'; // Default fallback
   }

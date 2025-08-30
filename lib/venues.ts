@@ -9,7 +9,7 @@ import { getVenuesList, fetchVerificationStats } from "@/lib/venues/core";
 export interface Venue {
   id: string;
   name: string;
-  type: "bar" | "pub" | "liquor_store";
+  type: "bar" | "pub" | "liquor_store" | "restaurant";
   address: string;
   city: string;
   country: string;

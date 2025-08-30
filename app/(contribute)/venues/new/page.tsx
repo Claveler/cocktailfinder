@@ -27,6 +27,7 @@ import {
   Martini,
   Beer,
   Store,
+  UtensilsCrossed,
   Camera,
   AlertCircle,
   Link as LinkIcon,
@@ -44,6 +45,7 @@ const VENUE_TYPES = [
   { value: "bar", label: "Cocktail Bar", icon: Martini },
   { value: "pub", label: "Pub", icon: Beer },
   { value: "liquor_store", label: "Liquor Store", icon: Store },
+  { value: "restaurant", label: "Restaurant", icon: UtensilsCrossed },
 ] as const;
 
 const PRICE_RANGES = [

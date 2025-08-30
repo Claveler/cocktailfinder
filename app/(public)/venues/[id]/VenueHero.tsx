@@ -1,7 +1,7 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Martini, Beer, Store, Star, ExternalLink } from "lucide-react";
+import { MapPin, Martini, Beer, Store, UtensilsCrossed, Star, ExternalLink } from "lucide-react";
 import PhotoGallery from "./PhotoGallery";
 import ShareButton from "./ShareButton";
 import { Button } from "@/components/ui/button";
@@ -37,6 +37,8 @@ const getTypeIcon = (type: string) => {
       return <Beer className="h-4 w-4" />;
     case "liquor_store":
       return <Store className="h-4 w-4" />;
+    case "restaurant":
+      return <UtensilsCrossed className="h-4 w-4" />;
     default:
       return <Martini className="h-4 w-4" />;
   }
@@ -50,6 +52,8 @@ const getTypeLabel = (type: string) => {
       return "Pub";
     case "liquor_store":
       return "Liquor Store";
+    case "restaurant":
+      return "Restaurant";
     default:
       return type;
   }

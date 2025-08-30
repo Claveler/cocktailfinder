@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import { Martini, Beer, Store, MapPin, ExternalLink, Star, Clock } from "lucide-react";
+import { Martini, Beer, Store, UtensilsCrossed, MapPin, ExternalLink, Star, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getVenueGoogleMapsUrl } from "@/lib/maps";
@@ -35,6 +35,8 @@ const VenuePopup = memo(function VenuePopup({ venue }: VenuePopupProps) {
         return <Beer className="h-3 w-3" />;
       case "liquor_store":
         return <Store className="h-3 w-3" />;
+      case "restaurant":
+        return <UtensilsCrossed className="h-3 w-3" />;
       default:
         return <Martini className="h-3 w-3" />;
     }
@@ -48,6 +50,8 @@ const VenuePopup = memo(function VenuePopup({ venue }: VenuePopupProps) {
         return "Pub";
       case "liquor_store":
         return "Liquor Store";
+      case "restaurant":
+        return "Restaurant";
       default:
         return type || "Venue";
     }

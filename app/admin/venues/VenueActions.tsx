@@ -66,6 +66,7 @@ const VENUE_TYPES = [
   { value: "bar", label: "Cocktail Bar" },
   { value: "pub", label: "Pub" },
   { value: "liquor_store", label: "Liquor Store" },
+  { value: "restaurant", label: "Restaurant" },
 ];
 
 const PRICE_RANGES = [
