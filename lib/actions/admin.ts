@@ -193,7 +193,7 @@ export async function updateVenueAction(
   venueId: string,
   formData: {
     name: string;
-    type: "bar" | "pub" | "liquor_store";
+    type: "bar" | "pub" | "liquor_store" | "restaurant";
     address: string;
     city: string;
     country: string;

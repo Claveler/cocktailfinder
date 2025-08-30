@@ -50,8 +50,8 @@ export default async function EditVenuePage({ params }: EditVenuePageProps) {
     redirect("/venues");
   }
 
-  // Fetch venue data
-  const { data: venue, error } = await getVenueById(params.id, user.id);
+  // Fetch venue data with all verifications for admin
+  const { data: venue, error } = await getVenueById(params.id, user.id, true);
 
   if (error || !venue) {
     notFound();

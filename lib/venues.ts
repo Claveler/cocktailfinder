@@ -97,7 +97,7 @@ export async function listVenues(
 ): Promise<{ data: VenueListResult | null; error: Error | null }> {
   const { page = 1 } = filters;
   
-  logger.debug("Starting venue query", filters);
+  logger.debug("Starting venue query", { filters });
   
   // Use the new consolidated function
   const result = await getVenuesList(filters, page, PAGE_SIZE);
@@ -196,7 +196,8 @@ export async function getBrands(): Promise<{
 // Get venue by ID with access control
 export async function getVenueById(
   id: string,
-  userId?: string
+  userId?: string,
+  includeAllVerifications = false
 ): Promise<{ data: VenueWithComments | null; error: Error | null }> {
   try {
   
@@ -270,20 +271,35 @@ export async function getVenueById(
       // Don't fail the whole request for comments error
     }
 
-    // Note: Verifications are now fetched separately via pagination
-    // Only fetch the featured verification here
-
-    // Fetch featured verification if it exists
+    // Fetch verifications based on requirements
     let featuredVerification: PiscoVerification | null = null;
-    if (venue.featured_verification_id) {
-      const { data: featured, error: featuredError } = await supabase
+    let allVerifications: PiscoVerification[] = [];
+
+    if (includeAllVerifications) {
+      // For admin use - fetch all verifications
+      const { data: verifications, error: verificationsError } = await supabase
         .from("pisco_verifications")
         .select("*")
-        .eq("id", venue.featured_verification_id)
-        .single();
+        .eq("venue_id", id)
+        .order("created_at", { ascending: false });
       
-      if (!featuredError && featured) {
-        featuredVerification = featured;
+      if (!verificationsError && verifications) {
+        allVerifications = verifications;
+        // Find featured verification in the list
+        featuredVerification = verifications.find(v => v.id === venue.featured_verification_id) || null;
+      }
+    } else {
+      // Regular use - only fetch featured verification
+      if (venue.featured_verification_id) {
+        const { data: featured, error: featuredError } = await supabase
+          .from("pisco_verifications")
+          .select("*")
+          .eq("id", venue.featured_verification_id)
+          .single();
+        
+        if (!featuredError && featured) {
+          featuredVerification = featured;
+        }
       }
     }
 
@@ -307,6 +323,7 @@ export async function getVenueById(
       averageRating,
       totalComments: transformedComments.length,
       featured_verification: featuredVerification,
+      ...(includeAllVerifications && { verifications: allVerifications }),
     };
 
     return { data: result, error: null };

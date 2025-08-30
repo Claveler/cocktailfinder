@@ -120,7 +120,9 @@ export default function FloatingSearchBar({
       // Limit cache size to prevent memory issues
       if (searchCacheRef.current.size > 50) {
         const firstKey = searchCacheRef.current.keys().next().value;
-        searchCacheRef.current.delete(firstKey);
+        if (firstKey !== undefined) {
+          searchCacheRef.current.delete(firstKey);
+        }
       }
       
       setSuggestions(data);
