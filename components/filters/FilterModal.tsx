@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Martini, Beer, Store, UtensilsCrossed, Check } from "lucide-react";
+import { X, Martini, Beer, Store, UtensilsCrossed, Check, Search, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -34,14 +34,58 @@ export default function FilterModal({
 }: FilterModalProps) {
   const [selectedVenueTypes, setSelectedVenueTypes] = useState<string[]>(initialFilters.venueTypes);
   const [selectedBrands, setSelectedBrands] = useState<string[]>(initialFilters.brands);
+  const [brandSearch, setBrandSearch] = useState<string>("");
+  const [showAllBrands, setShowAllBrands] = useState<boolean>(false);
 
   // Reset state when modal opens with new initial filters
   useEffect(() => {
     if (isOpen) {
       setSelectedVenueTypes(initialFilters.venueTypes);
       setSelectedBrands(initialFilters.brands);
+      setBrandSearch("");
+      setShowAllBrands(false);
     }
   }, [isOpen, initialFilters]);
+
+  // Popular brands (most commonly found in Chilean venues)
+  const popularBrands = [
+    "Pisco Capel",
+    "Pisco Control C", 
+    "Pisco Tres Erres",
+    "Pisco Mistral",
+    "Alto del Carmen",
+    "El Gobernador",
+    "Pisco Alto del Carmen",
+    "ABA"
+  ];
+
+  // Filter brands based on search and popularity
+  const getFilteredBrands = () => {
+    const searchTerm = brandSearch.toLowerCase().trim();
+    
+    // If searching, return all matches
+    if (searchTerm) {
+      return availableBrands.filter(brand => 
+        brand.toLowerCase().includes(searchTerm)
+      );
+    }
+    
+    // If not searching, return popular brands or all brands based on toggle
+    if (showAllBrands) {
+      return availableBrands;
+    }
+    
+    // Show popular brands that exist in available brands, plus any selected brands not in popular list
+    const popularAvailable = availableBrands.filter(brand => popularBrands.includes(brand));
+    const selectedNotPopular = selectedBrands.filter(brand => 
+      !popularBrands.includes(brand) && availableBrands.includes(brand)
+    );
+    
+    return [...popularAvailable, ...selectedNotPopular];
+  };
+
+  const filteredBrands = getFilteredBrands();
+  const hasMoreBrands = !showAllBrands && !brandSearch && filteredBrands.length < availableBrands.length;
 
   const toggleVenueType = (type: string) => {
     setSelectedVenueTypes(prev => 
@@ -126,11 +170,35 @@ export default function FilterModal({
             {/* Brands Section */}
             {availableBrands.length > 0 && (
               <div>
-                <h3 className="text-sm font-medium text-gray-900 mb-3">
-                  Pisco Brands ({availableBrands.length})
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {availableBrands.map((brand) => {
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-medium text-gray-900">
+                    Pisco Brands ({availableBrands.length})
+                  </h3>
+                  {brandSearch && (
+                    <button
+                      onClick={() => setBrandSearch("")}
+                      className="text-xs text-gray-500 hover:text-gray-700 transition-colors"
+                    >
+                      Clear search
+                    </button>
+                  )}
+                </div>
+
+                {/* Search Input */}
+                <div className="relative mb-4">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search pisco brands..."
+                    value={brandSearch}
+                    onChange={(e) => setBrandSearch(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                  />
+                </div>
+
+                {/* Brands Grid */}
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {filteredBrands.map((brand) => {
                     const isSelected = selectedBrands.includes(brand);
                     
                     return (
@@ -149,6 +217,35 @@ export default function FilterModal({
                     );
                   })}
                 </div>
+
+                {/* Show All Brands Toggle */}
+                {hasMoreBrands && (
+                  <button
+                    onClick={() => setShowAllBrands(true)}
+                    className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 font-medium transition-colors"
+                  >
+                    <ChevronDown className="w-4 h-4" />
+                    Show all {availableBrands.length} brands
+                  </button>
+                )}
+
+                {/* Collapse Toggle */}
+                {showAllBrands && !brandSearch && (
+                  <button
+                    onClick={() => setShowAllBrands(false)}
+                    className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 font-medium transition-colors"
+                  >
+                    <ChevronUp className="w-4 h-4" />
+                    Show popular brands only
+                  </button>
+                )}
+
+                {/* No Results Message */}
+                {brandSearch && filteredBrands.length === 0 && (
+                  <div className="text-center py-4 text-gray-500 text-sm">
+                    No brands found for "{brandSearch}"
+                  </div>
+                )}
               </div>
             )}
 
