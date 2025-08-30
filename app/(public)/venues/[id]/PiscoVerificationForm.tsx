@@ -5,7 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 
-import { CheckCircle, XCircle, HelpCircle, AlertCircle, Loader2 } from "lucide-react";
+import {
+  CheckCircle,
+  XCircle,
+  HelpCircle,
+  AlertCircle,
+  Loader2,
+} from "lucide-react";
 import { updateVenuePiscoInfo } from "@/lib/actions/venues";
 
 interface PiscoVerificationFormProps {
@@ -14,10 +20,10 @@ interface PiscoVerificationFormProps {
   currentNotes: string | null;
 }
 
-export default function PiscoVerificationForm({ 
-  venueId, 
-  currentStatus, 
-  currentNotes 
+export default function PiscoVerificationForm({
+  venueId,
+  currentStatus,
+  currentNotes,
 }: PiscoVerificationFormProps) {
   const [piscoStatus, setPiscoStatus] = useState(currentStatus);
   const [piscoNotes, setPiscoNotes] = useState(currentNotes || "");
@@ -31,7 +37,9 @@ export default function PiscoVerificationForm({
     setSuccess(false);
 
     if (piscoStatus === "available" && !piscoNotes.trim()) {
-      setError("Please add a note explaining what pisco brands or options are available");
+      setError(
+        "Please add a note explaining what pisco brands or options are available"
+      );
       return;
     }
 
@@ -120,7 +128,9 @@ export default function PiscoVerificationForm({
                 : "border-gray-200 hover:border-green-300 hover:bg-green-50/50"
             }`}
           >
-            <CheckCircle className={`h-6 w-6 ${piscoStatus === "available" ? "text-green-500" : "text-gray-400"}`} />
+            <CheckCircle
+              className={`h-6 w-6 ${piscoStatus === "available" ? "text-green-500" : "text-gray-400"}`}
+            />
             Pisco Available
           </button>
 
@@ -134,7 +144,9 @@ export default function PiscoVerificationForm({
                 : "border-gray-200 hover:border-red-300 hover:bg-red-50/50"
             }`}
           >
-            <XCircle className={`h-6 w-6 ${piscoStatus === "unavailable" ? "text-red-500" : "text-gray-400"}`} />
+            <XCircle
+              className={`h-6 w-6 ${piscoStatus === "unavailable" ? "text-red-500" : "text-gray-400"}`}
+            />
             No Pisco
           </button>
 
@@ -148,7 +160,9 @@ export default function PiscoVerificationForm({
                 : "border-gray-200 hover:border-orange-300 hover:bg-orange-50/50"
             }`}
           >
-            <AlertCircle className={`h-6 w-6 ${piscoStatus === "temporarily_out" ? "text-orange-500" : "text-gray-400"}`} />
+            <AlertCircle
+              className={`h-6 w-6 ${piscoStatus === "temporarily_out" ? "text-orange-500" : "text-gray-400"}`}
+            />
             Temporarily Out
           </button>
 
@@ -162,32 +176,31 @@ export default function PiscoVerificationForm({
                 : "border-gray-200 hover:border-gray-300 hover:bg-gray-50/50"
             }`}
           >
-            <HelpCircle className={`h-6 w-6 ${piscoStatus === "unverified" ? "text-gray-500" : "text-gray-400"}`} />
+            <HelpCircle
+              className={`h-6 w-6 ${piscoStatus === "unverified" ? "text-gray-500" : "text-gray-400"}`}
+            />
             Status Unknown
           </button>
         </div>
       </div>
 
-
-
       {/* Pisco Notes */}
       <div>
         <Label htmlFor="pisco_notes">
-          {piscoStatus === "available" 
-            ? "What pisco brands or options are available?" 
+          {piscoStatus === "available"
+            ? "What pisco brands or options are available?"
             : piscoStatus === "unavailable"
-            ? "Why is pisco not available?"
-            : "Additional details about pisco at this venue"
-          }
+              ? "Why is pisco not available?"
+              : "Additional details about pisco at this venue"}
         </Label>
         <Textarea
           id="pisco_notes"
           placeholder={
-            piscoStatus === "available" 
+            piscoStatus === "available"
               ? "e.g., They have Alto del Carmen and Control C. Staff can make Piscola on request..."
               : piscoStatus === "unavailable"
-              ? "e.g., Manager confirmed they don't stock pisco, only whisky and vodka..."
-              : "Share any details about pisco availability at this venue..."
+                ? "e.g., Manager confirmed they don't stock pisco, only whisky and vodka..."
+                : "Share any details about pisco availability at this venue..."
           }
           value={piscoNotes}
           onChange={(e) => setPiscoNotes(e.target.value)}
@@ -207,11 +220,7 @@ export default function PiscoVerificationForm({
       )}
 
       {/* Submit button */}
-      <Button
-        type="submit"
-        disabled={isPending}
-        className="w-full"
-      >
+      <Button type="submit" disabled={isPending} className="w-full">
         {isPending ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />

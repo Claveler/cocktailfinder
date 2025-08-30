@@ -5,7 +5,10 @@ import VenueCard from "@/components/venues/VenueCard";
 import InteractiveMapWrapper from "@/components/maps/InteractiveMapWrapper";
 import { Card, CardContent } from "@/components/ui/card";
 import type { Venue } from "@/lib/venues";
-import { filterVenuesByBounds, calculateApproximateBounds } from "@/lib/distance";
+import {
+  filterVenuesByBounds,
+  calculateApproximateBounds,
+} from "@/lib/distance";
 import type { MapBounds } from "@/lib/distance";
 
 interface VenuesPageClientProps {
@@ -15,41 +18,60 @@ interface VenuesPageClientProps {
   searchLocation?: [number, number] | null;
 }
 
-export default function VenuesPageClient({ 
-  venues, 
+export default function VenuesPageClient({
+  venues,
   allVenuesForMap,
-  initialCenter, 
-  searchLocation = null 
+  initialCenter,
+  searchLocation = null,
 }: VenuesPageClientProps) {
   // Environment variables (same as landing page)
   const fallbackZoom = Number(process.env.NEXT_PUBLIC_MAP_ZOOM_LEVEL) || 13;
-  const searchZoomLevel = Number(process.env.NEXT_PUBLIC_SEARCH_ZOOM_LEVEL) || 15;
+  const searchZoomLevel =
+    Number(process.env.NEXT_PUBLIC_SEARCH_ZOOM_LEVEL) || 15;
   const venuesLimit = Number(process.env.NEXT_PUBLIC_VENUES_LIMIT) || 20;
 
   // Map state
-  const [mapCenter, setMapCenter] = useState<[number, number]>(searchLocation || initialCenter);
+  const [mapCenter, setMapCenter] = useState<[number, number]>(
+    searchLocation || initialCenter
+  );
   const [mapZoom, setMapZoom] = useState(fallbackZoom);
-  const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
-  
+  const [userLocation, setUserLocation] = useState<[number, number] | null>(
+    null
+  );
+
   // Filtered venues based on map bounds
-  const [visibleVenues, setVisibleVenues] = useState<(Venue & { distance: number })[]>([]);
+  const [visibleVenues, setVisibleVenues] = useState<
+    (Venue & { distance: number })[]
+  >([]);
   const [isUpdatingVenues, setIsUpdatingVenues] = useState(false);
 
   // Bounds-based venue filtering with limit
-  const updateVenuesForBounds = useCallback((bounds: MapBounds, center: [number, number]) => {
-    const venuesWithLocation = allVenuesForMap.filter(venue => venue.location !== null);
-    const centerLocation = { lat: center[0], lng: center[1] };
-    const visibleVenues = filterVenuesByBounds(venuesWithLocation, bounds, centerLocation);
+  const updateVenuesForBounds = useCallback(
+    (bounds: MapBounds, center: [number, number]) => {
+      const venuesWithLocation = allVenuesForMap.filter(
+        (venue) => venue.location !== null
+      );
+      const centerLocation = { lat: center[0], lng: center[1] };
+      const visibleVenues = filterVenuesByBounds(
+        venuesWithLocation,
+        bounds,
+        centerLocation
+      );
 
-    // Apply venue limit from environment variable
-    const limitedVenues = visibleVenues.slice(0, venuesLimit);
-    setVisibleVenues(limitedVenues);
-  }, [allVenuesForMap, venuesLimit]);
+      // Apply venue limit from environment variable
+      const limitedVenues = visibleVenues.slice(0, venuesLimit);
+      setVisibleVenues(limitedVenues);
+    },
+    [allVenuesForMap, venuesLimit]
+  );
 
   // Initial setup: Set initial venues using bounds-based filtering (exact copy from landing page)
   useEffect(() => {
     // Set initial venues using bounds-based filtering
-    const initialBounds = calculateApproximateBounds(initialCenter, fallbackZoom);
+    const initialBounds = calculateApproximateBounds(
+      initialCenter,
+      fallbackZoom
+    );
     updateVenuesForBounds(initialBounds, initialCenter);
   }, [updateVenuesForBounds, initialCenter, fallbackZoom]);
 
@@ -59,16 +81,19 @@ export default function VenuesPageClient({
       // Update map center to search location with higher zoom
       setMapCenter(searchLocation);
       setMapZoom(searchZoomLevel);
-      
+
       // Update venues for the search location using the search zoom level
-      const searchBounds = calculateApproximateBounds(searchLocation, searchZoomLevel);
+      const searchBounds = calculateApproximateBounds(
+        searchLocation,
+        searchZoomLevel
+      );
       updateVenuesForBounds(searchBounds, searchLocation);
     }
   }, [searchLocation, updateVenuesForBounds, searchZoomLevel]);
 
   // Get user location on mount
   useEffect(() => {
-    if (typeof window === 'undefined' || !navigator.geolocation) return;
+    if (typeof window === "undefined" || !navigator.geolocation) return;
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -77,7 +102,7 @@ export default function VenuesPageClient({
           position.coords.longitude,
         ];
         setUserLocation(location);
-        
+
         // Only update map center and venues if no search location is provided
         if (!searchLocation) {
           setMapCenter(location);
@@ -99,30 +124,37 @@ export default function VenuesPageClient({
   }, [searchLocation, fallbackZoom, updateVenuesForBounds]);
 
   // Map movement handler - EXACT COPY from landing page
-  const handleMapMovement = useCallback((center: [number, number], zoom: number, bounds: MapBounds) => {
-    // Clear existing timeout
-    if (debounceTimeoutRef.current) {
-      clearTimeout(debounceTimeoutRef.current);
-    }
-    
-    // Configurable debouncing delay from environment variable
-    const debounceDelayMs = Number(process.env.NEXT_PUBLIC_MAP_UPDATE_DELAY_MS) || 1500;
-    
-    setIsUpdatingVenues(true);
-    
-    debounceTimeoutRef.current = setTimeout(() => {
-      // Update venue cards based on what's visible in the map using REAL bounds
-      updateVenuesForBounds(bounds, center);
-      setIsUpdatingVenues(false);
-    }, debounceDelayMs);
-  }, [updateVenuesForBounds]); // Use same function for consistency
+  const handleMapMovement = useCallback(
+    (center: [number, number], zoom: number, bounds: MapBounds) => {
+      // Clear existing timeout
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+
+      // Configurable debouncing delay from environment variable
+      const debounceDelayMs =
+        Number(process.env.NEXT_PUBLIC_MAP_UPDATE_DELAY_MS) || 1500;
+
+      setIsUpdatingVenues(true);
+
+      debounceTimeoutRef.current = setTimeout(() => {
+        // Update venue cards based on what's visible in the map using REAL bounds
+        updateVenuesForBounds(bounds, center);
+        setIsUpdatingVenues(false);
+      }, debounceDelayMs);
+    },
+    [updateVenuesForBounds]
+  ); // Use same function for consistency
 
   // Refs for debouncing (same as landing page)
   const debounceTimeoutRef = useRef<NodeJS.Timeout>();
 
   const handleVenueCardClick = (venue: Venue) => {
     if (venue.location) {
-      const newCenter: [number, number] = [venue.location.lat, venue.location.lng];
+      const newCenter: [number, number] = [
+        venue.location.lat,
+        venue.location.lng,
+      ];
       setMapCenter(newCenter);
       setMapZoom(15); // Zoom in when focusing on a specific venue
     }
@@ -133,20 +165,20 @@ export default function VenuesPageClient({
       {/* Left Column: Scrollable Venue List */}
       <div className="w-1/3">
         <div className="space-y-4">
-
           {visibleVenues.length === 0 && !isUpdatingVenues ? (
             <Card>
               <CardContent className="p-8 text-center">
                 <p className="text-muted-foreground">
-                  No venues visible in this area. Try zooming out or moving the map.
+                  No venues visible in this area. Try zooming out or moving the
+                  map.
                 </p>
               </CardContent>
             </Card>
           ) : (
             visibleVenues.map((venue, index) => (
-              <VenueCard 
+              <VenueCard
                 key={`${venue.id}-${venue.distance.toFixed(2)}`}
-                venue={venue} 
+                venue={venue}
                 showDistance={true}
                 distance={venue.distance}
                 onCardClick={handleVenueCardClick}
@@ -159,11 +191,11 @@ export default function VenuesPageClient({
 
       {/* Right Column: Interactive Map */}
       <div className="w-2/3">
-        <Card 
-          className="sticky" 
-          style={{ 
-            top: 'calc(17rem)', // Position below navbar + search bar
-            height: 'calc(100vh - 17rem - 2rem)' // Fill available space with small bottom margin
+        <Card
+          className="sticky"
+          style={{
+            top: "calc(17rem)", // Position below navbar + search bar
+            height: "calc(100vh - 17rem - 2rem)", // Fill available space with small bottom margin
           }}
         >
           <CardContent className="p-0 h-full">

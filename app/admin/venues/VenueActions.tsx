@@ -123,7 +123,8 @@ export default function VenueActions({ venue }: VenueActionsProps) {
         address: editForm.address.trim(),
         city: editForm.city.trim(),
         country: editForm.country.trim(),
-        price_range: editForm.price_range === "none" ? null : editForm.price_range,
+        price_range:
+          editForm.price_range === "none" ? null : editForm.price_range,
         brands: editForm.brands
           .split(",")
           .map((b) => b.trim())
@@ -407,7 +408,7 @@ export default function VenueActions({ venue }: VenueActionsProps) {
             </Link>
           </DropdownMenuItem>
 
-          <DropdownMenuItem 
+          <DropdownMenuItem
             onClick={() => setDeleteModalOpen(true)}
             className="text-red-600 focus:text-red-600 focus:bg-red-50"
           >

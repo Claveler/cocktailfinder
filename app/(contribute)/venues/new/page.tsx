@@ -123,12 +123,24 @@ export default function NewVenuePage() {
         } else {
           console.error("Failed to fetch brands");
           // Fallback to some basic brands if API fails
-          setCommonBrands(["Hennessy", "Bombay Sapphire", "Grey Goose", "Tanqueray", "Aperol"]);
+          setCommonBrands([
+            "Hennessy",
+            "Bombay Sapphire",
+            "Grey Goose",
+            "Tanqueray",
+            "Aperol",
+          ]);
         }
       } catch (error) {
         console.error("Error fetching brands:", error);
         // Fallback to some basic brands if API fails
-        setCommonBrands(["Hennessy", "Bombay Sapphire", "Grey Goose", "Tanqueray", "Aperol"]);
+        setCommonBrands([
+          "Hennessy",
+          "Bombay Sapphire",
+          "Grey Goose",
+          "Tanqueray",
+          "Aperol",
+        ]);
       } finally {
         setLoadingBrands(false);
       }
@@ -276,7 +288,9 @@ export default function NewVenuePage() {
           if (photoUrls.length > 0) {
             const updateResult = await updateVenuePhotos(venueId, photoUrls);
             if (updateResult.success) {
-              toast.success(`${photoUrls.length} photo(s) uploaded successfully!`);
+              toast.success(
+                `${photoUrls.length} photo(s) uploaded successfully!`
+              );
             } else {
               toast.error("Failed to save photos to venue");
               console.error("Photo update error:", updateResult.error);
@@ -319,7 +333,8 @@ export default function NewVenuePage() {
               Step 1: Find Your Venue on Google Maps
             </CardTitle>
             <p className="text-muted-foreground text-sm">
-              Start by sharing a Google Maps link to automatically populate venue details
+              Start by sharing a Google Maps link to automatically populate
+              venue details
             </p>
           </CardHeader>
           <CardContent>
@@ -431,7 +446,8 @@ export default function NewVenuePage() {
               </Badge>
             </CardTitle>
             <p className="text-muted-foreground text-sm">
-              Coordinates should be automatically populated from the Google Maps link above
+              Coordinates should be automatically populated from the Google Maps
+              link above
             </p>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -466,7 +482,8 @@ export default function NewVenuePage() {
               </div>
             </div>
             <p className="text-sm text-muted-foreground">
-              💡 If coordinates are missing, please use the Google Maps link in Step 1 above
+              💡 If coordinates are missing, please use the Google Maps link in
+              Step 1 above
             </p>
           </CardContent>
         </Card>
@@ -536,7 +553,9 @@ export default function NewVenuePage() {
                 {/* Common brands */}
                 <div>
                   <p className="text-sm text-muted-foreground mb-2">
-                    {loadingBrands ? "Loading brands..." : "Common brands from our database:"}
+                    {loadingBrands
+                      ? "Loading brands..."
+                      : "Common brands from our database:"}
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {loadingBrands ? (
@@ -547,7 +566,9 @@ export default function NewVenuePage() {
                       commonBrands.map((brand) => (
                         <Badge
                           key={brand}
-                          variant={brands.includes(brand) ? "default" : "outline"}
+                          variant={
+                            brands.includes(brand) ? "default" : "outline"
+                          }
                           className="cursor-pointer"
                           onClick={() =>
                             brands.includes(brand)
@@ -696,7 +717,9 @@ export default function NewVenuePage() {
                       : "border-gray-200 hover:border-green-300 hover:bg-green-50/50"
                   }`}
                 >
-                  <CheckCircle className={`h-6 w-6 ${piscoStatus === "available" ? "text-green-500" : "text-gray-400"}`} />
+                  <CheckCircle
+                    className={`h-6 w-6 ${piscoStatus === "available" ? "text-green-500" : "text-gray-400"}`}
+                  />
                   Pisco Available
                 </button>
 
@@ -710,7 +733,9 @@ export default function NewVenuePage() {
                       : "border-gray-200 hover:border-red-300 hover:bg-red-50/50"
                   }`}
                 >
-                  <XCircle className={`h-6 w-6 ${piscoStatus === "unavailable" ? "text-red-500" : "text-gray-400"}`} />
+                  <XCircle
+                    className={`h-6 w-6 ${piscoStatus === "unavailable" ? "text-red-500" : "text-gray-400"}`}
+                  />
                   No Pisco
                 </button>
 
@@ -724,7 +749,9 @@ export default function NewVenuePage() {
                       : "border-gray-200 hover:border-orange-300 hover:bg-orange-50/50"
                   }`}
                 >
-                  <AlertCircle className={`h-6 w-6 ${piscoStatus === "temporarily_out" ? "text-orange-500" : "text-gray-400"}`} />
+                  <AlertCircle
+                    className={`h-6 w-6 ${piscoStatus === "temporarily_out" ? "text-orange-500" : "text-gray-400"}`}
+                  />
                   Temporarily Out
                 </button>
 
@@ -738,7 +765,9 @@ export default function NewVenuePage() {
                       : "border-gray-200 hover:border-gray-300 hover:bg-gray-50/50"
                   }`}
                 >
-                  <HelpCircle className={`h-6 w-6 ${piscoStatus === "unverified" ? "text-gray-500" : "text-gray-400"}`} />
+                  <HelpCircle
+                    className={`h-6 w-6 ${piscoStatus === "unverified" ? "text-gray-500" : "text-gray-400"}`}
+                  />
                   Status Unknown
                 </button>
               </div>
@@ -747,21 +776,20 @@ export default function NewVenuePage() {
             {/* Pisco Notes */}
             <div>
               <Label htmlFor="pisco_notes">
-                {piscoStatus === "available" 
-                  ? "What pisco brands or options are available?" 
+                {piscoStatus === "available"
+                  ? "What pisco brands or options are available?"
                   : piscoStatus === "unavailable"
-                  ? "Why is pisco not available?"
-                  : "Additional details about pisco at this venue"
-                }
+                    ? "Why is pisco not available?"
+                    : "Additional details about pisco at this venue"}
               </Label>
               <Textarea
                 id="pisco_notes"
                 placeholder={
-                  piscoStatus === "available" 
+                  piscoStatus === "available"
                     ? "e.g., They have Alto del Carmen and Control C. Staff can make Piscola on request..."
                     : piscoStatus === "unavailable"
-                    ? "e.g., Manager confirmed they don't stock pisco, only whisky and vodka..."
-                    : "Share any details about pisco availability at this venue..."
+                      ? "e.g., Manager confirmed they don't stock pisco, only whisky and vodka..."
+                      : "Share any details about pisco availability at this venue..."
                 }
                 value={piscoNotes}
                 onChange={(e) => setPiscoNotes(e.target.value)}
@@ -866,7 +894,9 @@ export default function NewVenuePage() {
                 {isPending || uploadingPhotos ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {uploadingPhotos ? "Uploading Photos..." : "Submitting Venue..."}
+                    {uploadingPhotos
+                      ? "Uploading Photos..."
+                      : "Submitting Venue..."}
                   </>
                 ) : (
                   <>

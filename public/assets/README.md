@@ -30,9 +30,9 @@ To replace the current placeholder logo with your own:
      <Image
        src="/assets/piscola-logo.svg"
        alt="Piscola Logo"
-       width={120}  // Change this (desktop)
-       height={32}  // Change this (desktop)
-       className="h-8 w-auto"  // Change this
+       width={120} // Change this (desktop)
+       height={32} // Change this (desktop)
+       className="h-8 w-auto" // Change this
      />
      ```
 

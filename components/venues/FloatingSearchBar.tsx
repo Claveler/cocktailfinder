@@ -45,7 +45,11 @@ interface FloatingSearchBarProps {
   cities: string[]; // Will be removed - keeping for now to avoid breaking changes
   brands: string[];
   resultCount: number;
-  onLocationFound?: (coordinates: [number, number], locationName: string, venueId?: string) => void;
+  onLocationFound?: (
+    coordinates: [number, number],
+    locationName: string,
+    venueId?: string
+  ) => void;
 }
 
 export default function FloatingSearchBar({
@@ -57,9 +61,7 @@ export default function FloatingSearchBar({
 }: FloatingSearchBarProps) {
   const router = useRouter();
   const [isExpanded, setIsExpanded] = useState(false);
-  const [selectedType, setSelectedType] = useState(
-    defaultValues.type || "all"
-  );
+  const [selectedType, setSelectedType] = useState(defaultValues.type || "all");
   const [selectedBrand, setSelectedBrand] = useState(
     defaultValues.brand || "all"
   );
@@ -67,7 +69,7 @@ export default function FloatingSearchBar({
   // Location search state
   const [isSearching, setIsSearching] = useState(false);
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
-  
+
   const debounceRef = useRef<NodeJS.Timeout>();
   const searchCacheRef = useRef<Map<string, SearchSuggestion[]>>(new Map());
 
@@ -109,14 +111,14 @@ export default function FloatingSearchBar({
       const response = await fetch(
         `/api/geocode?q=${encodeURIComponent(query)}&limit=5`
       );
-      
-      if (!response.ok) throw new Error('Search failed');
-      
+
+      if (!response.ok) throw new Error("Search failed");
+
       const data: SearchSuggestion[] = await response.json();
-      
+
       // Cache the results
       searchCacheRef.current.set(cacheKey, data);
-      
+
       // Limit cache size to prevent memory issues
       if (searchCacheRef.current.size > 50) {
         const firstKey = searchCacheRef.current.keys().next().value;
@@ -124,10 +126,10 @@ export default function FloatingSearchBar({
           searchCacheRef.current.delete(firstKey);
         }
       }
-      
+
       setSuggestions(data);
     } catch (error) {
-      console.error('Location search error:', error);
+      console.error("Location search error:", error);
       setSuggestions([]);
     } finally {
       setIsSearching(false);
@@ -150,8 +152,8 @@ export default function FloatingSearchBar({
 
   const selectLocation = (suggestion: SearchSuggestion | null) => {
     if (!suggestion) return;
-    
-    // Clear any pending debounced search 
+
+    // Clear any pending debounced search
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
     }
@@ -159,12 +161,16 @@ export default function FloatingSearchBar({
     // Use coordinates we already have from the suggestion
     const coordinates: [number, number] = [
       parseFloat(suggestion.lat),
-      parseFloat(suggestion.lon)
+      parseFloat(suggestion.lon),
     ];
 
     // Call the callback with coordinates and venue ID if it's a venue
     if (onLocationFound) {
-      onLocationFound(coordinates, suggestion.display_name, suggestion.venue_id);
+      onLocationFound(
+        coordinates,
+        suggestion.display_name,
+        suggestion.venue_id
+      );
     }
   };
 
@@ -180,7 +186,7 @@ export default function FloatingSearchBar({
     reset,
   } = useCombobox({
     items: suggestions,
-    itemToString: (item) => item ? item.display_name.split(',')[0] : '',
+    itemToString: (item) => (item ? item.display_name.split(",")[0] : ""),
     defaultInputValue: defaultValues.q || "",
     onInputValueChange: ({ inputValue }) => {
       if (inputValue !== undefined && inputValue !== null) {
@@ -197,9 +203,7 @@ export default function FloatingSearchBar({
 
   // Helper functions for filtering and navigation
   const hasActiveFilters =
-    inputValue ||
-    selectedType !== "all" ||
-    selectedBrand !== "all";
+    inputValue || selectedType !== "all" || selectedBrand !== "all";
 
   const getActiveFiltersCount = () => {
     let count = 0;
@@ -216,16 +220,15 @@ export default function FloatingSearchBar({
     setSuggestions([]);
   };
 
-
-
   // Helper function to navigate with current filter state
   const navigateWithFilters = (overrides: Partial<VenueFilters> = {}) => {
     const params = new URLSearchParams();
-    
+
     // Use current state values or overrides
     const query = overrides.q !== undefined ? overrides.q : inputValue;
     const type = overrides.type !== undefined ? overrides.type : selectedType;
-    const brand = overrides.brand !== undefined ? overrides.brand : selectedBrand;
+    const brand =
+      overrides.brand !== undefined ? overrides.brand : selectedBrand;
 
     if (query) params.set("q", query);
     if (type && type !== "all") params.set("type", type);
@@ -264,10 +267,14 @@ export default function FloatingSearchBar({
               <div className="flex items-center gap-2">
                 <div className="relative flex-1">
                   {/* Search icon - hide when searching */}
-                  <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground transition-opacity ${isSearching ? 'opacity-0' : 'opacity-100'}`} />
-                  
+                  <Search
+                    className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground transition-opacity ${isSearching ? "opacity-0" : "opacity-100"}`}
+                  />
+
                   {/* Loading spinner - show when searching */}
-                  <div className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 transition-opacity ${isSearching ? 'opacity-100' : 'opacity-0'}`}>
+                  <div
+                    className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 transition-opacity ${isSearching ? "opacity-100" : "opacity-0"}`}
+                  >
                     <Loader2 className="h-4 w-4 text-muted-foreground animate-spin" />
                   </div>
                   <Input
@@ -277,7 +284,7 @@ export default function FloatingSearchBar({
                     className="pl-10 pr-4 bg-white"
                     autoComplete="off"
                   />
-                  
+
                   {/* Downshift suggestions dropdown */}
                   <div {...getMenuProps()} className="relative">
                     {isOpen && suggestions.length > 0 && (
@@ -287,26 +294,32 @@ export default function FloatingSearchBar({
                             key={suggestion.place_id}
                             {...getItemProps({ item: suggestion, index })}
                             className={`px-4 py-3 cursor-pointer border-b border-gray-100 last:border-b-0 ${
-                              highlightedIndex === index 
-                                ? 'bg-primary/10 text-primary' 
-                                : 'hover:bg-gray-50 text-gray-900'
+                              highlightedIndex === index
+                                ? "bg-primary/10 text-primary"
+                                : "hover:bg-gray-50 text-gray-900"
                             }`}
                           >
                             <div className="flex items-center gap-2">
-                              {suggestion.type === 'venue' ? (
+                              {suggestion.type === "venue" ? (
                                 <div className="flex items-center gap-1">
                                   {getVenueTypeIcon(suggestion.venue_type)}
-                                  <span className="text-xs text-primary bg-primary/10 px-1.5 py-0.5 rounded">Venue</span>
+                                  <span className="text-xs text-primary bg-primary/10 px-1.5 py-0.5 rounded">
+                                    Venue
+                                  </span>
                                 </div>
                               ) : (
                                 <MapPin className="h-3 w-3 text-gray-400" />
                               )}
                               <div className="flex-1 min-w-0">
                                 <div className="font-medium text-sm truncate">
-                                  {suggestion.display_name.split(',')[0]}
+                                  {suggestion.display_name.split(",")[0]}
                                 </div>
                                 <div className="text-xs text-gray-500 mt-1 truncate">
-                                  {suggestion.display_name.split(',').slice(1).join(',').trim()}
+                                  {suggestion.display_name
+                                    .split(",")
+                                    .slice(1)
+                                    .join(",")
+                                    .trim()}
                                 </div>
                               </div>
                             </div>
@@ -339,7 +352,9 @@ export default function FloatingSearchBar({
               {isExpanded && (
                 <div className="border-t pt-3 space-y-3">
                   <div>
-                    <Label className="text-xs text-muted-foreground">Type</Label>
+                    <Label className="text-xs text-muted-foreground">
+                      Type
+                    </Label>
                     <Select
                       name="type"
                       value={selectedType}
@@ -358,7 +373,9 @@ export default function FloatingSearchBar({
                   </div>
 
                   <div>
-                    <Label className="text-xs text-muted-foreground">Brand</Label>
+                    <Label className="text-xs text-muted-foreground">
+                      Brand
+                    </Label>
                     <Select
                       name="brand"
                       value={selectedBrand}
@@ -442,10 +459,14 @@ export default function FloatingSearchBar({
                 {/* Search Input */}
                 <div className="relative flex-1">
                   {/* Search icon - hide when searching */}
-                  <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground transition-opacity ${isSearching ? 'opacity-0' : 'opacity-100'}`} />
-                  
+                  <Search
+                    className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground transition-opacity ${isSearching ? "opacity-0" : "opacity-100"}`}
+                  />
+
                   {/* Loading spinner - show when searching */}
-                  <div className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 transition-opacity ${isSearching ? 'opacity-100' : 'opacity-0'}`}>
+                  <div
+                    className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 transition-opacity ${isSearching ? "opacity-100" : "opacity-0"}`}
+                  >
                     <Loader2 className="h-4 w-4 text-muted-foreground animate-spin" />
                   </div>
                   <Input
@@ -455,7 +476,7 @@ export default function FloatingSearchBar({
                     className="pl-10 pr-4 bg-white"
                     autoComplete="off"
                   />
-                  
+
                   {/* Downshift suggestions dropdown */}
                   <div {...getMenuProps()} className="relative">
                     {isOpen && suggestions.length > 0 && (
@@ -465,26 +486,32 @@ export default function FloatingSearchBar({
                             key={suggestion.place_id}
                             {...getItemProps({ item: suggestion, index })}
                             className={`px-4 py-3 cursor-pointer border-b border-gray-100 last:border-b-0 ${
-                              highlightedIndex === index 
-                                ? 'bg-primary/10 text-primary' 
-                                : 'hover:bg-gray-50 text-gray-900'
+                              highlightedIndex === index
+                                ? "bg-primary/10 text-primary"
+                                : "hover:bg-gray-50 text-gray-900"
                             }`}
                           >
                             <div className="flex items-center gap-2">
-                              {suggestion.type === 'venue' ? (
+                              {suggestion.type === "venue" ? (
                                 <div className="flex items-center gap-1">
                                   {getVenueTypeIcon(suggestion.venue_type)}
-                                  <span className="text-xs text-primary bg-primary/10 px-1.5 py-0.5 rounded">Venue</span>
+                                  <span className="text-xs text-primary bg-primary/10 px-1.5 py-0.5 rounded">
+                                    Venue
+                                  </span>
                                 </div>
                               ) : (
                                 <MapPin className="h-3 w-3 text-gray-400" />
                               )}
                               <div className="flex-1 min-w-0">
                                 <div className="font-medium text-sm truncate">
-                                  {suggestion.display_name.split(',')[0]}
+                                  {suggestion.display_name.split(",")[0]}
                                 </div>
                                 <div className="text-xs text-gray-500 mt-1 truncate">
-                                  {suggestion.display_name.split(',').slice(1).join(',').trim()}
+                                  {suggestion.display_name
+                                    .split(",")
+                                    .slice(1)
+                                    .join(",")
+                                    .trim()}
                                 </div>
                               </div>
                             </div>
@@ -521,7 +548,9 @@ export default function FloatingSearchBar({
               {/* Quick Brand Filters */}
               {brands.length > 0 && (
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-sm text-muted-foreground">Popular brands:</span>
+                  <span className="text-sm text-muted-foreground">
+                    Popular brands:
+                  </span>
                   {brands.slice(0, 6).map((brand) => (
                     <Button
                       key={brand}
@@ -530,7 +559,8 @@ export default function FloatingSearchBar({
                       size="sm"
                       className="text-xs h-7"
                       onClick={() => {
-                        const newBrand = selectedBrand === brand ? "all" : brand;
+                        const newBrand =
+                          selectedBrand === brand ? "all" : brand;
                         setSelectedBrand(newBrand);
                         // Navigate immediately with the new brand filter
                         navigateWithFilters({ brand: newBrand });
@@ -574,7 +604,9 @@ export default function FloatingSearchBar({
                           <SelectItem value="all">All types</SelectItem>
                           <SelectItem value="bar">Cocktail Bar</SelectItem>
                           <SelectItem value="pub">Pub</SelectItem>
-                          <SelectItem value="liquor_store">Liquor Store</SelectItem>
+                          <SelectItem value="liquor_store">
+                            Liquor Store
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -627,7 +659,9 @@ export default function FloatingSearchBar({
               {/* Active Filters Display */}
               {hasActiveFilters && !isExpanded && (
                 <div className="flex items-center gap-2 pt-2 border-t">
-                  <span className="text-sm text-muted-foreground">Filters:</span>
+                  <span className="text-sm text-muted-foreground">
+                    Filters:
+                  </span>
                   {inputValue && (
                     <Badge variant="secondary">Search: {inputValue}</Badge>
                   )}

@@ -1,7 +1,16 @@
 "use client";
 
 import { memo } from "react";
-import { Martini, Beer, Store, UtensilsCrossed, MapPin, ExternalLink, Star, Clock } from "lucide-react";
+import {
+  Martini,
+  Beer,
+  Store,
+  UtensilsCrossed,
+  MapPin,
+  ExternalLink,
+  Star,
+  Clock,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getVenueGoogleMapsUrl } from "@/lib/maps";
@@ -23,7 +32,6 @@ interface VenuePopupProps {
       lng: number;
     };
   };
-
 }
 
 const VenuePopup = memo(function VenuePopup({ venue }: VenuePopupProps) {
@@ -69,10 +77,12 @@ const VenuePopup = memo(function VenuePopup({ venue }: VenuePopupProps) {
           <h3 className="font-semibold text-sm leading-tight text-gray-900">
             {venue.name}
           </h3>
-          
+
           <div className="flex items-center gap-1 mt-1">
             {getTypeIcon(venue.type)}
-            <span className="text-xs text-gray-600">{getTypeLabel(venue.type)}</span>
+            <span className="text-xs text-gray-600">
+              {getTypeLabel(venue.type)}
+            </span>
           </div>
         </div>
 
@@ -83,7 +93,9 @@ const VenuePopup = memo(function VenuePopup({ venue }: VenuePopupProps) {
             <div className="text-xs text-gray-600 leading-tight">
               <div>{venue.address}</div>
               {venue.city && venue.country && (
-                <div>{venue.city}, {venue.country}</div>
+                <div>
+                  {venue.city}, {venue.country}
+                </div>
               )}
             </div>
           </div>
@@ -93,12 +105,19 @@ const VenuePopup = memo(function VenuePopup({ venue }: VenuePopupProps) {
         {venue.brands && venue.brands.length > 0 && (
           <div className="flex flex-wrap gap-1">
             {venue.brands.slice(0, 2).map((brand, index) => (
-              <Badge key={index} variant="secondary" className="text-xs px-1.5 py-0.5 h-auto">
+              <Badge
+                key={index}
+                variant="secondary"
+                className="text-xs px-1.5 py-0.5 h-auto"
+              >
                 {brand}
               </Badge>
             ))}
             {venue.brands.length > 2 && (
-              <Badge variant="secondary" className="text-xs px-1.5 py-0.5 h-auto">
+              <Badge
+                variant="secondary"
+                className="text-xs px-1.5 py-0.5 h-auto"
+              >
                 +{venue.brands.length - 2}
               </Badge>
             )}
@@ -119,24 +138,24 @@ const VenuePopup = memo(function VenuePopup({ venue }: VenuePopupProps) {
 
         {/* Action Buttons */}
         <div className="flex gap-2 pt-2 pb-1">
-          <Button asChild size="sm" className="h-8 text-xs flex-1 venue-popup-primary-btn">
+          <Button
+            asChild
+            size="sm"
+            className="h-8 text-xs flex-1 venue-popup-primary-btn"
+          >
             <Link href={`/venues/${venue.id}`}>
               <ExternalLink className="h-3 w-3 mr-1" />
               View Details
             </Link>
           </Button>
-          
-          <Button 
-            asChild 
-            variant="outline" 
-            size="sm" 
+
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
             className="h-8 text-xs flex-1 venue-popup-outline-btn"
           >
-            <a 
-              href={googleMapsUrl} 
-              target="_blank" 
-              rel="noopener noreferrer"
-            >
+            <a href={googleMapsUrl} target="_blank" rel="noopener noreferrer">
               <MapPin className="h-3 w-3 mr-1" />
               Maps
             </a>

@@ -23,27 +23,33 @@ function calculateMapCenterWithLeaflet(venues: any[]): [number, number] {
   }
 
   // Use Leaflet's bounds calculation for accurate center positioning
-  const coordinates = venuesWithLocation.map(venue => [venue.location.lat, venue.location.lng] as [number, number]);
+  const coordinates = venuesWithLocation.map(
+    (venue) => [venue.location.lat, venue.location.lng] as [number, number]
+  );
   const bounds = L.latLngBounds(coordinates);
   const center = bounds.getCenter();
-
-
 
   return [center.lat, center.lng];
 }
 
-export default function VenuesClient({ venues, initialCenter, pagination }: VenuesClientProps) {
+export default function VenuesClient({
+  venues,
+  initialCenter,
+  pagination,
+}: VenuesClientProps) {
   // Calculate proper center using Leaflet on client side
   const [mapCenter, setMapCenter] = useState<[number, number]>(() => {
-    if (typeof window === 'undefined') return initialCenter;
+    if (typeof window === "undefined") return initialCenter;
     return calculateMapCenterWithLeaflet(venues);
   });
   const [mapZoom, setMapZoom] = useState(11);
-  const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
+  const [userLocation, setUserLocation] = useState<[number, number] | null>(
+    null
+  );
 
   // Get user location on mount
   useEffect(() => {
-    if (typeof window === 'undefined' || !navigator.geolocation) return;
+    if (typeof window === "undefined" || !navigator.geolocation) return;
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -67,7 +73,10 @@ export default function VenuesClient({ venues, initialCenter, pagination }: Venu
 
   const handleVenueCardClick = useCallback((venue: Venue) => {
     if (venue.location) {
-      const newCenter: [number, number] = [venue.location.lat, venue.location.lng];
+      const newCenter: [number, number] = [
+        venue.location.lat,
+        venue.location.lng,
+      ];
       setMapCenter(newCenter);
       setMapZoom(15); // Zoom in when focusing on a specific venue
     }
@@ -79,28 +88,24 @@ export default function VenuesClient({ venues, initialCenter, pagination }: Venu
       <div className="w-1/3">
         <div className="space-y-4">
           {venues.map((venue, index) => (
-            <VenueCard 
-              key={venue.id} 
-              venue={venue} 
+            <VenueCard
+              key={venue.id}
+              venue={venue}
               onCardClick={handleVenueCardClick}
               isSelected={index === 0} // Highlight the first card (closest to map center)
             />
           ))}
         </div>
-        {pagination && (
-          <div className="mt-8 mb-8">
-            {pagination}
-          </div>
-        )}
+        {pagination && <div className="mt-8 mb-8">{pagination}</div>}
       </div>
 
       {/* Right Column: Responsive Sticky Map */}
       <div className="w-2/3">
-        <Card 
-          className="sticky" 
-          style={{ 
-            top: 'calc(17rem)', // Position below navbar + search bar
-            height: 'calc(100vh - 17rem - 2rem)' // Fill available space with small bottom margin
+        <Card
+          className="sticky"
+          style={{
+            top: "calc(17rem)", // Position below navbar + search bar
+            height: "calc(100vh - 17rem - 2rem)", // Fill available space with small bottom margin
           }}
         >
           <CardContent className="p-0 h-full">

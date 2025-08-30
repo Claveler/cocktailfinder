@@ -65,10 +65,10 @@ export default function GoogleMapsLinkInput({
 
       if (result.success && result.coordinates) {
         onCoordinatesExtracted(result.coordinates, mapsUrl, result.venueInfo);
-        
+
         // Build success message with venue info if available
         let message = `${isShortUrl ? "Short URL expanded and coordinates extracted" : "Coordinates extracted"}: ${formatCoordinates(result.coordinates)}`;
-        
+
         if (result.venueInfo?.name) {
           message += `\nVenue: ${result.venueInfo.name}`;
         }
@@ -78,7 +78,7 @@ export default function GoogleMapsLinkInput({
         if (result.venueInfo?.city) {
           message += `\nCity: ${result.venueInfo.city}`;
         }
-        
+
         setStatus({
           type: "success",
           message,
@@ -153,7 +153,8 @@ export default function GoogleMapsLinkInput({
         </div>
         <p className="text-sm text-muted-foreground">
           💡 Find your venue on Google Maps, then either share the link or copy
-          the URL from your browser. We'll automatically extract coordinates and venue details!
+          the URL from your browser. We'll automatically extract coordinates and
+          venue details!
         </p>
       </div>
 

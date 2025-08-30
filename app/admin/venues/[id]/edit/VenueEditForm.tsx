@@ -129,9 +129,11 @@ export default function VenueEditForm({ venue }: VenueEditFormProps) {
       google_maps_url: originalUrl || prev.google_maps_url,
       // Only update venue info if current fields are empty or if user confirms
       name: venueInfo?.name && !prev.name ? venueInfo.name : prev.name,
-      address: venueInfo?.address && !prev.address ? venueInfo.address : prev.address,
+      address:
+        venueInfo?.address && !prev.address ? venueInfo.address : prev.address,
       city: venueInfo?.city && !prev.city ? venueInfo.city : prev.city,
-      country: venueInfo?.country && !prev.country ? venueInfo.country : prev.country,
+      country:
+        venueInfo?.country && !prev.country ? venueInfo.country : prev.country,
     }));
   };
 
@@ -231,8 +233,6 @@ export default function VenueEditForm({ venue }: VenueEditFormProps) {
         ...formData,
         photos: finalPhotos,
       };
-
-
 
       const result = await updateVenueAction(venue.id, venueUpdateData);
 
@@ -660,11 +660,14 @@ export default function VenueEditForm({ venue }: VenueEditFormProps) {
         <>
           <Separator />
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Featured Community Comment</h3>
+            <h3 className="text-lg font-semibold">
+              Featured Community Comment
+            </h3>
             <p className="text-sm text-muted-foreground">
-              Select one verification comment to highlight in venue cards and the venue page.
+              Select one verification comment to highlight in venue cards and
+              the venue page.
             </p>
-            
+
             <div className="space-y-2">
               <Label htmlFor="featured_verification">Featured Comment</Label>
               <Select
@@ -682,11 +685,13 @@ export default function VenueEditForm({ venue }: VenueEditFormProps) {
                 <SelectContent>
                   <SelectItem value="none">No featured comment</SelectItem>
                   {venue.verifications
-                    .filter(verification => verification.pisco_notes)
+                    .filter((verification) => verification.pisco_notes)
                     .map((verification) => (
                       <SelectItem key={verification.id} value={verification.id}>
                         <div className="max-w-md">
-                          <div className="font-medium">{verification.verified_by}</div>
+                          <div className="font-medium">
+                            {verification.verified_by}
+                          </div>
                           <div className="text-sm text-muted-foreground truncate">
                             "{verification.pisco_notes}"
                           </div>
@@ -696,18 +701,19 @@ export default function VenueEditForm({ venue }: VenueEditFormProps) {
                 </SelectContent>
               </Select>
             </div>
-            
+
             {/* Preview of selected comment */}
             {formData.featured_verification_id && (
               <div className="p-3 bg-muted/50 rounded-lg border">
                 <div className="text-sm font-medium mb-1">Preview:</div>
                 {(() => {
                   const selectedVerification = venue.verifications?.find(
-                    v => v.id === formData.featured_verification_id
+                    (v) => v.id === formData.featured_verification_id
                   );
                   return selectedVerification ? (
                     <div className="text-sm italic">
-                      "{selectedVerification.pisco_notes}" — {selectedVerification.verified_by}
+                      "{selectedVerification.pisco_notes}" —{" "}
+                      {selectedVerification.verified_by}
                     </div>
                   ) : null;
                 })()}

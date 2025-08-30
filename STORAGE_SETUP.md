@@ -8,10 +8,8 @@ This guide will help you set up Supabase Storage for venue photos with proper se
 
 1. **Go to your Supabase Dashboard**
    - Navigate to: https://supabase.com/dashboard/project/lnoaurqbnmxbsfaahnjw
-   
 2. **Go to Storage**
    - Click on "Storage" in the left sidebar
-   
 3. **Create New Bucket**
    - Click "New bucket"
    - **Bucket name**: `venue-photos`
@@ -52,17 +50,17 @@ If you prefer to run the SQL manually:
 ### Test 1: Upload a Photo
 
 ```typescript
-import { uploadPhoto } from '@/lib/storage';
+import { uploadPhoto } from "@/lib/storage";
 
 // In your component
 const handleFileUpload = async (file: File, venueId: string) => {
   const { data, error } = await uploadPhoto(file, venueId);
-  
+
   if (error) {
-    console.error('Upload failed:', error);
+    console.error("Upload failed:", error);
   } else {
-    console.log('Upload successful:', data);
-    console.log('Public URL:', data.publicUrl);
+    console.log("Upload successful:", data);
+    console.log("Public URL:", data.publicUrl);
   }
 };
 ```
@@ -70,10 +68,10 @@ const handleFileUpload = async (file: File, venueId: string) => {
 ### Test 2: Get Public URL
 
 ```typescript
-import { getPublicUrl } from '@/lib/storage';
+import { getPublicUrl } from "@/lib/storage";
 
 // Get URL for an existing photo
-const photoUrl = getPublicUrl('user-id/venue-id/photo.jpg');
+const photoUrl = getPublicUrl("user-id/venue-id/photo.jpg");
 ```
 
 ## 📋 Security Policy Summary
@@ -91,35 +89,38 @@ The storage policies ensure:
 ### Upload venue photo:
 
 ```typescript
-const { data, error } = await uploadPhoto(file, 'venue-123');
+const { data, error } = await uploadPhoto(file, "venue-123");
 // Uploads to: venue-photos/user-abc/venue-123/filename.jpg
 ```
 
 ### Get photo URL:
 
 ```typescript
-const url = getPublicUrl('user-abc/venue-123/photo.jpg');
+const url = getPublicUrl("user-abc/venue-123/photo.jpg");
 // Returns: https://your-project.supabase.co/storage/v1/object/public/venue-photos/user-abc/venue-123/photo.jpg
 ```
 
 ### List venue photos:
 
 ```typescript
-const { data, error } = await listVenuePhotos('venue-123');
+const { data, error } = await listVenuePhotos("venue-123");
 // Returns array of all photos for venue-123 from all users
 ```
 
 ## 🚨 Troubleshooting
 
 ### "Bucket does not exist" error
+
 - Make sure you created the `venue-photos` bucket
 - Check the bucket name is exactly `venue-photos`
 
 ### "Permission denied" errors
+
 - Ensure the storage policies migration was applied
 - Check that the user is authenticated
 - Verify the file path follows the `user-id/venue-id/filename` pattern
 
 ### "File already exists" error
+
 - The upload function uses `upsert: false` to prevent overwrites
 - Use a unique filename or enable overwriting by changing `upsert: true`

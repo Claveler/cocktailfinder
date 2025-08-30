@@ -7,7 +7,7 @@ import {
   Roboto,
   Lato,
   Bebas_Neue,
-  Hanken_Grotesk
+  Hanken_Grotesk,
 } from "next/font/google";
 
 // Local fonts (Geist)
@@ -91,7 +91,15 @@ type FontConfig = {
 // 🎨 CHANGE THIS TO TEST DIFFERENT FONTS
 const CURRENT_FONT = "inter" as const;
 
-type FontKeys = "geist" | "inter" | "raleway" | "poppins" | "openSans" | "roboto" | "lato" | "hankenGrotesk";
+type FontKeys =
+  | "geist"
+  | "inter"
+  | "raleway"
+  | "poppins"
+  | "openSans"
+  | "roboto"
+  | "lato"
+  | "hankenGrotesk";
 
 const fontConfigs: Record<FontKeys, FontConfig> = {
   geist: {
@@ -153,4 +161,8 @@ const fontConfigs: Record<FontKeys, FontConfig> = {
 };
 
 export const currentFontConfig = fontConfigs[CURRENT_FONT as FontKeys];
-export const { primary: primaryFont, mono: monoFont, heading: headingFont } = currentFontConfig;
+export const {
+  primary: primaryFont,
+  mono: monoFont,
+  heading: headingFont,
+} = currentFontConfig;

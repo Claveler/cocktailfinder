@@ -35,15 +35,15 @@ export default function NavBar() {
 
     if (isMobileMenuOpen) {
       // Prevent body scroll when menu is open
-      document.body.style.overflow = 'hidden';
-      
+      document.body.style.overflow = "hidden";
+
       document.addEventListener("keydown", handleEscape);
       window.addEventListener("resize", handleResize);
 
       return () => {
         // Restore body scroll when menu closes
-        document.body.style.overflow = 'unset';
-        
+        document.body.style.overflow = "unset";
+
         document.removeEventListener("keydown", handleEscape);
         window.removeEventListener("resize", handleResize);
       };
@@ -61,7 +61,7 @@ export default function NavBar() {
               <img
                 src="/assets/piscola-logo.svg"
                 alt="Piscola Logo"
-                style={{ height: '2.5rem', width: 'auto' }}
+                style={{ height: "2.5rem", width: "auto" }}
                 className="shadow-sm"
               />
             </Link>
@@ -110,7 +110,7 @@ export default function NavBar() {
             <img
               src="/assets/piscola-logo.svg"
               alt="Piscola Logo"
-              style={{ height: '2.5rem', width: 'auto' }}
+              style={{ height: "2.5rem", width: "auto" }}
               className="shadow-sm"
             />
           </Link>
@@ -145,11 +145,11 @@ export default function NavBar() {
       {isMobileMenuOpen && (
         <>
           {/* Backdrop */}
-          <div 
+          <div
             className="lg:hidden fixed top-16 left-0 right-0 bottom-0 bg-black/50 z-[90]"
             onClick={closeMobileMenu}
           />
-          
+
           {/* Mobile Menu Panel */}
           <div className="lg:hidden fixed top-16 left-0 right-0 bg-card border-t shadow-lg z-[95] animate-in slide-in-from-top-2 duration-200">
             <div className="container mx-auto px-4 py-4">

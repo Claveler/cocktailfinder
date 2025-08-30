@@ -83,7 +83,7 @@ export async function createVenue(formData: FormData) {
       .select("full_name")
       .eq("id", user.id)
       .single();
-    
+
     if (profile?.full_name) {
       userFullName = profile.full_name;
     }
@@ -104,8 +104,9 @@ export async function createVenue(formData: FormData) {
     const ambiance = JSON.parse((formData.get("ambiance") as string) || "[]");
 
     // Extract pisco information
-    const pisco_status = formData.get("pisco_status") as string || "unverified";
-    const pisco_notes = formData.get("pisco_notes") as string || "";
+    const pisco_status =
+      (formData.get("pisco_status") as string) || "unverified";
+    const pisco_notes = (formData.get("pisco_notes") as string) || "";
 
     // Photos are now handled client-side, no need to process them here
 
@@ -153,7 +154,8 @@ export async function createVenue(formData: FormData) {
         pisco_status: pisco_status,
         pisco_notes: pisco_notes.trim() || null,
         // Set verification fields if user provided pisco info
-        last_verified: pisco_status !== "unverified" ? new Date().toISOString() : null,
+        last_verified:
+          pisco_status !== "unverified" ? new Date().toISOString() : null,
         verified_by: pisco_status !== "unverified" ? userFullName : null,
       })
       .select()
@@ -177,7 +179,9 @@ export async function createVenue(formData: FormData) {
         });
 
       if (verificationError) {
-        logger.error("Error creating pisco verification", { error: verificationError });
+        logger.error("Error creating pisco verification", {
+          error: verificationError,
+        });
         // Don't fail the entire venue creation if verification fails
       }
     }
@@ -203,7 +207,10 @@ export async function createVenue(formData: FormData) {
   }
 }
 
-export async function updateVenuePiscoInfo(venueId: string, formData: FormData) {
+export async function updateVenuePiscoInfo(
+  venueId: string,
+  formData: FormData
+) {
   try {
     const supabase = createClient();
 
@@ -229,12 +236,15 @@ export async function updateVenuePiscoInfo(venueId: string, formData: FormData) 
     const piscoNotes = (formData.get("pisco_notes") as string)?.trim();
 
     // Validate pisco status
-    const validStatuses = ["available", "unavailable", "unverified", "temporarily_out"];
+    const validStatuses = [
+      "available",
+      "unavailable",
+      "unverified",
+      "temporarily_out",
+    ];
     if (!validStatuses.includes(piscoStatus)) {
       throw new Error("Invalid pisco status");
     }
-
-
 
     // Insert new verification record into history
     const { error: insertError } = await supabase
@@ -244,7 +254,7 @@ export async function updateVenuePiscoInfo(venueId: string, formData: FormData) 
         user_id: user.id,
         verified_by: profile?.full_name || "Anonymous User",
         pisco_status: piscoStatus,
-        pisco_notes: piscoNotes || null
+        pisco_notes: piscoNotes || null,
       });
 
     if (insertError) {
@@ -257,7 +267,7 @@ export async function updateVenuePiscoInfo(venueId: string, formData: FormData) 
       pisco_status: piscoStatus,
       pisco_notes: piscoNotes || null,
       last_verified: new Date().toISOString(),
-      verified_by: profile?.full_name || "Anonymous User"
+      verified_by: profile?.full_name || "Anonymous User",
     };
 
     // Update venue pisco information
@@ -268,7 +278,9 @@ export async function updateVenuePiscoInfo(venueId: string, formData: FormData) 
 
     if (updateError) {
       logger.error("Error updating venue pisco info", { error: updateError });
-      throw new Error(`Failed to update pisco information: ${updateError.message}`);
+      throw new Error(
+        `Failed to update pisco information: ${updateError.message}`
+      );
     }
 
     logger.debug(`Updated pisco info for venue ${venueId} by user ${user.id}`);
@@ -280,15 +292,17 @@ export async function updateVenuePiscoInfo(venueId: string, formData: FormData) 
 
     return {
       success: true,
-      message: "Pisco information updated successfully!"
+      message: "Pisco information updated successfully!",
     };
-
   } catch (error) {
     logger.error("Error in updateVenuePiscoInfo", { error });
 
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Failed to update pisco information",
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to update pisco information",
     };
   }
 }

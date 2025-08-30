@@ -70,19 +70,20 @@ export default function ThemeCustomizer() {
   useEffect(() => {
     const loadGlobalTheme = async () => {
       try {
-        const response = await fetch('/api/theme');
+        const response = await fetch("/api/theme");
         if (response.ok) {
           const themeData = await response.json();
-          
+
           // Handle backward compatibility for new color properties
           const colorsWithDefaults = {
             ...DEFAULT_COLORS,
             ...themeData.colors,
             // Ensure all properties exist
             card: themeData.colors?.card || DEFAULT_COLORS.card,
-            textAccent: themeData.colors?.textAccent || DEFAULT_COLORS.textAccent,
+            textAccent:
+              themeData.colors?.textAccent || DEFAULT_COLORS.textAccent,
           };
-          
+
           setColors(colorsWithDefaults);
           applyColors(colorsWithDefaults);
         } else {
@@ -94,7 +95,7 @@ export default function ThemeCustomizer() {
         applyColors(DEFAULT_COLORS);
       }
     };
-    
+
     loadGlobalTheme();
   }, []);
 
@@ -196,14 +197,14 @@ export default function ThemeCustomizer() {
     setIsApplying(true);
 
     try {
-      const response = await fetch('/api/theme', {
-        method: 'POST',
+      const response = await fetch("/api/theme", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           colors,
-          name: 'Admin Custom Theme'
+          name: "Admin Custom Theme",
         }),
       });
 
@@ -212,12 +213,12 @@ export default function ThemeCustomizer() {
         window.location.reload();
       } else {
         const errorData = await response.json();
-        console.error('Failed to save theme:', errorData);
-        alert('Failed to save theme: ' + (errorData.error || 'Unknown error'));
+        console.error("Failed to save theme:", errorData);
+        alert("Failed to save theme: " + (errorData.error || "Unknown error"));
       }
     } catch (error) {
-      console.error('Error saving theme:', error);
-      alert('Failed to save theme. Please try again.');
+      console.error("Error saving theme:", error);
+      alert("Failed to save theme. Please try again.");
     } finally {
       setIsApplying(false);
     }
@@ -225,30 +226,31 @@ export default function ThemeCustomizer() {
 
   const resetToDefault = async () => {
     setIsApplying(true);
-    
+
     try {
-      const response = await fetch('/api/theme', {
-        method: 'DELETE',
+      const response = await fetch("/api/theme", {
+        method: "DELETE",
       });
 
       if (response.ok) {
         // Update local state and UI
         setColors(DEFAULT_COLORS);
         applyColors(DEFAULT_COLORS);
-        
+
         // Force page reload to apply server-side changes
         window.location.reload();
       } else {
         const errorData = await response.json();
-        console.error('Failed to reset theme:', errorData);
-        
+        console.error("Failed to reset theme:", errorData);
+
         // Show more user-friendly error message
-        const errorMessage = errorData.error || `HTTP ${response.status}: Unknown error`;
+        const errorMessage =
+          errorData.error || `HTTP ${response.status}: Unknown error`;
         alert(`Failed to reset theme: ${errorMessage}`);
       }
     } catch (error) {
-      console.error('Error resetting theme:', error);
-      alert('Failed to reset theme. Please try again.');
+      console.error("Error resetting theme:", error);
+      alert("Failed to reset theme. Please try again.");
     } finally {
       setIsApplying(false);
     }
@@ -400,8 +402,8 @@ export default function ThemeCustomizer() {
                     Venue Card Component
                   </h5>
                   <div className="max-w-sm">
-                    <VenueCard 
-                      venue={sampleVenue} 
+                    <VenueCard
+                      venue={sampleVenue}
                       onCardClick={() => {}} // Dummy function to enable full interactive layout
                     />
                   </div>
@@ -413,7 +415,7 @@ export default function ThemeCustomizer() {
                     Venue Hero Component
                   </h5>
                   <div className="w-full">
-                    <VenueHero 
+                    <VenueHero
                       venue={{
                         id: sampleVenue.id,
                         name: sampleVenue.name,
@@ -425,9 +427,11 @@ export default function ThemeCustomizer() {
                         country: sampleVenue.country,
                         brands: sampleVenue.brands || [],
                         ambiance: sampleVenue.ambiance || [],
-                        averageRating: (sampleVenue as any).averageRating || undefined,
-                        totalComments: (sampleVenue as any).totalComments || undefined,
-                        google_maps_url: sampleVenue.google_maps_url
+                        averageRating:
+                          (sampleVenue as any).averageRating || undefined,
+                        totalComments:
+                          (sampleVenue as any).totalComments || undefined,
+                        google_maps_url: sampleVenue.google_maps_url,
                       }}
                       isAdmin={true}
                     />
@@ -605,7 +609,14 @@ export default function ThemeCustomizer() {
             <div>Card: {colors.card}</div>
             <div>
               Text Accent:{" "}
-              <span style={{ color: colors.textAccent, backgroundColor: colors.primary, padding: '2px 4px', borderRadius: '2px' }}>
+              <span
+                style={{
+                  color: colors.textAccent,
+                  backgroundColor: colors.primary,
+                  padding: "2px 4px",
+                  borderRadius: "2px",
+                }}
+              >
                 {colors.textAccent}
               </span>
             </div>

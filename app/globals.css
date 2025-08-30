@@ -6,14 +6,14 @@
   .text-balance {
     text-wrap: balance;
   }
-  
+
   /* Hide scrollbars for horizontal gallery */
   .scrollbar-hide {
-    -ms-overflow-style: none;  /* Internet Explorer 10+ */
-    scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none; /* Internet Explorer 10+ */
+    scrollbar-width: none; /* Firefox */
   }
-  .scrollbar-hide::-webkit-scrollbar { 
-    display: none;  /* Safari and Chrome */
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none; /* Safari and Chrome */
   }
 
   /* Piscola brand accent utilities */
@@ -40,64 +40,64 @@
 @layer base {
   :root {
     /* Piscola logo colors: Red #d32117, Brown #301718 */
-    --background: 240 4% 96%;           /* Light gray page background #f4f5f7 */
-    --foreground: 357 35% 14%;          /* Logo brown #301718 */
-    --card: 0 0% 100%;                  /* White card background */
-    --card-foreground: 357 35% 14%;     /* Logo brown text */
-    --popover: 0 0% 100%;               /* White popover */
-    --popover-foreground: 357 35% 14%;  /* Logo brown text */
-    --primary: 5 82% 46%;               /* Logo red #d32117 */
-    --primary-foreground: 0 0% 100%;    /* White text on red */
-    --secondary: 357 20% 95%;           /* Light brown tint */
+    --background: 240 4% 96%; /* Light gray page background #f4f5f7 */
+    --foreground: 357 35% 14%; /* Logo brown #301718 */
+    --card: 0 0% 100%; /* White card background */
+    --card-foreground: 357 35% 14%; /* Logo brown text */
+    --popover: 0 0% 100%; /* White popover */
+    --popover-foreground: 357 35% 14%; /* Logo brown text */
+    --primary: 5 82% 46%; /* Logo red #d32117 */
+    --primary-foreground: 0 0% 100%; /* White text on red */
+    --secondary: 357 20% 95%; /* Light brown tint */
     --secondary-foreground: 357 35% 14%; /* Logo brown */
-    --muted: 357 10% 96%;               /* Very light brown tint */
-    --muted-foreground: 357 25% 45%;    /* Medium brown */
-    --accent: 5 82% 46%;                /* Logo red accent */
-    --accent-foreground: 0 0% 100%;     /* White text on red */
-    --destructive: 0 84% 60%;           /* Destructive red */
+    --muted: 357 10% 96%; /* Very light brown tint */
+    --muted-foreground: 357 25% 45%; /* Medium brown */
+    --accent: 5 82% 46%; /* Logo red accent */
+    --accent-foreground: 0 0% 100%; /* White text on red */
+    --destructive: 0 84% 60%; /* Destructive red */
     --destructive-foreground: 0 0% 98%; /* White text */
-    --border: 357 15% 85%;              /* Light brown border */
-    --input: 357 10% 96%;               /* Light brown input bg */
-    --ring: 5 82% 46%;                  /* Logo red focus ring */
-    --chart-1: 5 82% 46%;               /* Logo red */
-    --chart-2: 357 35% 14%;             /* Logo brown */
-    --chart-3: 5 60% 60%;               /* Lighter red */
-    --chart-4: 357 25% 35%;             /* Medium brown */
-    --chart-5: 15 45% 55%;              /* Warm brown-red */
+    --border: 357 15% 85%; /* Light brown border */
+    --input: 357 10% 96%; /* Light brown input bg */
+    --ring: 5 82% 46%; /* Logo red focus ring */
+    --chart-1: 5 82% 46%; /* Logo red */
+    --chart-2: 357 35% 14%; /* Logo brown */
+    --chart-3: 5 60% 60%; /* Lighter red */
+    --chart-4: 357 25% 35%; /* Medium brown */
+    --chart-5: 15 45% 55%; /* Warm brown-red */
     --radius: 0.5rem;
-    
+
     /* 🔧 Bebas Neue Heading Configuration - Change this value to adjust scaling */
     --heading-scale: 1.5; /* 150% scaling to compensate for Bebas Neue's smaller appearance */
-    
+
     /* 🎨 Font System - REMOVED: Now handled directly in tailwind.config.ts */
     /* --font-primary: var(--font-poppins); */
   }
   .dark {
     /* Dark mode using logo brown as base */
-    --background: 357 35% 8%;            /* Darker version of logo brown */
-    --foreground: 0 0% 98%;              /* White text */
-    --card: 357 30% 12%;                 /* Dark brown card */
-    --card-foreground: 0 0% 98%;         /* White text */
-    --popover: 357 30% 12%;              /* Dark brown popover */
-    --popover-foreground: 0 0% 98%;      /* White text */
-    --primary: 5 82% 46%;                /* Logo red (same as light) */
-    --primary-foreground: 0 0% 98%;      /* White text on red */
-    --secondary: 357 25% 18%;            /* Medium brown */
-    --secondary-foreground: 0 0% 98%;    /* White text */
-    --muted: 357 20% 15%;                /* Muted dark brown */
-    --muted-foreground: 357 10% 70%;     /* Light brown text */
-    --accent: 5 82% 46%;                 /* Logo red accent */
-    --accent-foreground: 0 0% 98%;       /* White text */
-    --destructive: 0 84% 60%;            /* Destructive red */
-    --destructive-foreground: 0 0% 98%;  /* White text */
-    --border: 357 20% 25%;               /* Medium brown border */
-    --input: 357 25% 18%;                /* Dark brown input */
-    --ring: 5 82% 46%;                   /* Logo red focus ring */
-    --chart-1: 5 82% 46%;                /* Logo red */
-    --chart-2: 357 35% 14%;              /* Logo brown */
-    --chart-3: 5 60% 60%;                /* Lighter red */
-    --chart-4: 357 25% 35%;              /* Medium brown */
-    --chart-5: 15 45% 55%;               /* Warm brown-red */
+    --background: 357 35% 8%; /* Darker version of logo brown */
+    --foreground: 0 0% 98%; /* White text */
+    --card: 357 30% 12%; /* Dark brown card */
+    --card-foreground: 0 0% 98%; /* White text */
+    --popover: 357 30% 12%; /* Dark brown popover */
+    --popover-foreground: 0 0% 98%; /* White text */
+    --primary: 5 82% 46%; /* Logo red (same as light) */
+    --primary-foreground: 0 0% 98%; /* White text on red */
+    --secondary: 357 25% 18%; /* Medium brown */
+    --secondary-foreground: 0 0% 98%; /* White text */
+    --muted: 357 20% 15%; /* Muted dark brown */
+    --muted-foreground: 357 10% 70%; /* Light brown text */
+    --accent: 5 82% 46%; /* Logo red accent */
+    --accent-foreground: 0 0% 98%; /* White text */
+    --destructive: 0 84% 60%; /* Destructive red */
+    --destructive-foreground: 0 0% 98%; /* White text */
+    --border: 357 20% 25%; /* Medium brown border */
+    --input: 357 25% 18%; /* Dark brown input */
+    --ring: 5 82% 46%; /* Logo red focus ring */
+    --chart-1: 5 82% 46%; /* Logo red */
+    --chart-2: 357 35% 14%; /* Logo brown */
+    --chart-3: 5 60% 60%; /* Lighter red */
+    --chart-4: 357 25% 35%; /* Medium brown */
+    --chart-5: 15 45% 55%; /* Warm brown-red */
   }
 }
 
@@ -108,75 +108,130 @@
   body {
     @apply bg-background text-foreground;
   }
-  
+
   /* 🎨 Bebas Neue Headings - Apply font and scaling */
-  h1, h2, h3, h4, h5, h6,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
   .font-heading {
     font-family: var(--font-bebas-neue), Arial, sans-serif !important;
     line-height: 1.1 !important;
     font-weight: 400 !important; /* Bebas Neue only has one weight */
   }
-  
+
   /* 📏 Proportional Scaling - Maintains heading hierarchy while scaling by --heading-scale */
   /* Base sizes are the standard browser defaults, scaled by the custom property */
-  h1 { 
-    font-size: calc(2em * var(--heading-scale)) !important; 
+  h1 {
+    font-size: calc(2em * var(--heading-scale)) !important;
   }
-  h2 { 
-    font-size: calc(1.5em * var(--heading-scale)) !important; 
+  h2 {
+    font-size: calc(1.5em * var(--heading-scale)) !important;
   }
-  h3 { 
-    font-size: calc(1.17em * var(--heading-scale)) !important; 
+  h3 {
+    font-size: calc(1.17em * var(--heading-scale)) !important;
   }
-  h4 { 
-    font-size: calc(1em * var(--heading-scale)) !important; 
+  h4 {
+    font-size: calc(1em * var(--heading-scale)) !important;
   }
-  h5 { 
-    font-size: calc(0.83em * var(--heading-scale)) !important; 
+  h5 {
+    font-size: calc(0.83em * var(--heading-scale)) !important;
   }
-  h6 { 
-    font-size: calc(0.67em * var(--heading-scale)) !important; 
+  h6 {
+    font-size: calc(0.67em * var(--heading-scale)) !important;
   }
-  
+
   /* 🎯 Tailwind Size Class Overrides - Scale common Tailwind text sizes */
   .font-heading.text-xs,
-  h1.text-xs, h2.text-xs, h3.text-xs, h4.text-xs, h5.text-xs, h6.text-xs { 
-    font-size: calc(0.75rem * var(--heading-scale)) !important; 
+  h1.text-xs,
+  h2.text-xs,
+  h3.text-xs,
+  h4.text-xs,
+  h5.text-xs,
+  h6.text-xs {
+    font-size: calc(0.75rem * var(--heading-scale)) !important;
   }
   .font-heading.text-sm,
-  h1.text-sm, h2.text-sm, h3.text-sm, h4.text-sm, h5.text-sm, h6.text-sm { 
-    font-size: calc(0.875rem * var(--heading-scale)) !important; 
+  h1.text-sm,
+  h2.text-sm,
+  h3.text-sm,
+  h4.text-sm,
+  h5.text-sm,
+  h6.text-sm {
+    font-size: calc(0.875rem * var(--heading-scale)) !important;
   }
   .font-heading.text-base,
-  h1.text-base, h2.text-base, h3.text-base, h4.text-base, h5.text-base, h6.text-base { 
-    font-size: calc(1rem * var(--heading-scale)) !important; 
+  h1.text-base,
+  h2.text-base,
+  h3.text-base,
+  h4.text-base,
+  h5.text-base,
+  h6.text-base {
+    font-size: calc(1rem * var(--heading-scale)) !important;
   }
   .font-heading.text-lg,
-  h1.text-lg, h2.text-lg, h3.text-lg, h4.text-lg, h5.text-lg, h6.text-lg { 
-    font-size: calc(1.125rem * var(--heading-scale)) !important; 
+  h1.text-lg,
+  h2.text-lg,
+  h3.text-lg,
+  h4.text-lg,
+  h5.text-lg,
+  h6.text-lg {
+    font-size: calc(1.125rem * var(--heading-scale)) !important;
   }
   .font-heading.text-xl,
-  h1.text-xl, h2.text-xl, h3.text-xl, h4.text-xl, h5.text-xl, h6.text-xl { 
-    font-size: calc(1.25rem * var(--heading-scale)) !important; 
+  h1.text-xl,
+  h2.text-xl,
+  h3.text-xl,
+  h4.text-xl,
+  h5.text-xl,
+  h6.text-xl {
+    font-size: calc(1.25rem * var(--heading-scale)) !important;
   }
   .font-heading.text-2xl,
-  h1.text-2xl, h2.text-2xl, h3.text-2xl, h4.text-2xl, h5.text-2xl, h6.text-2xl { 
-    font-size: calc(1.5rem * var(--heading-scale)) !important; 
+  h1.text-2xl,
+  h2.text-2xl,
+  h3.text-2xl,
+  h4.text-2xl,
+  h5.text-2xl,
+  h6.text-2xl {
+    font-size: calc(1.5rem * var(--heading-scale)) !important;
   }
   .font-heading.text-3xl,
-  h1.text-3xl, h2.text-3xl, h3.text-3xl, h4.text-3xl, h5.text-3xl, h6.text-3xl { 
-    font-size: calc(1.875rem * var(--heading-scale)) !important; 
+  h1.text-3xl,
+  h2.text-3xl,
+  h3.text-3xl,
+  h4.text-3xl,
+  h5.text-3xl,
+  h6.text-3xl {
+    font-size: calc(1.875rem * var(--heading-scale)) !important;
   }
   .font-heading.text-4xl,
-  h1.text-4xl, h2.text-4xl, h3.text-4xl, h4.text-4xl, h5.text-4xl, h6.text-4xl { 
-    font-size: calc(2.25rem * var(--heading-scale)) !important; 
+  h1.text-4xl,
+  h2.text-4xl,
+  h3.text-4xl,
+  h4.text-4xl,
+  h5.text-4xl,
+  h6.text-4xl {
+    font-size: calc(2.25rem * var(--heading-scale)) !important;
   }
   .font-heading.text-5xl,
-  h1.text-5xl, h2.text-5xl, h3.text-5xl, h4.text-5xl, h5.text-5xl, h6.text-5xl { 
-    font-size: calc(3rem * var(--heading-scale)) !important; 
+  h1.text-5xl,
+  h2.text-5xl,
+  h3.text-5xl,
+  h4.text-5xl,
+  h5.text-5xl,
+  h6.text-5xl {
+    font-size: calc(3rem * var(--heading-scale)) !important;
   }
   .font-heading.text-6xl,
-  h1.text-6xl, h2.text-6xl, h3.text-6xl, h4.text-6xl, h5.text-6xl, h6.text-6xl { 
-    font-size: calc(3.75rem * var(--heading-scale)) !important; 
+  h1.text-6xl,
+  h2.text-6xl,
+  h3.text-6xl,
+  h4.text-6xl,
+  h5.text-6xl,
+  h6.text-6xl {
+    font-size: calc(3.75rem * var(--heading-scale)) !important;
   }
 }

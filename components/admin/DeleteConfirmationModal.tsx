@@ -17,11 +17,11 @@ interface DeleteConfirmationModalProps {
   redirectAfterDelete?: string; // Optional redirect path after successful deletion
 }
 
-export default function DeleteConfirmationModal({ 
-  isOpen, 
-  onClose, 
+export default function DeleteConfirmationModal({
+  isOpen,
+  onClose,
   venue,
-  redirectAfterDelete 
+  redirectAfterDelete,
 }: DeleteConfirmationModalProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -41,7 +41,7 @@ export default function DeleteConfirmationModal({
         toast.success(result.message);
         onClose();
         setConfirmText(""); // Reset form
-        
+
         // Redirect if specified (e.g., from edit page back to admin)
         if (redirectAfterDelete) {
           router.push(redirectAfterDelete);
@@ -62,14 +62,14 @@ export default function DeleteConfirmationModal({
   const isConfirmValid = confirmText === venue.name;
 
   return (
-    <div 
-      className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" 
+    <div
+      className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
       onClick={handleClose}
     >
-      <div 
+      <div
         className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-auto transform transition-all duration-200 scale-100"
         onClick={(e) => e.stopPropagation()}
-        style={{ maxHeight: '80vh' }}
+        style={{ maxHeight: "80vh" }}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 rounded-t-2xl">
@@ -78,11 +78,15 @@ export default function DeleteConfirmationModal({
               <AlertTriangle className="h-5 w-5 text-red-600" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">Delete Venue</h3>
-              <p className="text-sm text-gray-500">This action cannot be undone</p>
+              <h3 className="text-lg font-semibold text-gray-900">
+                Delete Venue
+              </h3>
+              <p className="text-sm text-gray-500">
+                This action cannot be undone
+              </p>
             </div>
           </div>
-          <button 
+          <button
             onClick={handleClose}
             disabled={isPending}
             className="p-1 hover:bg-gray-100 rounded-full transition-colors disabled:opacity-50"
@@ -90,7 +94,7 @@ export default function DeleteConfirmationModal({
             <X className="w-5 h-5 text-gray-400" />
           </button>
         </div>
-        
+
         {/* Content */}
         <div className="p-6 space-y-4">
           {/* Warning Message */}

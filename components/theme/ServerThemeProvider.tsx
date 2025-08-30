@@ -13,35 +13,35 @@ export default async function ServerThemeProvider({
     background: "#f4f5f7",
     card: "#ffffff",
     textAccent: "#ffffff",
-    secondary: "#f5f2f2", 
+    secondary: "#f5f2f2",
     accent: "#d32117",
     muted: "#faf9f9",
-    border: "#e5dede"
+    border: "#e5dede",
   };
 
   try {
     const supabase = createClient();
-    
+
     // Try RPC function first
-    const { data: rpcData, error: rpcError } = await supabase
-      .rpc('get_active_theme');
-      
+    const { data: rpcData, error: rpcError } =
+      await supabase.rpc("get_active_theme");
+
     if (!rpcError && rpcData?.[0]?.colors) {
       themeColors = { ...themeColors, ...rpcData[0].colors };
     } else {
       // Fallback to table query
       const { data: tableData, error: tableError } = await supabase
-        .from('theme_settings')
-        .select('colors')
-        .eq('is_active', true)
+        .from("theme_settings")
+        .select("colors")
+        .eq("is_active", true)
         .single();
-        
+
       if (!tableError && tableData?.colors) {
         themeColors = { ...themeColors, ...tableData.colors };
       }
     }
   } catch (error) {
-    console.error('Failed to fetch server theme:', error);
+    console.error("Failed to fetch server theme:", error);
     // Continue with default colors - this is fine for fallback
   }
 

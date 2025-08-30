@@ -1,6 +1,7 @@
 # 🎨 Font System Guide
 
 **Piscola.net** uses a modern dual-font system:
+
 - **Primary font** (body text): [Hanken Grotesk](https://fonts.google.com/specimen/Hanken+Grotesk)
 - **Heading font**: [Bebas Neue](https://fonts.google.com/specimen/Bebas+Neue) (with 150% scaling)
 
@@ -13,7 +14,7 @@ Use the automated font switcher script:
 ```bash
 # Switch to any available font
 npm run switch-font poppins
-npm run switch-font inter  
+npm run switch-font inter
 npm run switch-font raleway
 # ... etc
 ```
@@ -25,12 +26,14 @@ The script automatically updates all necessary files and tells you to restart th
 If you prefer manual control, update **TWO files**:
 
 **Step 1** - Update `lib/fonts.ts`:
+
 ```typescript
 const CURRENT_FONT = "hankenGrotesk" as const;
 //                    ↑ Change this value!
 ```
 
 **Step 2** - Update `tailwind.config.ts`:
+
 ```typescript
 sans: [
   "var(--font-hanken-grotesk)", // ← Change this CSS variable
@@ -42,25 +45,27 @@ sans: [
 
 ## 📝 Available Primary Fonts
 
-| Font Name | TypeScript Value | CSS Variable | Description |
-|-----------|------------------|--------------|-------------|
+| Font Name          | TypeScript Value  | CSS Variable            | Description                                           |
+| ------------------ | ----------------- | ----------------------- | ----------------------------------------------------- |
 | **Hanken Grotesk** | `"hankenGrotesk"` | `--font-hanken-grotesk` | ✅ **Current** - Modern, clean, excellent readability |
-| **Geist** | `"geist"` | `--font-geist-sans` | Clean, modern, optimized for UI |
-| **Inter** | `"inter"` | `--font-inter` | Popular, excellent web readability |
-| **Raleway** | `"raleway"` | `--font-raleway` | Elegant, sophisticated |
-| **Poppins** | `"poppins"` | `--font-poppins` | Friendly, rounded |
-| **Open Sans** | `"openSans"` | `--font-open-sans` | Neutral, professional |
-| **Roboto** | `"roboto"` | `--font-roboto` | Google's Material Design font |
-| **Lato** | `"lato"` | `--font-lato` | Humanist, approachable |
+| **Geist**          | `"geist"`         | `--font-geist-sans`     | Clean, modern, optimized for UI                       |
+| **Inter**          | `"inter"`         | `--font-inter`          | Popular, excellent web readability                    |
+| **Raleway**        | `"raleway"`       | `--font-raleway`        | Elegant, sophisticated                                |
+| **Poppins**        | `"poppins"`       | `--font-poppins`        | Friendly, rounded                                     |
+| **Open Sans**      | `"openSans"`      | `--font-open-sans`      | Neutral, professional                                 |
+| **Roboto**         | `"roboto"`        | `--font-roboto`         | Google's Material Design font                         |
+| **Lato**           | `"lato"`          | `--font-lato`           | Humanist, approachable                                |
 
 ### Example: Switching to Inter
 
 **Step 1** - In `lib/fonts.ts`:
+
 ```typescript
 const CURRENT_FONT = "inter" as const;
 ```
 
 **Step 2** - In `app/globals.css`:
+
 ```css
 --font-primary: var(--font-inter); /* Currently: inter */
 ```
@@ -74,18 +79,20 @@ const CURRENT_FONT = "hankenGrotesk" as const;
 // Switch to Inter
 const CURRENT_FONT = "inter" as const;
 
-// Switch to Poppins  
+// Switch to Poppins
 const CURRENT_FONT = "poppins" as const;
 ```
 
 ## ➕ Adding New Google Fonts
 
 1. **Import** the font in `lib/fonts.ts`:
+
 ```typescript
 import { Your_Font_Name } from "next/font/google";
 ```
 
 2. **Configure** the font:
+
 ```typescript
 const yourFont = Your_Font_Name({
   subsets: ["latin"],
@@ -95,11 +102,22 @@ const yourFont = Your_Font_Name({
 ```
 
 3. **Add** to FontKeys type:
+
 ```typescript
-type FontKeys = "geist" | "inter" | "raleway" | "poppins" | "openSans" | "roboto" | "lato" | "hankenGrotesk" | "yourFont";
+type FontKeys =
+  | "geist"
+  | "inter"
+  | "raleway"
+  | "poppins"
+  | "openSans"
+  | "roboto"
+  | "lato"
+  | "hankenGrotesk"
+  | "yourFont";
 ```
 
 4. **Add** to font configs:
+
 ```typescript
 yourFont: {
   primary: yourFont,
@@ -111,12 +129,13 @@ yourFont: {
 ```
 
 5. **Update** Tailwind config (optional for primary use):
+
 ```typescript
 // In tailwind.config.ts
 sans: [
   "var(--font-your-font)",
   "ui-sans-serif",
-  "system-ui", 
+  "system-ui",
   "sans-serif",
 ],
 ```
@@ -124,11 +143,13 @@ sans: [
 ## 🎯 Font System Architecture
 
 ### **Dual-Font Design:**
+
 - **Primary Font**: Body text, buttons, UI elements
 - **Heading Font**: All h1-h6 elements with 150% scaling via CSS
 - **Monospace Font**: Code blocks, technical text (always Geist Mono)
 
 ### **How It Works:**
+
 1. **Dynamic Loading**: Only the selected primary font loads (tree-shaken)
 2. **CSS Variables**: Font changes propagate via CSS custom properties
 3. **Static Mapping**: `globals.css` maps `--font-primary` to the selected font variable

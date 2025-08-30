@@ -38,7 +38,10 @@ function formatDate(dateString: string): string {
   }
 }
 
-export default function OtherComments({ venueId, featuredVerificationId }: OtherCommentsProps) {
+export default function OtherComments({
+  venueId,
+  featuredVerificationId,
+}: OtherCommentsProps) {
   const [verifications, setVerifications] = useState<PiscoVerification[]>([]);
   const [pagination, setPagination] = useState<PaginationInfo | null>(null);
   const [loading, setLoading] = useState(true);
@@ -58,8 +61,10 @@ export default function OtherComments({ venueId, featuredVerificationId }: Other
         setLoading(true);
       }
 
-      const response = await fetch(`/api/venues/${venueId}/comments?page=${page}&pageSize=5`);
-      
+      const response = await fetch(
+        `/api/venues/${venueId}/comments?page=${page}&pageSize=5`
+      );
+
       if (!response.ok) {
         throw new Error("Failed to fetch comments");
       }
@@ -67,14 +72,13 @@ export default function OtherComments({ venueId, featuredVerificationId }: Other
       const data: CommentsResponse = await response.json();
 
       if (append) {
-        setVerifications(prev => [...prev, ...data.verifications]);
+        setVerifications((prev) => [...prev, ...data.verifications]);
       } else {
         setVerifications(data.verifications);
       }
-      
+
       setPagination(data.pagination);
       setError(null);
-
     } catch (err) {
       console.error("Error loading comments:", err);
       setError("Failed to load comments");
@@ -98,9 +102,7 @@ export default function OtherComments({ venueId, featuredVerificationId }: Other
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">
-          Other Comments
-        </CardTitle>
+        <CardTitle className="text-lg">Other Comments</CardTitle>
         <p className="text-sm text-muted-foreground">
           Additional insights from fellow pisco enthusiasts
         </p>
@@ -109,15 +111,17 @@ export default function OtherComments({ venueId, featuredVerificationId }: Other
         {loading ? (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-            <span className="ml-2 text-sm text-muted-foreground">Loading comments...</span>
+            <span className="ml-2 text-sm text-muted-foreground">
+              Loading comments...
+            </span>
           </div>
         ) : error ? (
           <div className="text-center py-8 text-muted-foreground">
             <HelpCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
             <p>{error}</p>
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => loadComments(1, false)}
               className="mt-4"
             >
@@ -129,13 +133,20 @@ export default function OtherComments({ venueId, featuredVerificationId }: Other
             {/* Regular Comments */}
             <div className="space-y-3">
               {verifications.map((verification) => (
-                <div key={verification.id} className="bg-foreground/5 border border-foreground/10 rounded-lg p-4">
+                <div
+                  key={verification.id}
+                  className="bg-foreground/5 border border-foreground/10 rounded-lg p-4"
+                >
                   <div className="text-sm text-foreground/80 italic mb-2">
                     "{verification.pisco_notes}"
                   </div>
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground">— {verification.verified_by}</span>
-                    <span className="text-muted-foreground/60">{formatDate(verification.created_at)}</span>
+                    <span className="text-muted-foreground">
+                      — {verification.verified_by}
+                    </span>
+                    <span className="text-muted-foreground/60">
+                      {formatDate(verification.created_at)}
+                    </span>
                   </div>
                 </div>
               ))}
@@ -165,7 +176,8 @@ export default function OtherComments({ venueId, featuredVerificationId }: Other
             {/* Comments count indicator */}
             {pagination && (
               <div className="text-center text-xs text-muted-foreground pt-2">
-                Showing {verifications.length} of {pagination.totalComments} comments
+                Showing {verifications.length} of {pagination.totalComments}{" "}
+                comments
               </div>
             )}
           </div>

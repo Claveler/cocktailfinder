@@ -1,7 +1,7 @@
 // Conditional import to avoid SSR issues
 const getLeaflet = () => {
-  if (typeof window !== 'undefined') {
-    return require('leaflet');
+  if (typeof window !== "undefined") {
+    return require("leaflet");
   }
   return null;
 };
@@ -32,26 +32,28 @@ export function calculateDistance(
   if (!L) {
     // Fallback to Haversine formula for SSR
     const R = 6371; // Earth's radius in kilometers
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLng = (lng2 - lng1) * Math.PI / 180;
-    const a = 
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-      Math.sin(dLng/2) * Math.sin(dLng/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLng = ((lng2 - lng1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLng / 2) *
+        Math.sin(dLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     const distance = R * c;
-    
+
     return Math.round(distance * 100) / 100;
   }
-  
+
   // Use Leaflet's built-in distanceTo method for accurate distance calculation
   const point1 = L.latLng(lat1, lng1);
   const point2 = L.latLng(lat2, lng2);
-  
+
   // distanceTo returns distance in meters, convert to kilometers
   const distanceInMeters = point1.distanceTo(point2);
   const distanceInKm = distanceInMeters / 1000;
-  
+
   return Math.round(distanceInKm * 100) / 100; // Round to 2 decimal places
 }
 
@@ -62,7 +64,9 @@ export function calculateDistance(
  * @param maxDistanceKm Maximum distance in kilometers
  * @returns Venues within the specified radius with distance added
  */
-export function filterVenuesByDistance<T extends { location: { lat: number; lng: number } | null }>(
+export function filterVenuesByDistance<
+  T extends { location: { lat: number; lng: number } | null },
+>(
   venues: T[],
   userLocation: { lat: number; lng: number },
   maxDistanceKm: number
@@ -92,7 +96,7 @@ function createLatLngBounds(bounds: MapBounds): any {
   if (!L) {
     return null; // Return null for SSR, fallback logic will handle this
   }
-  
+
   // Create bounds from southwest and northeast corners
   const southWest = L.latLng(bounds.south, bounds.west);
   const northEast = L.latLng(bounds.north, bounds.east);
@@ -102,7 +106,7 @@ function createLatLngBounds(bounds: MapBounds): any {
 /**
  * Check if a point is within the given map bounds using Leaflet's built-in contains method
  * @param lat Latitude of the point
- * @param lng Longitude of the point  
+ * @param lng Longitude of the point
  * @param bounds Map bounds object
  * @returns True if the point is within bounds
  */
@@ -114,16 +118,20 @@ export function isPointInBounds(
   const L = getLeaflet();
   if (!L) {
     // Fallback to simple bounds checking for SSR
-    const isInBounds = lat >= bounds.south && lat <= bounds.north && lng >= bounds.west && lng <= bounds.east;
+    const isInBounds =
+      lat >= bounds.south &&
+      lat <= bounds.north &&
+      lng >= bounds.west &&
+      lng <= bounds.east;
     return isInBounds;
   }
-  
+
   // Use Leaflet's built-in bounds checking for accuracy
   const leafletBounds = createLatLngBounds(bounds);
   const point = L.latLng(lat, lng);
-  
+
   const isInBounds = leafletBounds.contains(point);
-  
+
   return isInBounds;
 }
 
@@ -134,18 +142,18 @@ export function isPointInBounds(
  * @param mapCenter Center of the map for distance calculation
  * @returns Venues within the map bounds with distance from center
  */
-export function filterVenuesByBounds<T extends { location: { lat: number; lng: number } | null }>(
+export function filterVenuesByBounds<
+  T extends { location: { lat: number; lng: number } | null },
+>(
   venues: T[],
   bounds: MapBounds,
   mapCenter: { lat: number; lng: number }
 ): (T & { distance: number })[] {
   const venuesWithLocation = venues.filter((venue) => venue.location !== null);
-  const venuesInBounds = venuesWithLocation.filter((venue) => 
+  const venuesInBounds = venuesWithLocation.filter((venue) =>
     isPointInBounds(venue.location!.lat, venue.location!.lng, bounds)
   );
-  
 
-  
   return venuesInBounds
     .map((venue) => ({
       ...venue,
@@ -164,33 +172,33 @@ export function filterVenuesByBounds<T extends { location: { lat: number; lng: n
  * @returns Object with width and height in pixels
  */
 function getResponsiveViewportSize(): { width: number; height: number } {
-  if (typeof window === 'undefined') {
+  if (typeof window === "undefined") {
     // Server-side fallback
     return { width: 800, height: 400 };
   }
-  
+
   const screenWidth = window.innerWidth;
-  
+
   // Mobile: < 768px
   if (screenWidth < 768) {
-    return { 
+    return {
       width: Math.min(screenWidth - 32, 350), // Account for padding, max 350px
-      height: Math.min(screenWidth * 0.6, 250) // Aspect ratio friendly, max 250px
+      height: Math.min(screenWidth * 0.6, 250), // Aspect ratio friendly, max 250px
     };
   }
-  
-  // Tablet: 768px - 1024px  
+
+  // Tablet: 768px - 1024px
   if (screenWidth < 1024) {
-    return { 
-      width: Math.min(screenWidth * 0.7, 600), 
-      height: Math.min(screenWidth * 0.35, 350) 
+    return {
+      width: Math.min(screenWidth * 0.7, 600),
+      height: Math.min(screenWidth * 0.35, 350),
     };
   }
-  
+
   // Desktop: >= 1024px
-  return { 
-    width: Math.min(screenWidth * 0.6, 800), 
-    height: Math.min(screenWidth * 0.3, 400) 
+  return {
+    width: Math.min(screenWidth * 0.6, 800),
+    height: Math.min(screenWidth * 0.3, 400),
   };
 }
 
@@ -203,27 +211,25 @@ function getResponsiveViewportSize(): { width: number; height: number } {
  * @returns Approximate map bounds
  */
 export function calculateApproximateBounds(
-  center: [number, number], 
+  center: [number, number],
   zoom: number,
   customViewport?: { width: number; height: number }
 ): MapBounds {
   // Calculate degrees per pixel at this zoom level
   // This is an approximation based on Web Mercator projection
   const degreesPerPixel = 360 / (256 * Math.pow(2, zoom));
-  
+
   // Get responsive viewport size or use custom dimensions
   const viewport = customViewport || getResponsiveViewportSize();
-  
 
-  
   // Calculate half the viewport in degrees
   const halfWidthDegrees = (viewport.width / 2) * degreesPerPixel;
   const halfHeightDegrees = (viewport.height / 2) * degreesPerPixel;
-  
+
   // Adjust for latitude (Mercator projection distortion)
-  const latAdjustment = Math.cos(center[0] * Math.PI / 180);
+  const latAdjustment = Math.cos((center[0] * Math.PI) / 180);
   const adjustedHalfWidth = halfWidthDegrees / latAdjustment;
-  
+
   return {
     north: center[0] + halfHeightDegrees,
     south: center[0] - halfHeightDegrees,

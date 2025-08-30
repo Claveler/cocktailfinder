@@ -78,32 +78,34 @@ async function parseGoogleMapsUrlDirect(url: string): Promise<ParseResult> {
       // For now, continue with other methods but prioritize place-specific patterns
     }
 
-    let extractionMethod = 'unknown';
+    let extractionMethod = "unknown";
 
     // Extract venue name from place URLs first (independent of coordinates)
-    if (url.includes('/place/')) {
+    if (url.includes("/place/")) {
       const placeMatch = url.match(/\/place\/([^/@]+)/);
       if (placeMatch) {
-        venueName = decodeURIComponent(placeMatch[1]).replace(/\+/g, ' ');
+        venueName = decodeURIComponent(placeMatch[1]).replace(/\+/g, " ");
       }
     }
 
     // 1. HIGHEST PRIORITY: Search for !3d!4d precise coordinate patterns
     coordinates = extractPreciseCoordinates(url);
     if (coordinates) {
-      extractionMethod = 'precise_patterns(!3d!4d)';
+      extractionMethod = "precise_patterns(!3d!4d)";
     }
 
     // 2. MEDIUM PRIORITY: Extract place-specific @ coordinates (more reliable than general @)
-    if (!coordinates && url.includes('/place/')) {
-      const placeCoordinateMatch = url.match(/\/place\/[^/@]*\/@(-?\d+\.?\d*),(-?\d+\.?\d*),/);
+    if (!coordinates && url.includes("/place/")) {
+      const placeCoordinateMatch = url.match(
+        /\/place\/[^/@]*\/@(-?\d+\.?\d*),(-?\d+\.?\d*),/
+      );
       if (placeCoordinateMatch) {
         const lat = parseFloat(placeCoordinateMatch[1]);
         const lng = parseFloat(placeCoordinateMatch[2]);
 
         if (isValidCoordinate(lat, lng)) {
           coordinates = { lat, lng };
-          extractionMethod = 'place_url_coords(@pattern)';
+          extractionMethod = "place_url_coords(@pattern)";
         }
       }
     }
@@ -117,18 +119,21 @@ async function parseGoogleMapsUrlDirect(url: string): Promise<ParseResult> {
 
         if (isValidCoordinate(lat, lng)) {
           coordinates = { lat, lng };
-          extractionMethod = 'general_at_pattern(fallback)';
+          extractionMethod = "general_at_pattern(fallback)";
         }
       }
     }
 
     // Log extraction method for debugging
     if (coordinates) {
-      console.log(`[Maps] Coordinates extracted using method: ${extractionMethod}`, {
-        coordinates,
-        precision: coordinates.lat.toString().split('.')[1]?.length || 0,
-        url: url.substring(0, 100) + '...'
-      });
+      console.log(
+        `[Maps] Coordinates extracted using method: ${extractionMethod}`,
+        {
+          coordinates,
+          precision: coordinates.lat.toString().split(".")[1]?.length || 0,
+          url: url.substring(0, 100) + "...",
+        }
+      );
     }
 
     // 2. URLs with query parameters
@@ -176,7 +181,7 @@ async function parseGoogleMapsUrlDirect(url: string): Promise<ParseResult> {
 
     // First try to extract venue info directly from the URL
     const urlVenueInfo = extractVenueInfoFromUrl(url);
-    
+
     // Then get additional address information using reverse geocoding
     const geocodedInfo = await reverseGeocode(coordinates);
 
@@ -247,13 +252,13 @@ function extractPlaceId(url: string): string | undefined {
   try {
     // Extract place_id from query parameters
     const urlObj = new URL(url);
-    const placeId = urlObj.searchParams.get('place_id');
+    const placeId = urlObj.searchParams.get("place_id");
     if (placeId) {
       return placeId;
     }
 
     // Extract place_id from data parameter (often in shared URLs)
-    const dataParam = urlObj.searchParams.get('data');
+    const dataParam = urlObj.searchParams.get("data");
     if (dataParam) {
       const placeIdMatch = dataParam.match(/!3m1!1s([A-Za-z0-9_-]+)/);
       if (placeIdMatch) {
@@ -280,10 +285,12 @@ function extractPreciseCoordinates(url: string): Coordinates | undefined {
   try {
     // 1. Look for coordinates in data parameter (very precise)
     const urlObj = new URL(url);
-    const dataParam = urlObj.searchParams.get('data');
+    const dataParam = urlObj.searchParams.get("data");
     if (dataParam) {
       // Data parameter format: !4d[lng]!3d[lat] (very precise coordinates)
-      const preciseCoordMatch = dataParam.match(/!3d(-?\d+\.?\d*).*?!4d(-?\d+\.?\d*)/);
+      const preciseCoordMatch = dataParam.match(
+        /!3d(-?\d+\.?\d*).*?!4d(-?\d+\.?\d*)/
+      );
       if (preciseCoordMatch) {
         const lat = parseFloat(preciseCoordMatch[1]);
         const lng = parseFloat(preciseCoordMatch[2]);
@@ -294,7 +301,7 @@ function extractPreciseCoordinates(url: string): Coordinates | undefined {
     }
 
     // 2. Look for coordinates in ftid parameter (Feature ID coordinates)
-    const ftidParam = urlObj.searchParams.get('ftid');
+    const ftidParam = urlObj.searchParams.get("ftid");
     if (ftidParam) {
       const ftidCoordMatch = ftidParam.match(/(-?\d+\.?\d*),(-?\d+\.?\d*)/);
       if (ftidCoordMatch) {
@@ -328,7 +335,7 @@ function extractPreciseCoordinates(url: string): Coordinates | undefined {
     }
 
     // 5. Check for coordinates in query parameters with high precision
-    const qParam = urlObj.searchParams.get('q');
+    const qParam = urlObj.searchParams.get("q");
     if (qParam) {
       // Look for high-precision coordinates (more decimal places = more precise)
       const preciseQMatch = qParam.match(/(-?\d+\.\d{6,}),(-?\d+\.\d{6,})/);
@@ -361,25 +368,25 @@ function extractVenueInfoFromUrl(url: string): {
     // Format: /place/Venue+Name/or/Venue%20Name
     const placeMatch = url.match(/\/place\/([^/@?]+)/);
     let venueName: string | undefined;
-    
+
     if (placeMatch) {
       venueName = decodeURIComponent(placeMatch[1])
-        .replace(/\+/g, ' ')
-        .replace(/%20/g, ' ')
+        .replace(/\+/g, " ")
+        .replace(/%20/g, " ")
         .trim();
     }
 
     // 2. Extract address info from query parameters
     const urlObj = new URL(url);
     const qParam = urlObj.searchParams.get("q");
-    
+
     if (qParam && !qParam.match(/^-?\d+\.?\d*,-?\d+\.?\d*$/)) {
       // q parameter contains address/venue info, not just coordinates
       const addressInfo = parseAddressFromQuery(qParam);
       if (addressInfo.name && !venueName) {
         venueName = addressInfo.name;
       }
-      
+
       return {
         name: cleanVenueName(venueName),
         address: addressInfo.address,
@@ -391,7 +398,7 @@ function extractVenueInfoFromUrl(url: string): {
     // 4. Handle place_id or data parameters (share URLs)
     const placeId = urlObj.searchParams.get("place_id");
     const dataParam = urlObj.searchParams.get("data");
-    
+
     if (dataParam) {
       // Data parameter often contains venue information
       try {
@@ -416,9 +423,12 @@ function extractVenueInfoFromUrl(url: string): {
     // 3. Extract from search queries in the URL
     const searchMatch = url.match(/\/search\/([^/@?]+)/);
     if (searchMatch) {
-      const searchQuery = decodeURIComponent(searchMatch[1]).replace(/\+/g, ' ');
+      const searchQuery = decodeURIComponent(searchMatch[1]).replace(
+        /\+/g,
+        " "
+      );
       const addressInfo = parseAddressFromQuery(searchQuery);
-      
+
       return {
         name: cleanVenueName(venueName || addressInfo.name),
         address: addressInfo.address,
@@ -438,23 +448,23 @@ function extractVenueInfoFromUrl(url: string): {
  */
 function cleanVenueName(name?: string): string | undefined {
   if (!name) return undefined;
-  
+
   // Remove common suffixes and prefixes that Google Maps adds
   const cleanedName = name
-    .replace(/\s*-\s*Google\s*Maps?$/i, '')
-    .replace(/^Google\s*Maps?\s*-\s*/i, '')
-    .replace(/\s*\|\s*Google\s*Maps?$/i, '')
-    .replace(/\s*·\s*Google\s*Maps?$/i, '')
-    .replace(/\s*@\s*Google\s*Maps?$/i, '')
-    .replace(/\s*\([^)]*reviews?\)[^)]*$/i, '') // Remove review counts like "(123 reviews)"
-    .replace(/\s*\d+\.\d+\s*★[^★]*$/i, '') // Remove ratings like "4.5 ★★★★☆"
-    .replace(/\s*\d+\.\d+\/5\s*$/i, '') // Remove ratings like "4.5/5"
-    .replace(/\s*\d+\s*reviews?\s*$/i, '') // Remove review counts
-    .replace(/\s*·.*$/, '') // Remove everything after middle dot
-    .replace(/\s*\|.*$/, '') // Remove everything after pipe
-    .replace(/\s*-\s*.*$/, '') // Remove everything after dash (if it looks like suffix)
+    .replace(/\s*-\s*Google\s*Maps?$/i, "")
+    .replace(/^Google\s*Maps?\s*-\s*/i, "")
+    .replace(/\s*\|\s*Google\s*Maps?$/i, "")
+    .replace(/\s*·\s*Google\s*Maps?$/i, "")
+    .replace(/\s*@\s*Google\s*Maps?$/i, "")
+    .replace(/\s*\([^)]*reviews?\)[^)]*$/i, "") // Remove review counts like "(123 reviews)"
+    .replace(/\s*\d+\.\d+\s*★[^★]*$/i, "") // Remove ratings like "4.5 ★★★★☆"
+    .replace(/\s*\d+\.\d+\/5\s*$/i, "") // Remove ratings like "4.5/5"
+    .replace(/\s*\d+\s*reviews?\s*$/i, "") // Remove review counts
+    .replace(/\s*·.*$/, "") // Remove everything after middle dot
+    .replace(/\s*\|.*$/, "") // Remove everything after pipe
+    .replace(/\s*-\s*.*$/, "") // Remove everything after dash (if it looks like suffix)
     .trim();
-  
+
   return cleanedName || undefined;
 }
 
@@ -467,24 +477,34 @@ function parseAddressFromQuery(query: string): {
   city?: string;
   country?: string;
 } {
-  const parts = query.split(',').map(part => part.trim());
-  
+  const parts = query.split(",").map((part) => part.trim());
+
   if (parts.length === 1) {
     // Single part could be venue name
     return { name: parts[0] };
   }
-  
+
   if (parts.length >= 2) {
     // Multiple parts likely represent: [venue/address], [city], [country]
     const lastPart = parts[parts.length - 1];
-    const secondLastPart = parts.length > 2 ? parts[parts.length - 2] : undefined;
-    
+    const secondLastPart =
+      parts.length > 2 ? parts[parts.length - 2] : undefined;
+
     // Detect common country names
-    const commonCountries = ['Chile', 'Spain', 'UK', 'USA', 'United States', 'Argentina', 'Peru', 'Bolivia'];
-    const isCountry = commonCountries.some(country => 
+    const commonCountries = [
+      "Chile",
+      "Spain",
+      "UK",
+      "USA",
+      "United States",
+      "Argentina",
+      "Peru",
+      "Bolivia",
+    ];
+    const isCountry = commonCountries.some((country) =>
       lastPart.toLowerCase().includes(country.toLowerCase())
     );
-    
+
     if (isCountry) {
       return {
         name: parts.length > 2 ? parts[0] : undefined,
@@ -501,7 +521,7 @@ function parseAddressFromQuery(query: string): {
       };
     }
   }
-  
+
   return {};
 }
 
@@ -538,7 +558,7 @@ async function tryNominatimGeocoding(coordinates: Coordinates): Promise<{
       `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1&zoom=18`,
       {
         headers: {
-          'User-Agent': 'Piscola.net venue submission',
+          "User-Agent": "Piscola.net venue submission",
         },
       }
     );
@@ -548,13 +568,13 @@ async function tryNominatimGeocoding(coordinates: Coordinates): Promise<{
     }
 
     const data = await response.json();
-    
+
     if (data.address) {
       const addr = data.address;
-      
+
       // Build address string from components with improved logic
       const addressParts = [];
-      
+
       // Add house number and road (most specific first)
       if (addr.house_number) addressParts.push(addr.house_number);
       if (addr.road) {
@@ -564,7 +584,7 @@ async function tryNominatimGeocoding(coordinates: Coordinates): Promise<{
       } else if (addr.footway) {
         addressParts.push(addr.footway);
       }
-      
+
       // If no road, try other location indicators
       if (addressParts.length === 0 || addressParts.length === 1) {
         if (addr.amenity) addressParts.push(addr.amenity);
@@ -573,30 +593,32 @@ async function tryNominatimGeocoding(coordinates: Coordinates): Promise<{
         if (addr.suburb) addressParts.push(addr.suburb);
         if (addr.commercial) addressParts.push(addr.commercial);
       }
-      
-      const address = addressParts.join(' ') || data.display_name?.split(',')[0];
-      
+
+      const address =
+        addressParts.join(" ") || data.display_name?.split(",")[0];
+
       // Determine city with improved priority
-      const city = addr.city || 
-                   addr.town || 
-                   addr.municipality || 
-                   addr.borough ||
-                   addr.district ||
-                   addr.village || 
-                   addr.hamlet ||
-                   addr.county ||
-                   addr.state_district;
-      
+      const city =
+        addr.city ||
+        addr.town ||
+        addr.municipality ||
+        addr.borough ||
+        addr.district ||
+        addr.village ||
+        addr.hamlet ||
+        addr.county ||
+        addr.state_district;
+
       // Determine country
       const country = addr.country;
-      
+
       return {
         address: address || undefined,
         city: city || undefined,
         country: country || undefined,
       };
     }
-    
+
     return {};
   } catch {
     return {};
@@ -617,7 +639,7 @@ async function tryAlternativeGeocoding(coordinates: Coordinates): Promise<{
       `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`,
       {
         headers: {
-          'User-Agent': 'Piscola.net venue submission',
+          "User-Agent": "Piscola.net venue submission",
         },
       }
     );
@@ -627,14 +649,14 @@ async function tryAlternativeGeocoding(coordinates: Coordinates): Promise<{
     }
 
     const data = await response.json();
-    
+
     // Build address from components
     const addressParts = [];
     if (data.streetNumber) addressParts.push(data.streetNumber);
     if (data.streetName) addressParts.push(data.streetName);
-    
-    const address = addressParts.join(' ') || data.locality;
-    
+
+    const address = addressParts.join(" ") || data.locality;
+
     return {
       address: address || undefined,
       city: data.city || data.locality || undefined,

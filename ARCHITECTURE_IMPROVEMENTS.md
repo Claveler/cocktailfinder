@@ -3,18 +3,21 @@
 ## Current Issues
 
 ### 1. 🚨 Code Duplication Crisis
-- **3 copies** of `fetchVerificationStats()` 
+
+- **3 copies** of `fetchVerificationStats()`
 - **2 copies** of `getVenuesForLocationFiltering()`
 - **3 copies** of featured verification fetching logic
 - **Result**: Bug we just fixed (missing featured verification on landing page)
 
 ### 2. 🐌 Performance Problems
+
 - **N+1 Query Problem**: Separate queries for venues, verification stats, featured verifications
 - **Missing Database Indexes**: No indexes on `featured_verification_id`
 - **No Caching**: Repeated queries for same data
 - **Inefficient Joins**: Multiple round trips instead of single optimized query
 
 ### 3. 🎯 Type Safety Issues
+
 - `any` types everywhere instead of proper interfaces
 - No validation of featured verification existence
 - Missing error boundaries for partial failures
@@ -22,6 +25,7 @@
 ## 🎯 Proposed Solution
 
 ### 1. Consolidate Data Layer
+
 ```typescript
 // lib/venues/repository.ts
 interface VenueQueryOptions {
@@ -39,6 +43,7 @@ export async function queryVenues(options: VenueQueryOptions) {
 ```
 
 ### 2. Database Optimization
+
 ```sql
 -- Add missing indexes
 CREATE INDEX idx_venues_featured_verification ON venues(featured_verification_id);
@@ -46,7 +51,7 @@ CREATE INDEX idx_pisco_verifications_venue_id ON pisco_verifications(venue_id);
 
 -- Optimized view for venue cards
 CREATE VIEW venue_cards_optimized AS
-SELECT 
+SELECT
   v.*,
   fv.pisco_notes as featured_notes,
   fv.verified_by as featured_verifier,
@@ -60,6 +65,7 @@ LEFT JOIN venue_verification_stats vs ON v.id = vs.venue_id;
 ```
 
 ### 3. Proper TypeScript Interfaces
+
 ```typescript
 // lib/venues/types.ts
 interface VenueWithFeaturedVerification extends Venue {
@@ -77,30 +83,34 @@ interface VenueWithFeaturedVerification extends Venue {
 ```
 
 ### 4. Caching Strategy
+
 ```typescript
 // lib/venues/cache.ts
 export const venueCache = {
   // Redis/Memory cache for frequently accessed venues
   // Invalidate on venue updates
   // Cache featured verifications separately
-}
+};
 ```
 
 ## 🎯 Implementation Priority
 
 ### Phase 1: Critical (Fix Duplication)
-1. ✅ Create `lib/venues/repository.ts` 
+
+1. ✅ Create `lib/venues/repository.ts`
 2. ✅ Consolidate all venue fetching into single function
 3. ✅ Update all pages to use consolidated function
 4. ✅ Remove duplicate code
 
-### Phase 2: Performance (Database Optimization) 
+### Phase 2: Performance (Database Optimization)
+
 1. 🔄 Add database indexes
 2. 🔄 Create optimized view
 3. 🔄 Implement single-query fetching
 4. 🔄 Add caching layer
 
 ### Phase 3: Polish (Type Safety)
+
 1. ⏳ Add proper TypeScript interfaces
 2. ⏳ Add error boundaries
 3. ⏳ Add validation
@@ -109,16 +119,19 @@ export const venueCache = {
 ## 🎯 Expected Benefits
 
 ### Performance
+
 - **~60% fewer database queries** (from 3-4 queries to 1)
 - **~40% faster page loads** (especially venue cards)
 - **Better caching** (single cache key per venue)
 
-### Maintainability  
+### Maintainability
+
 - **No more duplicate code** (single source of truth)
 - **Easier testing** (single function to test)
 - **Safer updates** (change once, apply everywhere)
 
 ### Type Safety
+
 - **Compile-time error detection**
 - **Better IDE support** (autocomplete, refactoring)
 - **Runtime validation** of data integrity

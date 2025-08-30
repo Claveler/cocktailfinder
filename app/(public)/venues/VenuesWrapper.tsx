@@ -25,11 +25,17 @@ export default function VenuesWrapper({
   filters,
   initialCenter,
 }: VenuesWrapperProps) {
-  const [searchLocation, setSearchLocation] = useState<[number, number] | null>(null);
+  const [searchLocation, setSearchLocation] = useState<[number, number] | null>(
+    null
+  );
 
-  const handleLocationFound = (coordinates: [number, number], locationName: string, venueId?: string) => {
+  const handleLocationFound = (
+    coordinates: [number, number],
+    locationName: string,
+    venueId?: string
+  ) => {
     setSearchLocation(coordinates);
-    
+
     // Note: VenuesWrapper doesn't currently support venue focusing
     // When a venue is selected, we center the map but don't focus on the specific venue
     // This could be enhanced in the future if needed
@@ -52,7 +58,7 @@ export default function VenuesWrapper({
 
       {/* Desktop: Interactive Venues and Map */}
       <div className="hidden lg:block">
-        <div style={{ paddingTop: 'calc(2rem)' }}>
+        <div style={{ paddingTop: "calc(2rem)" }}>
           {venueData.venues.length === 0 ? (
             <div className="p-12 text-center">
               <h3 className="text-lg font-semibold mb-2">No venues found</h3>

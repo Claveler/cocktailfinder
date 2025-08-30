@@ -9,9 +9,9 @@ const InteractiveMap = dynamic(() => import("./InteractiveMap"), {
   loading: () => {
     // Get the same height configuration as the actual map
     const mapHeightVh = Number(process.env.NEXT_PUBLIC_MAP_HEIGHT_VH) || 42.86;
-    
+
     return (
-      <div 
+      <div
         className="w-full h-full !rounded-none md:!rounded-xl overflow-hidden relative border-0 md:border flex items-center justify-center bg-gray-100"
         style={{ height: "100%" }}
       >

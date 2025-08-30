@@ -11,7 +11,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate that it's a Google Maps URL
-    const isGoogleMapsUrl = GOOGLE_MAPS_URL_PATTERNS.some((pattern) => pattern.test(url));
+    const isGoogleMapsUrl = GOOGLE_MAPS_URL_PATTERNS.some((pattern) =>
+      pattern.test(url)
+    );
 
     if (!isGoogleMapsUrl) {
       return NextResponse.json(

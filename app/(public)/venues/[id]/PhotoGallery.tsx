@@ -231,10 +231,10 @@ export default function PhotoGallery({
           <div
             ref={scrollContainerRef}
             className="flex gap-1 md:gap-4 overflow-x-auto scrollbar-hide w-full h-full md:cursor-grab select-none snap-x snap-mandatory"
-            style={{ 
+            style={{
               cursor: isDragging ? "grabbing" : "grab",
               // Always 25px padding to show hints
-              paddingRight: photos.length > 1 ? "25px" : "0"
+              paddingRight: photos.length > 1 ? "25px" : "0",
             }}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
@@ -246,19 +246,19 @@ export default function PhotoGallery({
             {photos.map((photo, index) => {
               const isLastPhoto = index === photos.length - 1;
               const isMultiplePhotos = photos.length > 1;
-              
+
               return (
                 <div
                   key={index}
                   className="flex-shrink-0 h-full bg-gray-100 md:rounded-lg overflow-hidden group relative snap-start"
                   style={{
                     // All photos same width - this creates the hint effect naturally
-                    width: isMultiplePhotos 
+                    width: isMultiplePhotos
                       ? "calc(100% - 25px - 0.25rem)" // All photos leave 25px space for hint
                       : "100%", // Single photos take full width
                     aspectRatio: "4/3",
                     // Last photo snaps to end to show previous photo hint on left
-                    scrollSnapAlign: isLastPhoto ? "end" : "start"
+                    scrollSnapAlign: isLastPhoto ? "end" : "start",
                   }}
                 >
                   <a
@@ -286,7 +286,9 @@ export default function PhotoGallery({
           <div className="flex items-center gap-2 mt-2">
             <p className="text-xs text-muted-foreground">
               <span className="md:hidden">Swipe to see all photos</span>
-              <span className="hidden md:inline">Use arrows or scroll horizontally to see all photos</span>
+              <span className="hidden md:inline">
+                Use arrows or scroll horizontally to see all photos
+              </span>
             </p>
           </div>
         )}

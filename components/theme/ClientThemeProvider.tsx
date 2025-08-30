@@ -81,10 +81,7 @@ export default function ClientThemeProvider({
 
       // Card colors (now separate from background)
       root.style.setProperty("--card", hexToHsl(colors.card));
-      root.style.setProperty(
-        "--card-foreground",
-        hexToHsl(colors.foreground)
-      );
+      root.style.setProperty("--card-foreground", hexToHsl(colors.foreground));
 
       // Popover colors (use card color for consistency)
       root.style.setProperty("--popover", hexToHsl(colors.card));
@@ -106,19 +103,16 @@ export default function ClientThemeProvider({
         "--accent-foreground",
         hexToHsl(colors.textAccent)
       );
-      root.style.setProperty(
-        "--muted-foreground",
-        hexToHsl(colors.foreground)
-      );
+      root.style.setProperty("--muted-foreground", hexToHsl(colors.foreground));
     };
 
     // Load saved colors on app start
     const savedColors = localStorage.getItem("piscola-theme-colors");
-    
+
     if (savedColors) {
       try {
         const parsed = JSON.parse(savedColors);
-        
+
         // Handle backward compatibility for new color properties
         const colors: ColorConfig = {
           ...DEFAULT_COLORS,
@@ -128,7 +122,7 @@ export default function ClientThemeProvider({
           // If textAccent doesn't exist, use default white
           textAccent: parsed.textAccent || DEFAULT_COLORS.textAccent,
         };
-        
+
         applyThemeColors(colors);
       } catch (error) {
         console.error("Error loading saved theme colors:", error);

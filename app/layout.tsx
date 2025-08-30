@@ -11,9 +11,9 @@ export const metadata: Metadata = {
   title: "Piscola.net",
   description: "Find the best venues to enjoy Piscola in your city",
   icons: {
-    icon: '/favicon.png',
-    shortcut: '/favicon.png',
-    apple: '/favicon.png',
+    icon: "/favicon.png",
+    shortcut: "/favicon.png",
+    apple: "/favicon.png",
   },
 };
 

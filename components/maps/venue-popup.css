@@ -48,24 +48,26 @@
 
 /* Specific button styling for venue popups - using theme colors */
 .venue-popup-primary-btn {
-  background-color: hsl(var(--primary)) !important;  /* Theme primary color */
+  background-color: hsl(var(--primary)) !important; /* Theme primary color */
   color: hsl(var(--primary-foreground)) !important;
   border-color: hsl(var(--primary)) !important;
 }
 
 .venue-popup-primary-btn:hover {
-  background-color: hsl(var(--primary) / 0.9) !important;  /* Slightly darker primary */
+  background-color: hsl(
+    var(--primary) / 0.9
+  ) !important; /* Slightly darker primary */
   color: hsl(var(--primary-foreground)) !important;
 }
 
 .venue-popup-outline-btn {
   background-color: transparent !important;
-  color: hsl(var(--foreground)) !important;  /* Theme foreground color */
-  border-color: hsl(var(--border)) !important;  /* Theme border color */
+  color: hsl(var(--foreground)) !important; /* Theme foreground color */
+  border-color: hsl(var(--border)) !important; /* Theme border color */
 }
 
 .venue-popup-outline-btn:hover {
-  background-color: hsl(var(--muted)) !important;  /* Theme muted background */
+  background-color: hsl(var(--muted)) !important; /* Theme muted background */
   color: hsl(var(--foreground)) !important;
 }
 
@@ -107,20 +109,20 @@
 }
 
 .marker-cluster-small {
-  background-color: hsl(var(--primary));  /* Theme primary color */
+  background-color: hsl(var(--primary)); /* Theme primary color */
   width: 40px;
   height: 40px;
 }
 
 .marker-cluster-medium {
-  background-color: hsl(var(--primary) / 0.9);  /* Slightly darker primary */
+  background-color: hsl(var(--primary) / 0.9); /* Slightly darker primary */
   width: 45px;
   height: 45px;
   font-size: 15px;
 }
 
 .marker-cluster-large {
-  background-color: hsl(var(--primary) / 0.8);  /* Even darker primary */
+  background-color: hsl(var(--primary) / 0.8); /* Even darker primary */
   width: 50px;
   height: 50px;
   font-size: 16px;
@@ -136,4 +138,3 @@
   width: 100%;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
 }
-

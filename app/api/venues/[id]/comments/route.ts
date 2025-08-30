@@ -11,8 +11,10 @@ export async function GET(
   try {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get("page") || "1");
-    const pageSize = parseInt(searchParams.get("pageSize") || COMMENTS_PER_PAGE.toString());
-    
+    const pageSize = parseInt(
+      searchParams.get("pageSize") || COMMENTS_PER_PAGE.toString()
+    );
+
     if (page < 1 || pageSize < 1 || pageSize > 50) {
       return NextResponse.json(
         { error: "Invalid pagination parameters" },
@@ -31,10 +33,7 @@ export async function GET(
       .single();
 
     if (venueError || !venue) {
-      return NextResponse.json(
-        { error: "Venue not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Venue not found" }, { status: 404 });
     }
 
     // Calculate pagination offset
@@ -56,10 +55,17 @@ export async function GET(
       query = query.neq("id", venue.featured_verification_id);
     }
 
-    const { data: verifications, error: verificationsError, count } = await query;
+    const {
+      data: verifications,
+      error: verificationsError,
+      count,
+    } = await query;
 
     if (verificationsError) {
-      console.error("Error fetching paginated verifications:", verificationsError);
+      console.error(
+        "Error fetching paginated verifications:",
+        verificationsError
+      );
       return NextResponse.json(
         { error: "Failed to fetch comments" },
         { status: 500 }
@@ -82,7 +88,6 @@ export async function GET(
         hasPreviousPage,
       },
     });
-
   } catch (error) {
     console.error("Error in paginated comments API:", error);
     return NextResponse.json(

@@ -30,7 +30,7 @@ export default function ShareButton({ venue, className }: ShareButtonProps) {
         await navigator.share(shareData);
       } catch (error) {
         // User cancelled sharing or error occurred
-        console.log('Sharing cancelled or failed');
+        console.log("Sharing cancelled or failed");
       }
     } else {
       // Fallback: Copy to clipboard
@@ -40,15 +40,15 @@ export default function ShareButton({ venue, className }: ShareButtonProps) {
         setTimeout(() => setCopied(false), 2000);
       } catch (error) {
         // Fallback for older browsers
-        const textArea = document.createElement('textarea');
+        const textArea = document.createElement("textarea");
         textArea.value = url;
-        textArea.style.position = 'fixed';
-        textArea.style.left = '-999999px';
-        textArea.style.top = '-999999px';
+        textArea.style.position = "fixed";
+        textArea.style.left = "-999999px";
+        textArea.style.top = "-999999px";
         document.body.appendChild(textArea);
         textArea.focus();
         textArea.select();
-        document.execCommand('copy');
+        document.execCommand("copy");
         textArea.remove();
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
@@ -57,15 +57,17 @@ export default function ShareButton({ venue, className }: ShareButtonProps) {
   };
 
   return (
-    <Button 
-      onClick={handleShare} 
-      variant="outline" 
+    <Button
+      onClick={handleShare}
+      variant="outline"
       size="sm"
-      className={`flex items-center gap-2 ${className || ''}`}
+      className={`flex items-center gap-2 ${className || ""}`}
     >
       {copied ? (
         <>
-          <Check className={`h-3 w-3 md:h-4 md:w-4 ${className?.includes('text-white') ? 'text-green-300' : 'text-green-600'}`} />
+          <Check
+            className={`h-3 w-3 md:h-4 md:w-4 ${className?.includes("text-white") ? "text-green-300" : "text-green-600"}`}
+          />
           <span className="hidden md:inline">Copied!</span>
           <span className="md:hidden">Copied</span>
         </>

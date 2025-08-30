@@ -73,7 +73,10 @@ export async function deleteVenue(venueId: string) {
     revalidatePath("/venues");
     revalidatePath("/");
 
-    return { success: true, message: "Venue and all related data deleted successfully" };
+    return {
+      success: true,
+      message: "Venue and all related data deleted successfully",
+    };
   } catch (error) {
     console.error("Error deleting venue:", error);
     return { success: false, error: "Failed to delete venue" };

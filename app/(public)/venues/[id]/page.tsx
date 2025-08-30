@@ -56,7 +56,6 @@ function VenueDetailSkeleton() {
   );
 }
 
-
 // Pisco status helper functions
 function getPiscoStatusIcon(status: string) {
   switch (status) {
@@ -86,13 +85,11 @@ function getPiscoStatusText(status: string) {
 
 function formatDate(date: string) {
   const d = new Date(date);
-  const day = d.getDate().toString().padStart(2, '0');
-  const month = d.toLocaleDateString('en-US', { month: 'short' });
+  const day = d.getDate().toString().padStart(2, "0");
+  const month = d.toLocaleDateString("en-US", { month: "short" });
   const year = d.getFullYear();
   return `${day}/${month}/${year}`;
 }
-
-
 
 export default async function VenuePage({ params }: VenuePageProps) {
   // Get current user for access control
@@ -120,14 +117,12 @@ export default async function VenuePage({ params }: VenuePageProps) {
     notFound();
   }
 
-
-
   return (
     <div className="min-h-screen bg-muted/30 md:bg-background">
       {/* Container matching landing page */}
       <div className="container mx-auto px-4">
         {/* Enhanced Hero Component with Extension Table */}
-        <VenueHero 
+        <VenueHero
           venue={{
             id: venue.id,
             name: venue.name,
@@ -141,7 +136,7 @@ export default async function VenuePage({ params }: VenuePageProps) {
             ambiance: venue.ambiance,
             averageRating: venue.averageRating || undefined,
             totalComments: venue.totalComments || undefined,
-            google_maps_url: venue.google_maps_url
+            google_maps_url: venue.google_maps_url,
           }}
           isAdmin={isAdmin}
         />
@@ -150,7 +145,6 @@ export default async function VenuePage({ params }: VenuePageProps) {
           <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
             {/* Main Content */}
             <div className="lg:col-span-2 space-y-4 md:space-y-6">
-              
               {/* Community Pisco Insights - Now Primary */}
               <Card className="relative z-0">
                 <CardHeader className="pb-4">
@@ -159,22 +153,25 @@ export default async function VenuePage({ params }: VenuePageProps) {
                     Piscoleros Say...
                   </CardTitle>
                   <p className="text-sm text-muted-foreground mt-2">
-                    Real information from fellow pisco enthusiasts who've visited this venue
+                    Real information from fellow pisco enthusiasts who've
+                    visited this venue
                   </p>
                 </CardHeader>
                 <CardContent>
-              {/* Current Pisco Status */}
-              <div className="space-y-4">
-                {/* Pisco Status & Community Trust - Same Line */}
-                <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
-                  {/* Pisco Status */}
-                  <div className="flex items-center gap-3">
-                    {getPiscoStatusIcon(venue.pisco_status)}
-                    <h3 className="font-semibold">{getPiscoStatusText(venue.pisco_status)}</h3>
-                  </div>
+                  {/* Current Pisco Status */}
+                  <div className="space-y-4">
+                    {/* Pisco Status & Community Trust - Same Line */}
+                    <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                      {/* Pisco Status */}
+                      <div className="flex items-center gap-3">
+                        {getPiscoStatusIcon(venue.pisco_status)}
+                        <h3 className="font-semibold">
+                          {getPiscoStatusText(venue.pisco_status)}
+                        </h3>
+                      </div>
 
-                  {/* Community Trust Score */}
-                  {/* <div className="text-sm">
+                      {/* Community Trust Score */}
+                      {/* <div className="text-sm">
                     {(venue.total_verifications ?? 0) > 0 ? (
                       <span className="font-medium text-emerald-600">
                         {Math.round(((venue.positive_verifications || 0) / (venue.total_verifications || 1)) * 100)}% verified
@@ -183,140 +180,152 @@ export default async function VenuePage({ params }: VenuePageProps) {
                       <span className="text-muted-foreground">Not verified yet</span>
                     )}
                   </div> */}
-                </div>
-
-                {/* Verification Details - Enhanced with icons and explanations */}
-                {(venue.unique_verifiers ?? 0) > 0 && venue.last_verified && (
-                  <div className="p-4 bg-muted/30 rounded-lg">
-                    {/* Mobile: Three rows layout */}
-                    <div className="grid grid-cols-1 gap-4 md:hidden">
-                      {/* Community Verifiers */}
-                      <div className="flex items-center gap-3 text-sm">
-                        <Users className="h-4 w-4 text-muted-foreground" />
-                        <div>
-                          <div className="font-medium text-foreground">
-                            {venue.unique_verifiers} {venue.unique_verifiers === 1 ? 'Verifier' : 'Verifiers'}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            Community members who verified
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Verification Success Rate */}
-                      <div className="flex items-center gap-3 text-sm">
-                        <Shield className="h-4 w-4 text-emerald-600" />
-                        <div>
-                          <div className="font-medium text-emerald-600">
-                            {(venue.total_verifications ?? 0) > 0 ? 
-                              `${Math.round(((venue.positive_verifications || 0) / (venue.total_verifications || 1)) * 100)}% Verified` : 
-                              '0% Verified'
-                            }
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            Confirmation rate for pisco availability
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Last Verification Date */}
-                      <div className="flex items-center gap-3 text-sm">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <div>
-                          <div className="font-medium text-foreground">
-                            {formatDate(venue.last_verified)}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            Last verification date
-                          </div>
-                        </div>
-                      </div>
                     </div>
 
-                    {/* Desktop: Three columns layout with better spacing */}
-                    <div className="hidden md:grid grid-cols-3 gap-8 text-center">
-                      {/* Community Verifiers */}
-                      <div className="flex flex-col items-center gap-2">
-                        <Users className="h-5 w-5 text-muted-foreground" />
-                        <div>
-                          <div className="font-semibold text-sm text-foreground">
-                            {venue.unique_verifiers} {venue.unique_verifiers === 1 ? 'Verifier' : 'Verifiers'}
-                          </div>
-                          <div className="text-xs text-muted-foreground mt-1">
-                            Community members who verified
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Verification Success Rate */}
-                      <div className="flex flex-col items-center gap-2">
-                        <Shield className="h-5 w-5 text-emerald-600" />
-                        <div>
-                          <div className="font-semibold text-sm text-emerald-600">
-                            {(venue.total_verifications ?? 0) > 0 ? 
-                              `${Math.round(((venue.positive_verifications || 0) / (venue.total_verifications || 1)) * 100)}% Verified` : 
-                              '0% Verified'
-                            }
-                          </div>
-                          <div className="text-xs text-muted-foreground mt-1">
-                            Confirmation rate for pisco availability
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Last Verification Date */}
-                      <div className="flex flex-col items-center gap-2">
-                        <Calendar className="h-5 w-5 text-muted-foreground" />
-                        <div>
-                          <div className="font-semibold text-sm text-foreground">
-                            {formatDate(venue.last_verified)}
-                          </div>
-                          <div className="text-xs text-muted-foreground mt-1">
-                            Last verification date
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
+                    {/* Verification Details - Enhanced with icons and explanations */}
+                    {(venue.unique_verifiers ?? 0) > 0 &&
+                      venue.last_verified && (
+                        <div className="p-4 bg-muted/30 rounded-lg">
+                          {/* Mobile: Three rows layout */}
+                          <div className="grid grid-cols-1 gap-4 md:hidden">
+                            {/* Community Verifiers */}
+                            <div className="flex items-center gap-3 text-sm">
+                              <Users className="h-4 w-4 text-muted-foreground" />
+                              <div>
+                                <div className="font-medium text-foreground">
+                                  {venue.unique_verifiers}{" "}
+                                  {venue.unique_verifiers === 1
+                                    ? "Verifier"
+                                    : "Verifiers"}
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                  Community members who verified
+                                </div>
+                              </div>
+                            </div>
 
-                {/* Featured Comment Only */}
-                <FeaturedComment featuredVerification={venue.featured_verification} />
-              </div>
+                            {/* Verification Success Rate */}
+                            <div className="flex items-center gap-3 text-sm">
+                              <Shield className="h-4 w-4 text-emerald-600" />
+                              <div>
+                                <div className="font-medium text-emerald-600">
+                                  {(venue.total_verifications ?? 0) > 0
+                                    ? `${Math.round(((venue.positive_verifications || 0) / (venue.total_verifications || 1)) * 100)}% Verified`
+                                    : "0% Verified"}
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                  Confirmation rate for pisco availability
+                                </div>
+                              </div>
+                            </div>
 
-              {/* Verification Form */}
-              {user ? (
-                <>
-                  <Separator className="my-6" />
-                  <div>
-                    <h4 className="font-semibold mb-4">Update Pisco Information</h4>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Help fellow pisco lovers by sharing what you know about this venue's pisco availability.
-                    </p>
-                    <Suspense fallback={<div>Loading verification form...</div>}>
-                                            <PiscoVerificationForm
-                        venueId={venue.id}
-                        currentStatus={venue.pisco_status}
-                        currentNotes={venue.pisco_notes}
-                      />
-                    </Suspense>
+                            {/* Last Verification Date */}
+                            <div className="flex items-center gap-3 text-sm">
+                              <Calendar className="h-4 w-4 text-muted-foreground" />
+                              <div>
+                                <div className="font-medium text-foreground">
+                                  {formatDate(venue.last_verified)}
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                  Last verification date
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Desktop: Three columns layout with better spacing */}
+                          <div className="hidden md:grid grid-cols-3 gap-8 text-center">
+                            {/* Community Verifiers */}
+                            <div className="flex flex-col items-center gap-2">
+                              <Users className="h-5 w-5 text-muted-foreground" />
+                              <div>
+                                <div className="font-semibold text-sm text-foreground">
+                                  {venue.unique_verifiers}{" "}
+                                  {venue.unique_verifiers === 1
+                                    ? "Verifier"
+                                    : "Verifiers"}
+                                </div>
+                                <div className="text-xs text-muted-foreground mt-1">
+                                  Community members who verified
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Verification Success Rate */}
+                            <div className="flex flex-col items-center gap-2">
+                              <Shield className="h-5 w-5 text-emerald-600" />
+                              <div>
+                                <div className="font-semibold text-sm text-emerald-600">
+                                  {(venue.total_verifications ?? 0) > 0
+                                    ? `${Math.round(((venue.positive_verifications || 0) / (venue.total_verifications || 1)) * 100)}% Verified`
+                                    : "0% Verified"}
+                                </div>
+                                <div className="text-xs text-muted-foreground mt-1">
+                                  Confirmation rate for pisco availability
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Last Verification Date */}
+                            <div className="flex flex-col items-center gap-2">
+                              <Calendar className="h-5 w-5 text-muted-foreground" />
+                              <div>
+                                <div className="font-semibold text-sm text-foreground">
+                                  {formatDate(venue.last_verified)}
+                                </div>
+                                <div className="text-xs text-muted-foreground mt-1">
+                                  Last verification date
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                    {/* Featured Comment Only */}
+                    <FeaturedComment
+                      featuredVerification={venue.featured_verification}
+                    />
                   </div>
-                </>
-              ) : (
-                <>
-                  <Separator className="my-6" />
-                  <div className="text-center py-4">
-                    <p className="text-muted-foreground mb-4">
-                      Sign in to help verify pisco information
-                    </p>
-                    <Button asChild>
-                      <Link href="/login">Sign In</Link>
-                    </Button>
-                  </div>
-                </>
-              )}
-            </CardContent>
-          </Card>
+
+                  {/* Verification Form */}
+                  {user ? (
+                    <>
+                      <Separator className="my-6" />
+                      <div>
+                        <h4 className="font-semibold mb-4">
+                          Update Pisco Information
+                        </h4>
+                        <p className="text-sm text-muted-foreground mb-4">
+                          Help fellow pisco lovers by sharing what you know
+                          about this venue's pisco availability.
+                        </p>
+                        <Suspense
+                          fallback={<div>Loading verification form...</div>}
+                        >
+                          <PiscoVerificationForm
+                            venueId={venue.id}
+                            currentStatus={venue.pisco_status}
+                            currentNotes={venue.pisco_notes}
+                          />
+                        </Suspense>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <Separator className="my-6" />
+                      <div className="text-center py-4">
+                        <p className="text-muted-foreground mb-4">
+                          Sign in to help verify pisco information
+                        </p>
+                        <Button asChild>
+                          <Link href="/login">Sign In</Link>
+                        </Button>
+                      </div>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
             </div>
 
             {/* Sidebar */}
@@ -344,7 +353,9 @@ export default async function VenuePage({ params }: VenuePageProps) {
                   {venue.price_range && (
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Price Range</span>
-                      <span className="text-foreground">{venue.price_range}</span>
+                      <span className="text-foreground">
+                        {venue.price_range}
+                      </span>
                     </div>
                   )}
                   <div className="flex justify-between text-sm">
@@ -371,7 +382,9 @@ export default async function VenuePage({ params }: VenuePageProps) {
                     <div className="flex items-center gap-2 text-sm">
                       <User className="h-4 w-4 text-muted-foreground" />
                       <div>
-                        <div className="font-medium text-foreground">Added by {venue.profile.full_name}</div>
+                        <div className="font-medium text-foreground">
+                          Added by {venue.profile.full_name}
+                        </div>
                         <div className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
                           <Calendar className="h-3 w-3" />
                           {formatDate(venue.created_at)}
@@ -388,7 +401,7 @@ export default async function VenuePage({ params }: VenuePageProps) {
                   <div className="space-y-3">
                     <Button asChild className="w-full">
                       <a
-                        href={`https://maps.google.com/?q=${encodeURIComponent([venue.address, venue.city, venue.country].filter(Boolean).join(', '))}`}
+                        href={`https://maps.google.com/?q=${encodeURIComponent([venue.address, venue.city, venue.country].filter(Boolean).join(", "))}`}
                         target="_blank"
                         rel="noopener noreferrer"
                       >
@@ -406,8 +419,8 @@ export default async function VenuePage({ params }: VenuePageProps) {
               </Card>
 
               {/* Other Comments Section */}
-              <OtherComments 
-                venueId={venue.id} 
+              <OtherComments
+                venueId={venue.id}
                 featuredVerificationId={venue.featured_verification?.id}
               />
             </div>

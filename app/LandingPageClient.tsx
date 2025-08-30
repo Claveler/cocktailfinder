@@ -22,15 +22,28 @@ export default function LandingPageClient({
   maxDistanceKm,
 }: LandingPageClientProps) {
   const searchParams = useSearchParams();
-  const [searchLocation, setSearchLocation] = useState<[number, number] | null>(null);
-  const [initialMapCenter, setInitialMapCenter] = useState<[number, number] | null>(null);
-  const [initialFocusedVenueId, setInitialFocusedVenueId] = useState<string | null>(null);
+  const [searchLocation, setSearchLocation] = useState<[number, number] | null>(
+    null
+  );
+  const [initialMapCenter, setInitialMapCenter] = useState<
+    [number, number] | null
+  >(null);
+  const [initialFocusedVenueId, setInitialFocusedVenueId] = useState<
+    string | null
+  >(null);
   const [initialZoom, setInitialZoom] = useState<number | null>(null);
-  const [currentFilters, setCurrentFilters] = useState<FilterState>({ venueTypes: [], brands: [] });
+  const [currentFilters, setCurrentFilters] = useState<FilterState>({
+    venueTypes: [],
+    brands: [],
+  });
 
-  const handleLocationFound = (coordinates: [number, number], locationName: string, venueId?: string) => {
+  const handleLocationFound = (
+    coordinates: [number, number],
+    locationName: string,
+    venueId?: string
+  ) => {
     setSearchLocation(coordinates);
-    
+
     // If a venue was selected, also set it as the focused venue
     if (venueId) {
       setInitialFocusedVenueId(venueId);
@@ -39,17 +52,20 @@ export default function LandingPageClient({
 
   // Parse query parameters for initial map state
   useEffect(() => {
-    const venueId = searchParams.get('venueId');
-    const lat = searchParams.get('lat');
-    const lng = searchParams.get('lng');
-    const zoom = searchParams.get('zoom');
+    const venueId = searchParams.get("venueId");
+    const lat = searchParams.get("lat");
+    const lng = searchParams.get("lng");
+    const zoom = searchParams.get("zoom");
 
     // Handle venue ID parameter
     if (venueId && allVenues.length > 0) {
-      const targetVenue = allVenues.find(venue => venue.id === venueId);
-      
+      const targetVenue = allVenues.find((venue) => venue.id === venueId);
+
       if (targetVenue && targetVenue.location) {
-        setInitialMapCenter([targetVenue.location.lat, targetVenue.location.lng]);
+        setInitialMapCenter([
+          targetVenue.location.lat,
+          targetVenue.location.lng,
+        ]);
         setInitialFocusedVenueId(venueId);
         if (zoom) {
           const zoomNum = parseFloat(zoom);
@@ -67,7 +83,7 @@ export default function LandingPageClient({
       const lngNum = parseFloat(lng);
       if (!isNaN(latNum) && !isNaN(lngNum)) {
         setInitialMapCenter([latNum, lngNum]);
-        
+
         // Handle zoom parameter for direct coordinates
         if (zoom) {
           const zoomNum = parseFloat(zoom);
@@ -87,8 +103,8 @@ export default function LandingPageClient({
   // Get available brands
   const getAvailableBrands = (): string[] => {
     const brandsSet = new Set<string>();
-    allVenues.forEach(venue => {
-      venue.brands.forEach(brand => brandsSet.add(brand));
+    allVenues.forEach((venue) => {
+      venue.brands.forEach((brand) => brandsSet.add(brand));
     });
     return Array.from(brandsSet).sort();
   };
@@ -96,57 +112,57 @@ export default function LandingPageClient({
   // Set up global event system
   useEffect(() => {
     // Set up the global event handlers
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       window.dispatchLocationSearch = handleLocationFound;
       window.dispatchApplyFilters = handleApplyFilters;
       window.dispatchGetAvailableBrands = getAvailableBrands;
-      
+
       // Check for pending location search from other pages
-      const pendingSearch = sessionStorage.getItem('pendingLocationSearch');
+      const pendingSearch = sessionStorage.getItem("pendingLocationSearch");
       if (pendingSearch) {
         try {
           const { coordinates, locationName } = JSON.parse(pendingSearch);
           handleLocationFound(coordinates, locationName);
-          sessionStorage.removeItem('pendingLocationSearch');
+          sessionStorage.removeItem("pendingLocationSearch");
         } catch (error) {
-          console.error('Error parsing pending location search:', error);
-          sessionStorage.removeItem('pendingLocationSearch');
+          console.error("Error parsing pending location search:", error);
+          sessionStorage.removeItem("pendingLocationSearch");
         }
       }
 
       // Check for pending filters from other pages
-      const pendingFilters = sessionStorage.getItem('pendingFilters');
+      const pendingFilters = sessionStorage.getItem("pendingFilters");
       if (pendingFilters) {
         try {
           const filters = JSON.parse(pendingFilters);
           handleApplyFilters(filters);
-          sessionStorage.removeItem('pendingFilters');
+          sessionStorage.removeItem("pendingFilters");
         } catch (error) {
-          console.error('Error parsing pending filters:', error);
-          sessionStorage.removeItem('pendingFilters');
+          console.error("Error parsing pending filters:", error);
+          sessionStorage.removeItem("pendingFilters");
         }
       }
 
       // Check if search should be opened automatically (from other pages)
-      const shouldOpenSearch = sessionStorage.getItem('openSearchOnLanding');
-      if (shouldOpenSearch === 'true') {
+      const shouldOpenSearch = sessionStorage.getItem("openSearchOnLanding");
+      if (shouldOpenSearch === "true") {
         // Trigger search modal opening on the global bottom navbar
         window.dispatchOpenSearch?.();
-        sessionStorage.removeItem('openSearchOnLanding');
+        sessionStorage.removeItem("openSearchOnLanding");
       }
 
       // Check if filter should be opened automatically (from other pages)
-      const shouldOpenFilter = sessionStorage.getItem('openFilterOnLanding');
-      if (shouldOpenFilter === 'true') {
+      const shouldOpenFilter = sessionStorage.getItem("openFilterOnLanding");
+      if (shouldOpenFilter === "true") {
         // Trigger filter modal opening on the global bottom navbar
         window.dispatchOpenFilter?.();
-        sessionStorage.removeItem('openFilterOnLanding');
+        sessionStorage.removeItem("openFilterOnLanding");
       }
     }
 
     // Cleanup
     return () => {
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         delete window.dispatchLocationSearch;
         delete window.dispatchApplyFilters;
         delete window.dispatchGetAvailableBrands;
@@ -157,7 +173,10 @@ export default function LandingPageClient({
   return (
     <div className="flex flex-col min-h-screen">
       {/* Hero Section - Hidden on Mobile */}
-      <section className="hidden md:flex relative w-full min-h-[360px] items-center z-50" style={{ overflow: 'visible' }}>
+      <section
+        className="hidden md:flex relative w-full min-h-[360px] items-center z-50"
+        style={{ overflow: "visible" }}
+      >
         {/* Full Viewport Background Image */}
         <div className="absolute inset-0 z-0 overflow-hidden">
           <Image
@@ -186,14 +205,17 @@ export default function LandingPageClient({
                       <span className="text-white/90">Wherever You Are</span>
                     </h1>
                     <p className="text-base lg:text-lg text-white/90 max-w-xl leading-relaxed">
-                    Search, explore, and taste Chile's most iconic cocktail. One glass at a time.
+                      Search, explore, and taste Chile's most iconic cocktail.
+                      One glass at a time.
                     </p>
                   </div>
 
                   {/* Enhanced Search CTA */}
                   <div className="bg-white/95 backdrop-blur-sm rounded-xl p-5 lg:p-6 shadow-xl max-w-xl border border-white/20 relative">
                     <div className="space-y-3">
-                      <h2 className="text-lg lg:text-xl font-semibold text-gray-900">Start Your Discovery</h2>
+                      <h2 className="text-lg lg:text-xl font-semibold text-gray-900">
+                        Start Your Discovery
+                      </h2>
                       <LocationSearch onLocationFound={handleLocationFound} />
                     </div>
                   </div>
@@ -208,7 +230,7 @@ export default function LandingPageClient({
       <section className="py-0 md:py-8 px-0 md:px-4 bg-transparent md:bg-muted/30 min-h-screen md:h-auto">
         <div className="md:container mx-auto w-full">
           {/* Interactive Venue Explorer with Map */}
-          <InteractiveVenueExplorer 
+          <InteractiveVenueExplorer
             allVenues={allVenues}
             maxDistanceKm={maxDistanceKm}
             fallbackCenter={initialMapCenter || [51.5261617, -0.1633234]} // Use query param center or London Business School as fallback (LBS easter egg! 🎓)
@@ -220,7 +242,6 @@ export default function LandingPageClient({
           />
         </div>
       </section>
-
     </div>
   );
 }

@@ -12,11 +12,7 @@ import FloatingSearchBar from "@/components/venues/FloatingSearchBar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  MapPin,
-  Map as MapIcon,
-  List,
-} from "lucide-react";
+import { MapPin, Map as MapIcon, List } from "lucide-react";
 import Link from "next/link";
 import VenuesWrapper from "./VenuesWrapper";
 
@@ -53,12 +49,10 @@ function VenueListSkeleton() {
   );
 }
 
-
-
 // Get all venues for map display (same as landing page)
 async function getVenuesForLocationFiltering() {
   const VENUE_POOL_SIZE = 1000; // Maximum venues to load for location filtering
-  
+
   // Use the new consolidated function
   return await getVenuesForMap(VENUE_POOL_SIZE);
 }
@@ -69,17 +63,21 @@ export default async function VenuesPage({ searchParams }: VenuesPageProps) {
     q: searchParams.q,
     city: searchParams.city === "all" ? undefined : searchParams.city,
     brand: searchParams.brand === "all" ? undefined : searchParams.brand,
-    type: !searchParams.type || searchParams.type === "all" ? undefined : (searchParams.type as "bar" | "pub" | "liquor_store"),
+    type:
+      !searchParams.type || searchParams.type === "all"
+        ? undefined
+        : (searchParams.type as "bar" | "pub" | "liquor_store"),
     page: 1, // Always fetch first page (max 20 venues)
   };
 
   // Fetch data
-  const [venuesResult, citiesResult, brandsResult, allVenuesForMap] = await Promise.all([
-    listVenues(filters),
-    getCities(),
-    getBrands(),
-    getVenuesForLocationFiltering(), // Get ALL venues for map
-  ]);
+  const [venuesResult, citiesResult, brandsResult, allVenuesForMap] =
+    await Promise.all([
+      listVenues(filters),
+      getCities(),
+      getBrands(),
+      getVenuesForLocationFiltering(), // Get ALL venues for map
+    ]);
 
   // Handle errors
   if (venuesResult.error) {
@@ -171,9 +169,9 @@ export default async function VenuesPage({ searchParams }: VenuesPageProps) {
                   </CardContent>
                 </Card>
               ) : (
-                <Card 
-                  style={{ 
-                    height: 'calc(100vh - 12rem)' // Fill available space: viewport minus header, toggle bar, and padding
+                <Card
+                  style={{
+                    height: "calc(100vh - 12rem)", // Fill available space: viewport minus header, toggle bar, and padding
                   }}
                 >
                   <CardContent className="p-0 h-full">

@@ -4,11 +4,15 @@ import { useMapEvents } from "react-leaflet";
 import { MapBounds } from "@/lib/distance";
 
 interface MapBoundsTrackerProps {
-  onBoundsChange: (center: [number, number], zoom: number, bounds: MapBounds) => void;
+  onBoundsChange: (
+    center: [number, number],
+    zoom: number,
+    bounds: MapBounds
+  ) => void;
 }
 
-export default function MapBoundsTracker({ 
-  onBoundsChange
+export default function MapBoundsTracker({
+  onBoundsChange,
 }: MapBoundsTrackerProps) {
   // Convert Leaflet LatLngBounds to our MapBounds interface
   const convertBounds = (leafletBounds: L.LatLngBounds): MapBounds => {

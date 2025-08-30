@@ -26,6 +26,7 @@ Our interface uses the following color scheme derived from the logo:
 ### Dark Mode
 
 Dark mode adapts the logo colors for low-light environments:
+
 - **Background**: Darker version of logo brown (`#080504`)
 - **Foreground**: White text for optimal contrast
 - **Primary**: Same logo red for brand consistency
@@ -40,6 +41,7 @@ Admins can customize the entire color scheme through an intuitive interface:
 **Access Path**: Admin Dashboard → Theme Colors (`/admin/theme`)
 
 **Features**:
+
 - **Live Preview**: See changes instantly across sample UI elements
 - **Visual Color Pickers**: Click color squares to open native browser color pickers
 - **Manual Hex Entry**: Type exact hex values with validation
@@ -48,6 +50,7 @@ Admins can customize the entire color scheme through an intuitive interface:
 - **Reset Function**: One-click return to original logo colors
 
 **Customizable Elements**:
+
 1. **Primary Color**: Main brand color (buttons, links, highlights)
 2. **Foreground Color**: Main text color throughout the interface
 3. **Background Color**: Primary background color
@@ -70,6 +73,7 @@ Admins can customize the entire color scheme through an intuitive interface:
 ### Technical Implementation
 
 Colors are applied using CSS custom properties (CSS variables) that update the entire design system:
+
 - Automatic propagation to all components
 - Support for both light and dark modes
 - Proper contrast calculations for accessibility
@@ -78,6 +82,7 @@ Colors are applied using CSS custom properties (CSS variables) that update the e
 ## Design Philosophy
 
 The color system reflects:
+
 1. **Brand Authenticity** - Direct use of logo colors maintains brand integrity
 2. **Flexibility** - Easy customization without losing brand essence
 3. **Professional Quality** - Sophisticated red and brown combination

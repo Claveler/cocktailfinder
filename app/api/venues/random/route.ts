@@ -9,7 +9,7 @@ export async function GET() {
     const result = await queryVenues({
       limit: 50, // Get a larger sample to pick randomly from
       includeVerificationStats: true,
-      includeFeaturedVerifications: true
+      includeFeaturedVerifications: true,
     });
 
     if (result.error) {

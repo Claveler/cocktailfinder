@@ -10,7 +10,10 @@ import LocationSearch from "@/components/search/LocationSearch";
 // Define a global event system for location search and search modal
 declare global {
   interface Window {
-    dispatchLocationSearch?: (coordinates: [number, number], locationName: string) => void;
+    dispatchLocationSearch?: (
+      coordinates: [number, number],
+      locationName: string
+    ) => void;
     dispatchOpenSearch?: () => void;
   }
 }
@@ -19,12 +22,12 @@ export default function GlobalBottomNavBar() {
   const [showSearch, setShowSearch] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
-  
-  const isOnLandingPage = pathname === '/';
+
+  const isOnLandingPage = pathname === "/";
 
   // Set up global search modal trigger
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       window.dispatchOpenSearch = () => {
         setShowSearch(true);
       };
@@ -32,7 +35,7 @@ export default function GlobalBottomNavBar() {
 
     // Cleanup
     return () => {
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         delete window.dispatchOpenSearch;
       }
     };
@@ -44,26 +47,36 @@ export default function GlobalBottomNavBar() {
       setShowSearch(!showSearch);
     } else {
       // On other pages - navigate to landing page and signal to open search
-      if (typeof window !== 'undefined') {
-        sessionStorage.setItem('openSearchOnLanding', 'true');
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("openSearchOnLanding", "true");
       }
-      router.push('/');
+      router.push("/");
     }
   };
 
-  const handleLocationFound = (coordinates: [number, number], locationName: string) => {
-    if (isOnLandingPage && typeof window !== 'undefined' && window.dispatchLocationSearch) {
+  const handleLocationFound = (
+    coordinates: [number, number],
+    locationName: string
+  ) => {
+    if (
+      isOnLandingPage &&
+      typeof window !== "undefined" &&
+      window.dispatchLocationSearch
+    ) {
       // We're on the landing page - dispatch the location search event
       window.dispatchLocationSearch(coordinates, locationName);
     } else {
       // Store the search data and navigate to landing page
-      if (typeof window !== 'undefined') {
-        sessionStorage.setItem('pendingLocationSearch', JSON.stringify({
-          coordinates,
-          locationName
-        }));
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem(
+          "pendingLocationSearch",
+          JSON.stringify({
+            coordinates,
+            locationName,
+          })
+        );
       }
-      router.push('/');
+      router.push("/");
     }
     setShowSearch(false); // Close search after selection
   };
@@ -72,28 +85,47 @@ export default function GlobalBottomNavBar() {
     <>
       {/* Search Modal */}
       {showSearch && (
-        <div className="fixed inset-0 bg-black/50 z-40 flex items-center justify-center p-4" onClick={() => setShowSearch(false)}>
-          <div 
+        <div
+          className="fixed inset-0 bg-black/50 z-40 flex items-center justify-center p-4"
+          onClick={() => setShowSearch(false)}
+        >
+          <div
             className="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-auto transform transition-all duration-200 scale-100"
             onClick={(e) => e.stopPropagation()}
-            style={{ maxHeight: '80vh' }}
+            style={{ maxHeight: "80vh" }}
           >
             {/* Compact Header with Close Button */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 rounded-t-2xl">
-              <h3 className="text-base font-semibold text-gray-900">Search Location</h3>
-              <button 
+              <h3 className="text-base font-semibold text-gray-900">
+                Search Location
+              </h3>
+              <button
                 onClick={() => setShowSearch(false)}
                 className="p-1 hover:bg-gray-100 rounded-full transition-colors"
               >
-                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  className="w-5 h-5 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
-            
+
             {/* Streamlined Content */}
             <div className="p-5 pb-8 rounded-b-2xl">
-              <LocationSearch onLocationFound={handleLocationFound} autoFocus={true} showButton={false} />
+              <LocationSearch
+                onLocationFound={handleLocationFound}
+                autoFocus={true}
+                showButton={false}
+              />
               <p className="text-xs text-gray-500 mt-3 text-center">
                 Type to search or press Enter to find venues
               </p>

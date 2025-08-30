@@ -1,7 +1,15 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Martini, Beer, Store, UtensilsCrossed, Star, ExternalLink } from "lucide-react";
+import {
+  MapPin,
+  Martini,
+  Beer,
+  Store,
+  UtensilsCrossed,
+  Star,
+  ExternalLink,
+} from "lucide-react";
 import PhotoGallery from "./PhotoGallery";
 import ShareButton from "./ShareButton";
 import { Button } from "@/components/ui/button";
@@ -94,7 +102,11 @@ function StarRating({ rating }: { rating: number }) {
   );
 }
 
-export default function VenueHero({ venue, isAdmin = false, className = "" }: VenueHeroProps) {
+export default function VenueHero({
+  venue,
+  isAdmin = false,
+  className = "",
+}: VenueHeroProps) {
   return (
     <div className={`${className} -mx-4 md:mx-0`}>
       {/* Unified Hero Layout - Similar on mobile and desktop */}
@@ -121,11 +133,11 @@ export default function VenueHero({ venue, isAdmin = false, className = "" }: Ve
               <Martini className="w-16 h-16 md:w-24 md:h-24 text-white opacity-40" />
             </div>
           )}
-          
+
           {/* Enhanced Gradient Overlay for better readability - Matches VenueCard */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/20 pointer-events-none" />
           <div className="absolute inset-0 bg-black/30 pointer-events-none" />
-          
+
           {/* Overlay Container - Non-interfering with gallery */}
           <div className="absolute inset-0 pointer-events-none">
             {/* Bottom Overlay - Like venue cards */}
@@ -133,13 +145,17 @@ export default function VenueHero({ venue, isAdmin = false, className = "" }: Ve
               <div className="flex items-end justify-between">
                 <div className="flex-1 min-w-0">
                   {/* Venue Name */}
-                  <h1 className="text-xl md:text-4xl font-bold mb-2 md:mb-4 leading-tight">{venue.name}</h1>
-                  
+                  <h1 className="text-xl md:text-4xl font-bold mb-2 md:mb-4 leading-tight">
+                    {venue.name}
+                  </h1>
+
                   {/* Venue Meta - Like venue card badges */}
                   <div className="flex flex-wrap items-center gap-2 md:gap-4">
                     <div className="flex items-center gap-2 bg-black/40 backdrop-blur-sm px-3 py-1.5 md:px-4 md:py-2 rounded-full md:hidden">
                       {getTypeIcon(venue.type)}
-                      <span className="text-xs text-white/90 font-medium">{getTypeLabel(venue.type)}</span>
+                      <span className="text-xs text-white/90 font-medium">
+                        {getTypeLabel(venue.type)}
+                      </span>
                       {venue.price_range && (
                         <>
                           <span className="text-xs text-white/70">•</span>
@@ -149,30 +165,36 @@ export default function VenueHero({ venue, isAdmin = false, className = "" }: Ve
                         </>
                       )}
                     </div>
-                    
+
                     {venue.averageRating && (
                       <div className="flex items-center gap-2 bg-black/40 backdrop-blur-sm px-3 py-1.5 md:px-4 md:py-2 rounded-full">
                         <StarRating rating={venue.averageRating} />
                         <span className="text-xs md:text-sm text-white/90 font-medium">
-                          {venue.averageRating.toFixed(1)} ({venue.totalComments} reviews)
+                          {venue.averageRating.toFixed(1)} (
+                          {venue.totalComments} reviews)
                         </span>
                       </div>
                     )}
                   </div>
                 </div>
-                
+
                 {/* Action Buttons - Interactive elements */}
                 <div className="flex gap-2 md:gap-3 ml-3 md:ml-6 pointer-events-auto">
-                  <ShareButton 
+                  <ShareButton
                     venue={{
                       id: venue.id,
                       name: venue.name,
-                      address: venue.address
+                      address: venue.address,
                     }}
                     className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20"
                   />
                   {isAdmin && (
-                    <Button asChild variant="outline" size="sm" className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20">
+                    <Button
+                      asChild
+                      variant="outline"
+                      size="sm"
+                      className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20"
+                    >
                       <Link href={`/admin/venues/${venue.id}/edit`}>
                         <Edit className="mr-1 h-3 w-3 md:mr-2 md:h-4 md:w-4" />
                         <span className="hidden md:inline">Edit Venue</span>
@@ -202,12 +224,14 @@ export default function VenueHero({ venue, isAdmin = false, className = "" }: Ve
             <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
             <div className="flex-1 text-sm text-muted-foreground">
               <div className="font-medium text-foreground">{venue.address}</div>
-              <div>{venue.city}, {venue.country}</div>
+              <div>
+                {venue.city}, {venue.country}
+              </div>
             </div>
             <a
               href={
-                venue.google_maps_url || 
-                `https://maps.google.com/?q=${encodeURIComponent([venue.address, venue.city, venue.country].filter(Boolean).join(', '))}`
+                venue.google_maps_url ||
+                `https://maps.google.com/?q=${encodeURIComponent([venue.address, venue.city, venue.country].filter(Boolean).join(", "))}`
               }
               target="_blank"
               rel="noopener noreferrer"
@@ -225,16 +249,23 @@ export default function VenueHero({ venue, isAdmin = false, className = "" }: Ve
             {/* Brands Column */}
             <div className="px-4 py-4 md:px-6 bg-background">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-sm font-medium text-muted-foreground min-w-fit">Brands:</span>
+                <span className="text-sm font-medium text-muted-foreground min-w-fit">
+                  Brands:
+                </span>
                 <div className="flex flex-wrap gap-1.5">
                   {venue.brands.length > 0 ? (
                     venue.brands.map((brand) => (
-                      <Badge key={brand} className="text-sm bg-primary/15 text-primary border-primary/20 hover:bg-primary/25 px-3 py-1">
+                      <Badge
+                        key={brand}
+                        className="text-sm bg-primary/15 text-primary border-primary/20 hover:bg-primary/25 px-3 py-1"
+                      >
                         {brand}
                       </Badge>
                     ))
                   ) : (
-                    <span className="text-sm text-muted-foreground italic">None listed</span>
+                    <span className="text-sm text-muted-foreground italic">
+                      None listed
+                    </span>
                   )}
                 </div>
               </div>
@@ -243,16 +274,23 @@ export default function VenueHero({ venue, isAdmin = false, className = "" }: Ve
             {/* Ambiance Column */}
             <div className="px-4 py-4 md:px-6 bg-background border-t md:border-t-0 border-border">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-sm font-medium text-muted-foreground min-w-fit">Ambiance:</span>
+                <span className="text-sm font-medium text-muted-foreground min-w-fit">
+                  Ambiance:
+                </span>
                 <div className="flex flex-wrap gap-1.5">
                   {venue.ambiance.length > 0 ? (
                     venue.ambiance.map((tag) => (
-                      <Badge key={tag} className="text-sm bg-secondary/50 text-secondary-foreground border-secondary/30 hover:bg-secondary/60 px-3 py-1">
+                      <Badge
+                        key={tag}
+                        className="text-sm bg-secondary/50 text-secondary-foreground border-secondary/30 hover:bg-secondary/60 px-3 py-1"
+                      >
                         {tag}
                       </Badge>
                     ))
                   ) : (
-                    <span className="text-sm text-muted-foreground italic">None listed</span>
+                    <span className="text-sm text-muted-foreground italic">
+                      None listed
+                    </span>
                   )}
                 </div>
               </div>
@@ -260,7 +298,6 @@ export default function VenueHero({ venue, isAdmin = false, className = "" }: Ve
           </div>
         )}
       </div>
-
     </div>
   );
 }

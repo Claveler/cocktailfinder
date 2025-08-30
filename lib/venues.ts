@@ -2,10 +2,6 @@ import { createClient } from "@/lib/supabase/server";
 import { logger } from "@/lib/logger";
 import { getVenuesList, fetchVerificationStats } from "@/lib/venues/core";
 
-
-
-
-
 export interface Venue {
   id: string;
   name: string;
@@ -96,21 +92,21 @@ export async function listVenues(
   filters: VenueFilters = {}
 ): Promise<{ data: VenueListResult | null; error: Error | null }> {
   const { page = 1 } = filters;
-  
+
   logger.debug("Starting venue query", { filters });
-  
+
   // Use the new consolidated function
   const result = await getVenuesList(filters, page, PAGE_SIZE);
-  
+
   if (result.error) {
     logger.error("Error listing venues", { error: result.error, filters });
   } else {
-    logger.debug("Query completed", { 
-      venueCount: result.data?.venues.length, 
-      totalCount: result.data?.totalCount 
+    logger.debug("Query completed", {
+      venueCount: result.data?.venues.length,
+      totalCount: result.data?.totalCount,
     });
   }
-  
+
   // Transform to match the old interface (hasPrevPage vs hasPreviousPage)
   if (result.data) {
     const transformedResult: VenueListResult = {
@@ -121,10 +117,10 @@ export async function listVenues(
       hasNextPage: result.data.hasNextPage,
       hasPrevPage: result.data.hasPreviousPage, // Note: mapping hasPreviousPage to hasPrevPage
     };
-    
+
     return { data: transformedResult, error: null };
   }
-  
+
   return result;
 }
 
@@ -200,7 +196,6 @@ export async function getVenueById(
   includeAllVerifications = false
 ): Promise<{ data: VenueWithComments | null; error: Error | null }> {
   try {
-  
     const supabase = createClient();
 
     // Fetch venue with profile information
@@ -241,7 +236,7 @@ export async function getVenueById(
     const stats = verificationStats[venue.id] || {
       positive_verifications: 0,
       total_verifications: 0,
-      unique_verifiers: 0
+      unique_verifiers: 0,
     };
 
     // Transform venue data
@@ -251,7 +246,7 @@ export async function getVenueById(
         venue.latitude && venue.longitude
           ? { lat: venue.latitude, lng: venue.longitude }
           : null,
-      ...stats
+      ...stats,
     };
 
     // Fetch comments for this venue
@@ -282,11 +277,13 @@ export async function getVenueById(
         .select("*")
         .eq("venue_id", id)
         .order("created_at", { ascending: false });
-      
+
       if (!verificationsError && verifications) {
         allVerifications = verifications;
         // Find featured verification in the list
-        featuredVerification = verifications.find(v => v.id === venue.featured_verification_id) || null;
+        featuredVerification =
+          verifications.find((v) => v.id === venue.featured_verification_id) ||
+          null;
       }
     } else {
       // Regular use - only fetch featured verification
@@ -296,7 +293,7 @@ export async function getVenueById(
           .select("*")
           .eq("id", venue.featured_verification_id)
           .single();
-        
+
         if (!featuredError && featured) {
           featuredVerification = featured;
         }
@@ -344,7 +341,6 @@ export async function addComment(
   rating: number
 ): Promise<{ data: Comment | null; error: Error | null }> {
   try {
-  
     const supabase = createClient();
 
     const { data: comment, error } = await supabase

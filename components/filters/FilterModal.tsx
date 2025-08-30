@@ -1,7 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Martini, Beer, Store, UtensilsCrossed, Check, Search, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  X,
+  Martini,
+  Beer,
+  Store,
+  UtensilsCrossed,
+  Check,
+  Search,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -25,15 +35,19 @@ const VENUE_TYPES = [
   { value: "restaurant", label: "Restaurant", icon: UtensilsCrossed },
 ];
 
-export default function FilterModal({ 
-  isOpen, 
-  onClose, 
-  onApplyFilters, 
+export default function FilterModal({
+  isOpen,
+  onClose,
+  onApplyFilters,
   initialFilters = { venueTypes: [], brands: [] },
-  availableBrands = []
+  availableBrands = [],
 }: FilterModalProps) {
-  const [selectedVenueTypes, setSelectedVenueTypes] = useState<string[]>(initialFilters.venueTypes);
-  const [selectedBrands, setSelectedBrands] = useState<string[]>(initialFilters.brands);
+  const [selectedVenueTypes, setSelectedVenueTypes] = useState<string[]>(
+    initialFilters.venueTypes
+  );
+  const [selectedBrands, setSelectedBrands] = useState<string[]>(
+    initialFilters.brands
+  );
   const [brandSearch, setBrandSearch] = useState<string>("");
   const [showAllBrands, setShowAllBrands] = useState<boolean>(false);
 
@@ -50,63 +64,65 @@ export default function FilterModal({
   // Popular brands (most commonly found in Chilean venues)
   const popularBrands = [
     "Pisco Capel",
-    "Pisco Control C", 
+    "Pisco Control C",
     "Pisco Tres Erres",
     "Pisco Mistral",
     "Alto del Carmen",
     "El Gobernador",
     "Pisco Alto del Carmen",
-    "ABA"
+    "ABA",
   ];
 
   // Filter brands based on search and popularity
   const getFilteredBrands = () => {
     const searchTerm = brandSearch.toLowerCase().trim();
-    
+
     // If searching, return all matches
     if (searchTerm) {
-      return availableBrands.filter(brand => 
+      return availableBrands.filter((brand) =>
         brand.toLowerCase().includes(searchTerm)
       );
     }
-    
+
     // If not searching, return popular brands or all brands based on toggle
     if (showAllBrands) {
       return availableBrands;
     }
-    
+
     // Show popular brands that exist in available brands, plus any selected brands not in popular list
-    const popularAvailable = availableBrands.filter(brand => popularBrands.includes(brand));
-    const selectedNotPopular = selectedBrands.filter(brand => 
-      !popularBrands.includes(brand) && availableBrands.includes(brand)
+    const popularAvailable = availableBrands.filter((brand) =>
+      popularBrands.includes(brand)
     );
-    
+    const selectedNotPopular = selectedBrands.filter(
+      (brand) =>
+        !popularBrands.includes(brand) && availableBrands.includes(brand)
+    );
+
     return [...popularAvailable, ...selectedNotPopular];
   };
 
   const filteredBrands = getFilteredBrands();
-  const hasMoreBrands = !showAllBrands && !brandSearch && filteredBrands.length < availableBrands.length;
+  const hasMoreBrands =
+    !showAllBrands &&
+    !brandSearch &&
+    filteredBrands.length < availableBrands.length;
 
   const toggleVenueType = (type: string) => {
-    setSelectedVenueTypes(prev => 
-      prev.includes(type) 
-        ? prev.filter(t => t !== type)
-        : [...prev, type]
+    setSelectedVenueTypes((prev) =>
+      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
     );
   };
 
   const toggleBrand = (brand: string) => {
-    setSelectedBrands(prev => 
-      prev.includes(brand) 
-        ? prev.filter(b => b !== brand)
-        : [...prev, brand]
+    setSelectedBrands((prev) =>
+      prev.includes(brand) ? prev.filter((b) => b !== brand) : [...prev, brand]
     );
   };
 
   const handleApply = () => {
     onApplyFilters({
       venueTypes: selectedVenueTypes,
-      brands: selectedBrands
+      brands: selectedBrands,
     });
     onClose();
   };
@@ -116,20 +132,24 @@ export default function FilterModal({
     setSelectedBrands([]);
   };
 
-  const hasActiveFilters = selectedVenueTypes.length > 0 || selectedBrands.length > 0;
+  const hasActiveFilters =
+    selectedVenueTypes.length > 0 || selectedBrands.length > 0;
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div 
+    <div
+      className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <div
         className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-auto max-h-[80vh] overflow-hidden transform transition-all duration-200 scale-100"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <h2 className="text-lg font-semibold text-gray-900">Filter Venues</h2>
-          <button 
+          <button
             onClick={onClose}
             className="p-1 hover:bg-gray-100 rounded-full transition-colors"
           >
@@ -138,24 +158,29 @@ export default function FilterModal({
         </div>
 
         {/* Content */}
-        <div className="px-6 py-4 overflow-y-auto" style={{ maxHeight: 'calc(80vh - 140px)' }}>
+        <div
+          className="px-6 py-4 overflow-y-auto"
+          style={{ maxHeight: "calc(80vh - 140px)" }}
+        >
           <div className="space-y-6">
             {/* Venue Types Section */}
             <div>
-              <h3 className="text-sm font-medium text-gray-900 mb-3">Venue Types</h3>
+              <h3 className="text-sm font-medium text-gray-900 mb-3">
+                Venue Types
+              </h3>
               <div className="flex flex-wrap gap-2">
                 {VENUE_TYPES.map((type) => {
                   const Icon = type.icon;
                   const isSelected = selectedVenueTypes.includes(type.value);
-                  
+
                   return (
                     <button
                       key={type.value}
                       onClick={() => toggleVenueType(type.value)}
                       className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 ${
                         isSelected
-                          ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-                          : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                          ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                          : "bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:bg-gray-50"
                       }`}
                     >
                       <Icon className="w-4 h-4" />
@@ -200,15 +225,15 @@ export default function FilterModal({
                 <div className="flex flex-wrap gap-2 mb-3">
                   {filteredBrands.map((brand) => {
                     const isSelected = selectedBrands.includes(brand);
-                    
+
                     return (
                       <button
                         key={brand}
                         onClick={() => toggleBrand(brand)}
                         className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-sm transition-all duration-200 ${
                           isSelected
-                            ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-                            : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                            ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                            : "bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:bg-gray-50"
                         }`}
                       >
                         <span className="font-medium">{brand}</span>
@@ -252,17 +277,19 @@ export default function FilterModal({
             {/* Active Filters Summary */}
             {hasActiveFilters && (
               <div className="bg-gray-50 rounded-lg p-4">
-                <h4 className="text-sm font-medium text-gray-900 mb-2">Active Filters</h4>
+                <h4 className="text-sm font-medium text-gray-900 mb-2">
+                  Active Filters
+                </h4>
                 <div className="flex flex-wrap gap-2">
-                  {selectedVenueTypes.map(type => {
-                    const typeData = VENUE_TYPES.find(t => t.value === type);
+                  {selectedVenueTypes.map((type) => {
+                    const typeData = VENUE_TYPES.find((t) => t.value === type);
                     return (
                       <Badge key={type} variant="secondary" className="text-xs">
                         {typeData?.label}
                       </Badge>
                     );
                   })}
-                  {selectedBrands.map(brand => (
+                  {selectedBrands.map((brand) => (
                     <Badge key={brand} variant="outline" className="text-xs">
                       {brand}
                     </Badge>
@@ -290,7 +317,10 @@ export default function FilterModal({
             <Button onClick={handleApply}>
               Apply Filters
               {hasActiveFilters && (
-                <Badge variant="secondary" className="ml-2 bg-white/20 text-white">
+                <Badge
+                  variant="secondary"
+                  className="ml-2 bg-white/20 text-white"
+                >
                   {selectedVenueTypes.length + selectedBrands.length}
                 </Badge>
               )}
