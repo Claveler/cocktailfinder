@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useCombobox } from "downshift";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -50,7 +51,6 @@ export default function FloatingSearchBar({
 }: FloatingSearchBarProps) {
   const router = useRouter();
   const [isExpanded, setIsExpanded] = useState(false);
-  const [searchQuery, setSearchQuery] = useState(defaultValues.q || "");
   const [selectedType, setSelectedType] = useState(
     defaultValues.type || "all"
   );
@@ -61,44 +61,71 @@ export default function FloatingSearchBar({
   // Location search state
   const [isSearching, setIsSearching] = useState(false);
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
   
-  const containerRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<NodeJS.Timeout>();
-  const isSelectionUpdate = useRef(false);
+  const searchCacheRef = useRef<Map<string, SearchSuggestion[]>>(new Map());
 
   // Location search functionality
   const fetchSuggestions = async (query: string) => {
-    if (query.length < 3) {
+    if (query.length < 2) {
       setSuggestions([]);
-      setShowSuggestions(false);
+      setIsSearching(false);
+      return;
+    }
+
+    // Check cache first
+    const cacheKey = query.toLowerCase();
+    if (searchCacheRef.current.has(cacheKey)) {
+      const cachedResults = searchCacheRef.current.get(cacheKey)!;
+      setSuggestions(cachedResults);
+      setIsSearching(false);
       return;
     }
 
     try {
       setIsSearching(true);
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1`
+        `/api/geocode?q=${encodeURIComponent(query)}&limit=5`
       );
       
       if (!response.ok) throw new Error('Search failed');
       
       const data: SearchSuggestion[] = await response.json();
+      
+      // Cache the results
+      searchCacheRef.current.set(cacheKey, data);
+      
+      // Limit cache size to prevent memory issues
+      if (searchCacheRef.current.size > 50) {
+        const firstKey = searchCacheRef.current.keys().next().value;
+        searchCacheRef.current.delete(firstKey);
+      }
+      
       setSuggestions(data);
-      setShowSuggestions(true);
-      setActiveSuggestionIndex(-1);
     } catch (error) {
       console.error('Location search error:', error);
       setSuggestions([]);
-      setShowSuggestions(false);
     } finally {
       setIsSearching(false);
     }
   };
 
-  const selectLocation = (suggestion: SearchSuggestion) => {
+  // Debounced search effect
+  const debouncedFetchSuggestions = (query: string | undefined) => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    debounceRef.current = setTimeout(() => {
+      if (query && onLocationFound) {
+        fetchSuggestions(query);
+      } else {
+        setSuggestions([]);
+      }
+    }, 150);
+  };
+
+  const selectLocation = (suggestion: SearchSuggestion | null) => {
+    if (!suggestion) return;
     
     // Clear any pending debounced search 
     if (debounceRef.current) {
@@ -115,128 +142,64 @@ export default function FloatingSearchBar({
     if (onLocationFound) {
       onLocationFound(coordinates, suggestion.display_name);
     }
-    
-    // Update UI - just set the display value and clear suggestions  
-    
-    // Set flag to prevent fetchSuggestions when we update the display value
-    isSelectionUpdate.current = true;
-    setSearchQuery(suggestion.display_name.split(',')[0]); // Show short version
-    setShowSuggestions(false);
-    setSuggestions([]);
-    setActiveSuggestionIndex(-1);
-    
-    // Blur input if available
-    if (inputRef.current) {
-      inputRef.current.blur();
-    }
   };
 
-  // Handle search input changes with debouncing
-  useEffect(() => {
-    
-    // Skip fetching suggestions if this is a programmatic update from selection
-    if (isSelectionUpdate.current) {
-      isSelectionUpdate.current = false; // Reset the flag
-      return;
-    }
-    
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
-    }
-
-    debounceRef.current = setTimeout(() => {
-      if (searchQuery && onLocationFound) {
-        fetchSuggestions(searchQuery);
-      } else {
-        setSuggestions([]);
-        setShowSuggestions(false);
+  // Downshift setup
+  const {
+    isOpen,
+    getToggleButtonProps,
+    getMenuProps,
+    getInputProps,
+    highlightedIndex,
+    getItemProps,
+    inputValue,
+    reset,
+  } = useCombobox({
+    items: suggestions,
+    itemToString: (item) => item ? item.display_name.split(',')[0] : '',
+    defaultInputValue: defaultValues.q || "",
+    onInputValueChange: ({ inputValue }) => {
+      if (inputValue !== undefined && inputValue !== null) {
+        debouncedFetchSuggestions(inputValue);
       }
-    }, 300);
-
-    return () => {
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current);
+    },
+    onSelectedItemChange: ({ selectedItem }) => {
+      if (selectedItem) {
+        selectLocation(selectedItem);
+        reset(); // Clear the input after selection
       }
-    };
-  }, [searchQuery, onLocationFound]);
+    },
+  });
 
-  // Handle click outside to close suggestions
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setShowSuggestions(false);
-        setActiveSuggestionIndex(-1);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  // Keyboard navigation for suggestions
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (!showSuggestions || suggestions.length === 0) return;
-
-    switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault();
-        setActiveSuggestionIndex(prev => 
-          prev < suggestions.length - 1 ? prev + 1 : prev
-        );
-        break;
-      case 'ArrowUp':
-        e.preventDefault();
-        setActiveSuggestionIndex(prev => prev > 0 ? prev - 1 : -1);
-        break;
-      case 'Escape':
-        setShowSuggestions(false);
-        setActiveSuggestionIndex(-1);
-        break;
-      case 'Enter':
-        e.preventDefault();
-        if (activeSuggestionIndex >= 0 && suggestions[activeSuggestionIndex]) {
-          selectLocation(suggestions[activeSuggestionIndex]);
-        }
-        break;
-    }
-  };
-
-  // Handle input focus to show existing suggestions
-  const handleInputFocus = () => {
-    if (suggestions.length > 0 && searchQuery.length >= 3) {
-      setShowSuggestions(true);
-    }
-  };
-
+  // Helper functions for filtering and navigation
   const hasActiveFilters =
-    searchQuery ||
+    inputValue ||
     selectedType !== "all" ||
     selectedBrand !== "all";
 
   const getActiveFiltersCount = () => {
     let count = 0;
-    if (searchQuery) count++;
+    if (inputValue) count++;
     if (selectedType !== "all") count++;
     if (selectedBrand !== "all") count++;
     return count;
   };
 
   const clearFilters = () => {
-    setSearchQuery("");
+    reset(); // Clear search input via Downshift
     setSelectedType("all");
     setSelectedBrand("all");
     setSuggestions([]);
-    setShowSuggestions(false);
-    // Navigate to clear all filters
-    router.push("/");
   };
+
+
 
   // Helper function to navigate with current filter state
   const navigateWithFilters = (overrides: Partial<VenueFilters> = {}) => {
     const params = new URLSearchParams();
     
     // Use current state values or overrides
-    const query = overrides.q !== undefined ? overrides.q : searchQuery;
+    const query = overrides.q !== undefined ? overrides.q : inputValue;
     const type = overrides.type !== undefined ? overrides.type : selectedType;
     const brand = overrides.brand !== undefined ? overrides.brand : selectedBrand;
 
@@ -275,49 +238,47 @@ export default function FloatingSearchBar({
             <form onSubmit={handleSubmit} className="space-y-3">
               {/* Main search row */}
               <div className="flex items-center gap-2">
-                <div className="relative flex-1" ref={containerRef}>
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  {isSearching && (
-                    <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground animate-spin" />
-                  )}
+                <div className="relative flex-1">
+                  {/* Search icon - hide when searching */}
+                  <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground transition-opacity ${isSearching ? 'opacity-0' : 'opacity-100'}`} />
+                  
+                  {/* Loading spinner - show when searching */}
+                  <div className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 transition-opacity ${isSearching ? 'opacity-100' : 'opacity-0'}`}>
+                    <Loader2 className="h-4 w-4 text-muted-foreground animate-spin" />
+                  </div>
                   <Input
-                    ref={inputRef}
+                    {...getInputProps()}
                     name="q"
                     placeholder="Search by location..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    onFocus={handleInputFocus}
                     className="pl-10 pr-4 bg-white"
                     autoComplete="off"
-                    disabled={isSearching}
                   />
                   
-                  {/* Location Suggestions Dropdown */}
-                  {showSuggestions && suggestions.length > 0 && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-md shadow-lg border border-gray-200 max-h-60 overflow-y-auto z-50">
-                      {suggestions.map((suggestion, index) => (
-                        <div
-                          key={suggestion.place_id}
-                          className={`px-4 py-3 cursor-pointer border-b border-gray-100 last:border-b-0 ${
-                            index === activeSuggestionIndex 
-                              ? 'bg-primary/10 text-primary' 
-                              : 'hover:bg-gray-50 text-gray-900'
-                          }`}
-                          onClick={() => {
-                            selectLocation(suggestion);
-                          }}
-                        >
-                          <div className="font-medium text-sm">
-                            {suggestion.display_name.split(',')[0]}
+                  {/* Downshift suggestions dropdown */}
+                  <div {...getMenuProps()} className="relative">
+                    {isOpen && suggestions.length > 0 && (
+                      <div className="absolute top-1 left-0 right-0 mt-1 bg-white rounded-md shadow-lg border border-gray-200 max-h-60 overflow-y-auto z-50">
+                        {suggestions.map((suggestion, index) => (
+                          <div
+                            key={suggestion.place_id}
+                            {...getItemProps({ item: suggestion, index })}
+                            className={`px-4 py-3 cursor-pointer border-b border-gray-100 last:border-b-0 ${
+                              highlightedIndex === index 
+                                ? 'bg-primary/10 text-primary' 
+                                : 'hover:bg-gray-50 text-gray-900'
+                            }`}
+                          >
+                            <div className="font-medium text-sm">
+                              {suggestion.display_name.split(',')[0]}
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">
+                              {suggestion.display_name.split(',').slice(1).join(',').trim()}
+                            </div>
                           </div>
-                          <div className="text-xs text-gray-500 mt-1">
-                            {suggestion.display_name.split(',').slice(1).join(',').trim()}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <Button
                   type="button"
@@ -403,9 +364,9 @@ export default function FloatingSearchBar({
               {/* Active filters display for mobile */}
               {hasActiveFilters && !isExpanded && (
                 <div className="flex items-center gap-1 flex-wrap">
-                  {searchQuery && (
+                  {inputValue && (
                     <Badge variant="secondary" className="text-xs h-6">
-                      {searchQuery}
+                      {inputValue}
                     </Badge>
                   )}
 
@@ -444,47 +405,46 @@ export default function FloatingSearchBar({
               <div className="flex items-center gap-3">
                 {/* Search Input */}
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  {isSearching && (
-                    <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground animate-spin" />
-                  )}
+                  {/* Search icon - hide when searching */}
+                  <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground transition-opacity ${isSearching ? 'opacity-0' : 'opacity-100'}`} />
+                  
+                  {/* Loading spinner - show when searching */}
+                  <div className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 transition-opacity ${isSearching ? 'opacity-100' : 'opacity-0'}`}>
+                    <Loader2 className="h-4 w-4 text-muted-foreground animate-spin" />
+                  </div>
                   <Input
+                    {...getInputProps()}
                     name="q"
                     placeholder="Search by location..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    onFocus={handleInputFocus}
                     className="pl-10 pr-4 bg-white"
                     autoComplete="off"
-                    disabled={isSearching}
                   />
                   
-                  {/* Location Suggestions Dropdown */}
-                  {showSuggestions && suggestions.length > 0 && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-md shadow-lg border border-gray-200 max-h-60 overflow-y-auto z-50">
-                      {suggestions.map((suggestion, index) => (
-                        <div
-                          key={suggestion.place_id}
-                          className={`px-4 py-3 cursor-pointer border-b border-gray-100 last:border-b-0 ${
-                            index === activeSuggestionIndex 
-                              ? 'bg-primary/10 text-primary' 
-                              : 'hover:bg-gray-50 text-gray-900'
-                          }`}
-                          onClick={() => {
-                            selectLocation(suggestion);
-                          }}
-                        >
-                          <div className="font-medium text-sm">
-                            {suggestion.display_name.split(',')[0]}
+                  {/* Downshift suggestions dropdown */}
+                  <div {...getMenuProps()} className="relative">
+                    {isOpen && suggestions.length > 0 && (
+                      <div className="absolute top-1 left-0 right-0 mt-1 bg-white rounded-md shadow-lg border border-gray-200 max-h-60 overflow-y-auto z-50">
+                        {suggestions.map((suggestion, index) => (
+                          <div
+                            key={suggestion.place_id}
+                            {...getItemProps({ item: suggestion, index })}
+                            className={`px-4 py-3 cursor-pointer border-b border-gray-100 last:border-b-0 ${
+                              highlightedIndex === index 
+                                ? 'bg-primary/10 text-primary' 
+                                : 'hover:bg-gray-50 text-gray-900'
+                            }`}
+                          >
+                            <div className="font-medium text-sm">
+                              {suggestion.display_name.split(',')[0]}
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">
+                              {suggestion.display_name.split(',').slice(1).join(',').trim()}
+                            </div>
                           </div>
-                          <div className="text-xs text-gray-500 mt-1">
-                            {suggestion.display_name.split(',').slice(1).join(',').trim()}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Filter Toggle Button */}
@@ -620,8 +580,8 @@ export default function FloatingSearchBar({
               {hasActiveFilters && !isExpanded && (
                 <div className="flex items-center gap-2 pt-2 border-t">
                   <span className="text-sm text-muted-foreground">Filters:</span>
-                  {searchQuery && (
-                    <Badge variant="secondary">Search: {searchQuery}</Badge>
+                  {inputValue && (
+                    <Badge variant="secondary">Search: {inputValue}</Badge>
                   )}
 
                   {selectedType !== "all" && (

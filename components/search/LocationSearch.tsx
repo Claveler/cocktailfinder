@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { createPortal } from "react-dom";
+import { useCombobox } from "downshift";
 import { Search, MapPin, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -22,27 +22,32 @@ interface SearchSuggestion {
 }
 
 export default function LocationSearch({ onLocationFound, autoFocus = false, showButton = true }: LocationSearchProps) {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [isSearching, setIsSearching] = useState(false);
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
+  const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
-  const [isMounted, setIsMounted] = useState(false);
   
-  const containerRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<NodeJS.Timeout>();
-  const isSelectionUpdate = useRef(false);
+  const searchCacheRef = useRef<Map<string, SearchSuggestion[]>>(new Map());
+  const buttonSearching = useRef(false);
 
   // Fetch suggestions as user types
   const fetchSuggestions = async (query: string) => {
-    if (query.length < 3) {
+    if (query.length < 2) {
       setSuggestions([]);
-      setShowSuggestions(false);
+      setIsSearching(false);
       return;
     }
+
+    // Check cache first
+    const cacheKey = query.toLowerCase();
+    if (searchCacheRef.current.has(cacheKey)) {
+      const cachedResults = searchCacheRef.current.get(cacheKey)!;
+      setSuggestions(cachedResults);
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
     try {
       const response = await fetch(
         `/api/geocode?q=${encodeURIComponent(query)}&limit=5`
@@ -53,53 +58,41 @@ export default function LocationSearch({ onLocationFound, autoFocus = false, sho
       }
 
       const data = await response.json();
+      
+      // Cache the results
+      searchCacheRef.current.set(cacheKey, data);
+      
+      // Limit cache size to prevent memory issues
+      if (searchCacheRef.current.size > 50) {
+        const firstKey = searchCacheRef.current.keys().next().value;
+        searchCacheRef.current.delete(firstKey);
+      }
+      
       setSuggestions(data);
-      setShowSuggestions(data.length > 0);
-      setActiveSuggestionIndex(-1);
     } catch (err) {
       console.error("Suggestion fetch error:", err);
       setSuggestions([]);
-      setShowSuggestions(false);
+    } finally {
+      setIsSearching(false);
     }
   };
 
-  // Debounced search for suggestions
-  useEffect(() => {
-    
-    // Skip fetching suggestions if this is a programmatic update from selection
-    if (isSelectionUpdate.current) {
-      isSelectionUpdate.current = false; // Reset the flag
-      return;
-    }
-    
+  // Debounced search effect
+  const debouncedFetchSuggestions = (query: string | undefined) => {
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
     }
-
+    if (!query) {
+      setSuggestions([]);
+      return;
+    }
     debounceRef.current = setTimeout(() => {
-      fetchSuggestions(searchTerm);
-    }, 300);
+      fetchSuggestions(query);
+    }, 150);
+  };
 
-    return () => {
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current);
-      }
-    };
-  }, [searchTerm]);
-
-  // Click outside handler
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setShowSuggestions(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const selectLocation = (suggestion: SearchSuggestion) => {
+  const selectLocation = (suggestion: SearchSuggestion | null) => {
+    if (!suggestion) return;
     
     // Clear any pending debounced search 
     if (debounceRef.current) {
@@ -114,20 +107,7 @@ export default function LocationSearch({ onLocationFound, autoFocus = false, sho
 
     // Call the callback with the coordinates we already have
     onLocationFound(coordinates, suggestion.display_name);
-    
-    // Update UI - just set the display value and clear suggestions  
-    
-    // Set flag to prevent fetchSuggestions when we update the display value
-    isSelectionUpdate.current = true;
-    setSearchTerm(suggestion.display_name.split(',')[0]); // Show short version
-    setShowSuggestions(false);
-    setSuggestions([]);
     setError(null);
-    
-    // Blur input 
-    if (inputRef.current) {
-      inputRef.current.blur();
-    }
   };
 
   const searchLocation = async (locationName: string) => {
@@ -136,9 +116,8 @@ export default function LocationSearch({ onLocationFound, autoFocus = false, sho
       return;
     }
 
-    setIsSearching(true);
+    buttonSearching.current = true;
     setError(null);
-    setShowSuggestions(false);
 
     try {
       const response = await fetch(
@@ -163,127 +142,64 @@ export default function LocationSearch({ onLocationFound, autoFocus = false, sho
       ];
 
       onLocationFound(coordinates, result.display_name);
-      setSearchTerm("");
 
     } catch (err) {
       console.error("Geocoding error:", err);
       setError("Unable to search location. Please try again.");
     } finally {
-      setIsSearching(false);
+      buttonSearching.current = false;
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (activeSuggestionIndex >= 0 && suggestions[activeSuggestionIndex]) {
-      selectLocation(suggestions[activeSuggestionIndex]);
-    } else {
-      searchLocation(searchTerm);
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (!showSuggestions) return;
-
-    switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault();
-        setActiveSuggestionIndex(prev => 
-          prev < suggestions.length - 1 ? prev + 1 : prev
-        );
-        break;
-      case 'ArrowUp':
-        e.preventDefault();
-        setActiveSuggestionIndex(prev => prev > 0 ? prev - 1 : -1);
-        break;
-      case 'Escape':
-        setShowSuggestions(false);
-        setActiveSuggestionIndex(-1);
-        break;
-      case 'Enter':
-        e.preventDefault();
-        if (activeSuggestionIndex >= 0 && suggestions[activeSuggestionIndex]) {
-          selectLocation(suggestions[activeSuggestionIndex]);
-        } else {
-          handleSubmit(e);
-        }
-        break;
-    }
-  };
-
-  const handleInputFocus = () => {
-    if (suggestions.length > 0 && searchTerm.length >= 3) {
-      setShowSuggestions(true);
-      updateDropdownPosition();
-    }
-  };
-
-  // Handle mounting for SSR
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  // Update dropdown position
-  const updateDropdownPosition = () => {
-    if (containerRef.current) {
-      const rect = containerRef.current.getBoundingClientRect();
-      setDropdownPosition({
-        top: rect.bottom + window.scrollY + 4,
-        left: rect.left + window.scrollX,
-        width: rect.width
-      });
-    }
-  };
-
-  // Update position when showing suggestions
-  useEffect(() => {
-    if (showSuggestions) {
-      updateDropdownPosition();
-    }
-  }, [showSuggestions]);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setShowSuggestions(false);
+  // Downshift setup
+  const {
+    isOpen,
+    getToggleButtonProps,
+    getMenuProps,
+    getInputProps,
+    highlightedIndex,
+    getItemProps,
+    inputValue,
+    reset,
+  } = useCombobox({
+    items: suggestions,
+    itemToString: (item) => item ? item.display_name.split(',')[0] : '',
+    onInputValueChange: ({ inputValue }) => {
+      if (inputValue !== undefined && inputValue !== null) {
+        debouncedFetchSuggestions(inputValue);
       }
-    };
-
-    const handleScroll = () => {
-      if (showSuggestions) {
-        updateDropdownPosition();
+    },
+    onSelectedItemChange: ({ selectedItem }) => {
+      if (selectedItem) {
+        selectLocation(selectedItem);
+        reset(); // Clear the input after selection
       }
-    };
+    },
+  });
 
-    if (showSuggestions) {
-      document.addEventListener('mousedown', handleClickOutside);
-      window.addEventListener('scroll', handleScroll);
-      window.addEventListener('resize', handleScroll);
-      
-      return () => {
-        document.removeEventListener('mousedown', handleClickOutside);
-        window.removeEventListener('scroll', handleScroll);
-        window.removeEventListener('resize', handleScroll);
-      };
+
+
+  const handleButtonSearch = () => {
+    if (inputValue) {
+      searchLocation(inputValue);
     }
-  }, [showSuggestions]);
-
-
+  };
 
   return (
-    <div ref={containerRef} className={`flex ${showButton ? 'flex-col sm:flex-row gap-3 md:gap-4' : 'flex-col gap-3'} w-full relative`}>
+    <div className={`flex ${showButton ? 'flex-col sm:flex-row gap-3 md:gap-4' : 'flex-col gap-3'} w-full relative`}>
       <div className="relative flex-1">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 z-10" />
-        <Input 
-          ref={inputRef}
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          onKeyDown={handleKeyDown}
-          onFocus={handleInputFocus}
-          placeholder="London, New York, Madrid…" 
-          className={`pl-10 pr-10 text-gray-900 h-11 md:h-12 text-sm md:text-base rounded-lg border border-gray-200 shadow-sm ${showButton ? 'bg-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all duration-200`} 
-          disabled={isSearching}
+        {/* Search icon - hide when searching */}
+        <Search className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 z-10 transition-opacity ${isSearching ? 'opacity-0' : 'opacity-100'}`} />
+        
+        {/* Loading spinner - show when searching */}
+        <div className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 z-10 transition-opacity ${isSearching ? 'opacity-100' : 'opacity-0'}`}>
+          <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-300 border-t-primary"></div>
+        </div>
+        
+        <Input
+          {...getInputProps()}
+          placeholder="London, New York, Madrid…"
+          className="pl-10 pr-10 text-gray-900 h-11 md:h-12 text-sm md:text-base rounded-lg border border-gray-200 shadow-sm bg-white focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all duration-200"
           autoComplete="off"
           autoFocus={autoFocus}
           inputMode="search"
@@ -291,17 +207,10 @@ export default function LocationSearch({ onLocationFound, autoFocus = false, sho
         />
         
         {/* Custom clear button */}
-        {searchTerm && (
+        {inputValue && (
           <button
             type="button"
-            onClick={() => {
-              setSearchTerm('');
-              setSuggestions([]);
-              setShowSuggestions(false);
-              if (inputRef.current) {
-                inputRef.current.focus();
-              }
-            }}
+            onClick={() => reset()}
             className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 rounded-full transition-colors"
           >
             <svg className="w-4 h-4 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -309,66 +218,55 @@ export default function LocationSearch({ onLocationFound, autoFocus = false, sho
             </svg>
           </button>
         )}
-        
 
-        
         {error && (
           <div className="absolute top-full left-0 mt-1 text-xs text-red-400 bg-black/80 px-2 py-1 rounded z-50">
             {error}
           </div>
         )}
+
+        {/* Downshift suggestions dropdown */}
+        <div {...getMenuProps()} className="relative">
+          {isOpen && suggestions.length > 0 && (
+            <div className="absolute top-1 left-0 right-0 bg-white rounded-lg shadow-xl border border-gray-200 max-h-60 overflow-y-auto z-[9999]">
+              {suggestions.map((suggestion, index) => (
+                <div
+                  key={suggestion.place_id}
+                  {...getItemProps({ item: suggestion, index })}
+                  className={`px-4 py-3 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors duration-150 ${
+                    highlightedIndex === index 
+                      ? 'bg-primary/10 text-primary' 
+                      : 'hover:bg-gray-50 text-gray-900'
+                  }`}
+                >
+                  <div className="font-medium text-sm">
+                    {suggestion.display_name.split(',')[0]}
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    {suggestion.display_name.split(',').slice(1).join(',').trim()}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
       
       {showButton && (
         <Button 
           type="button"
-          onClick={handleSubmit}
+          onClick={handleButtonSearch}
           size="lg" 
           className="shrink-0 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-5 md:px-6 h-11 md:h-12 text-sm md:text-base rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
-          disabled={isSearching}
+          disabled={buttonSearching.current}
         >
-          {isSearching ? (
+          {buttonSearching.current ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           ) : (
             <MapPin className="mr-2 h-4 w-4" />
           )}
-          {isSearching ? "Searching..." : "Pisc-go!"}
+          {buttonSearching.current ? "Searching..." : "Take Me There"}
         </Button>
-      )}
-      
-      {/* Portal dropdown to avoid container constraints */}
-      {isMounted && showSuggestions && suggestions.length > 0 && createPortal(
-        <div 
-          className="bg-white rounded-lg shadow-xl border border-gray-200 max-h-60 overflow-y-auto z-[9999]"
-          style={{
-            position: 'absolute',
-            top: dropdownPosition.top,
-            left: dropdownPosition.left,
-            width: dropdownPosition.width
-          }}
-        >
-          {suggestions.map((suggestion, index) => (
-            <div
-              key={suggestion.place_id}
-              className={`px-4 py-3 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors duration-150 ${
-                index === activeSuggestionIndex 
-                  ? 'bg-primary/10 text-primary' 
-                  : 'hover:bg-gray-50 text-gray-900'
-              }`}
-              onClick={() => {
-                selectLocation(suggestion);
-              }}
-            >
-              <div className="font-medium text-sm">
-                {suggestion.display_name.split(',')[0]}
-              </div>
-              <div className="text-xs text-gray-500 mt-1">
-                {suggestion.display_name.split(',').slice(1).join(',').trim()}
-              </div>
-            </div>
-          ))}
-        </div>,
-        document.body
       )}
     </div>
   );
