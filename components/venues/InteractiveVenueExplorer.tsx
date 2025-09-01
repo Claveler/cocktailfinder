@@ -84,6 +84,9 @@ export default function InteractiveVenueExplorer({
   // Ref for venue cards container to handle scrolling
   const venueCardsContainerRef = useRef<HTMLDivElement>(null);
 
+  // Fixed viewport height for mobile to prevent browser bar resize issues
+  const [fixedMobileHeight, setFixedMobileHeight] = useState<number | null>(null);
+
   // Calculate distance between two coordinates in meters
   const calculateDistance = useCallback(
     (coord1: [number, number], coord2: [number, number]): number => {
@@ -553,12 +556,33 @@ export default function InteractiveVenueExplorer({
   // Get map height from environment variable (default to 3/7 of viewport = 42.86%)
   const mapHeightVh = Number(process.env.NEXT_PUBLIC_MAP_HEIGHT_VH) || 42.86;
 
+  // Capture initial viewport height on mobile to prevent browser bar resize issues
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const isMobile = window.innerWidth <= 768;
+      
+      if (isMobile && fixedMobileHeight === null) {
+        // Calculate the initial height based on current viewport
+        const calculatedHeight = (window.innerHeight * mapHeightVh) / 100 - 64; // 64px = 4rem
+        setFixedMobileHeight(calculatedHeight);
+      }
+    }
+  }, [mapHeightVh, fixedMobileHeight]);
+
+  // Calculate map height: fixed on mobile, dynamic on desktop
+  const getMapHeight = () => {
+    if (typeof window !== "undefined" && window.innerWidth <= 768 && fixedMobileHeight !== null) {
+      return `${fixedMobileHeight}px`;
+    }
+    return `calc(${mapHeightVh}vh - 4rem)`;
+  };
+
   return (
     <div className="md:space-y-8">
       {/* Interactive Map - Sticky on Mobile */}
       <div
         className="sticky top-16 md:relative md:top-auto z-30 md:h-auto"
-        style={{ height: `calc(${mapHeightVh}vh - 4rem)` }}
+        style={{ height: getMapHeight() }}
       >
         <InteractiveMapWrapper
           venues={venuesForMap}
