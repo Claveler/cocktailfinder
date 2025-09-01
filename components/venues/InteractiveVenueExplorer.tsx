@@ -60,6 +60,9 @@ export default function InteractiveVenueExplorer({
     (VenueType & { distance: number })[]
   >([]);
   const [visibleVenueCount, setVisibleVenueCount] = useState(3);
+  
+  // Smart loading state - tracks when we're actively fetching new data
+  const [isSmartLoading, setIsSmartLoading] = useState(false);
 
   // Two-tier venue loading:
   // 1. Load all venue pins for map (lightweight, fast)
@@ -77,7 +80,7 @@ export default function InteractiveVenueExplorer({
     refetch: refetchVenues,
   } = useVenuesByBounds(null, {
     enabled: true, // Enable the hook so refetch works
-    debounceMs: Number(process.env.NEXT_PUBLIC_MAP_UPDATE_DELAY_MS) || 1000,
+    debounceMs: 200, // Reduced internal debouncing since we handle it smartly above
     limit: 50,
   });
 
@@ -114,10 +117,12 @@ export default function InteractiveVenueExplorer({
     [number, number] | null
   >(null);
 
-  // Refs for debouncing
+  // Refs for smart debouncing
   const debounceTimeoutRef = useRef<NodeJS.Timeout>();
   const lastUpdateRef = useRef<number>(0);
-  const lastDistanceSignatureRef = useRef<string>("");
+  const lastBoundsRef = useRef<string>("");
+  const lastMapCenterRef = useRef<[number, number]>(fallbackCenter);
+  const movementVelocityRef = useRef<number>(0);
 
   // Track if we've already updated the map center from fallback changes
   const hasUpdatedFromFallbackRef = useRef<boolean>(false);
@@ -241,13 +246,69 @@ export default function InteractiveVenueExplorer({
 
   // Old venue update function reference removed - now using two-tier loading
 
-  // Map movement handler - fetches detailed venue data for current bounds
+  // Calculate movement distance for smart debouncing
+  const calculateMovementDistance = useCallback((
+    oldCenter: [number, number], 
+    newCenter: [number, number]
+  ): number => {
+    const R = 6371e3; // Earth's radius in meters
+    const φ1 = (oldCenter[0] * Math.PI) / 180;
+    const φ2 = (newCenter[0] * Math.PI) / 180;
+    const Δφ = ((newCenter[0] - oldCenter[0]) * Math.PI) / 180;
+    const Δλ = ((newCenter[1] - oldCenter[1]) * Math.PI) / 180;
+
+    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+      Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return R * c; // Distance in meters
+  }, []);
+
+  // Smart debouncing: adapts delay based on movement pattern
+  const getSmartDebounceDelay = useCallback((
+    movementDistance: number,
+    timeSinceLastMove: number
+  ): number => {
+    // Base delay - much more responsive than 1000ms
+    const baseDelay = Number(process.env.NEXT_PUBLIC_MAP_UPDATE_DELAY_MS) || 400;
+    
+    // Quick movements (< 100m) = shorter delay for responsiveness
+    if (movementDistance < 100) {
+      return Math.max(200, baseDelay * 0.4);
+    }
+    
+    // Medium movements (100m - 1km) = base delay
+    if (movementDistance < 1000) {
+      return baseDelay;
+    }
+    
+    // Large movements (> 1km) = longer delay to avoid spam during rapid panning
+    return Math.min(800, baseDelay * 1.5);
+  }, []);
+
+  // Map movement handler with smart debouncing and immediate cache response
   const handleMapMovement = useCallback(
     (center: [number, number], zoom: number, bounds: MapBounds) => {
       const now = Date.now();
+      const timeSinceLastMove = now - lastUpdateRef.current;
 
-      // Prevent rapid successive calls
-      if (now - lastUpdateRef.current < 100) {
+      // Prevent excessive rapid calls
+      if (timeSinceLastMove < 50) {
+        return;
+      }
+
+      // Calculate movement distance for smart debouncing
+      const movementDistance = calculateMovementDistance(lastMapCenterRef.current, center);
+      lastMapCenterRef.current = center;
+
+      // Update movement velocity for future decisions
+      movementVelocityRef.current = movementDistance / Math.max(timeSinceLastMove, 1);
+
+      // Create bounds signature for cache checking
+      const boundsSignature = `${bounds.north.toFixed(4)},${bounds.south.toFixed(4)},${bounds.east.toFixed(4)},${bounds.west.toFixed(4)}`;
+      
+      // If bounds haven't changed significantly, no need to refetch
+      if (lastBoundsRef.current === boundsSignature) {
         return;
       }
 
@@ -256,12 +317,23 @@ export default function InteractiveVenueExplorer({
         clearTimeout(debounceTimeoutRef.current);
       }
 
-      // Configurable debouncing delay from environment variable
-      const debounceDelayMs =
-        Number(process.env.NEXT_PUBLIC_MAP_UPDATE_DELAY_MS) || 1000;
+      // Smart debouncing based on movement pattern
+      const smartDelay = getSmartDebounceDelay(movementDistance, timeSinceLastMove);
+
+      console.log("🗺️ Smart debounce:", {
+        distance: `${movementDistance.toFixed(0)}m`,
+        delay: `${smartDelay}ms`,
+        velocity: `${movementVelocityRef.current.toFixed(2)}m/ms`
+      });
+
+      // Show loading indicator for longer delays to give user feedback
+      if (smartDelay > 300) {
+        setIsSmartLoading(true);
+      }
 
       debounceTimeoutRef.current = setTimeout(() => {
         lastUpdateRef.current = Date.now();
+        lastBoundsRef.current = boundsSignature;
 
         // Fetch detailed venue data for current bounds
         const apiBounds = {
@@ -271,11 +343,12 @@ export default function InteractiveVenueExplorer({
           west: bounds.west,
         };
 
-        console.log("🗺️ Map moved - fetching venues for bounds:", apiBounds);
+        console.log("🗺️ Fetching venues for bounds:", apiBounds);
         refetchVenues(apiBounds);
-      }, debounceDelayMs);
+        setIsSmartLoading(false); // Clear loading indicator when request starts
+      }, smartDelay);
     },
-    [refetchVenues]
+    [refetchVenues, calculateMovementDistance, getSmartDebounceDelay]
   );
 
   // Update venue cards when detailed venues arrive
@@ -494,11 +567,15 @@ export default function InteractiveVenueExplorer({
 
       {/* Dynamic Venues Based on Map Position */}
       {/* Loading State */}
-      {(pinsLoading || venuesLoading) && (
+      {(pinsLoading || venuesLoading || isSmartLoading) && (
         <div className="p-4 md:p-0 pb-4 flex flex-col items-center justify-center space-y-4 min-h-[200px]">
           <Loader2 className="h-8 w-8 text-primary animate-spin" />
           <p className="text-muted-foreground text-sm">
-            {pinsLoading ? "Loading map..." : "Finding venues in this area..."}
+            {pinsLoading 
+              ? "Loading map..." 
+              : isSmartLoading 
+                ? "Updating venues..." 
+                : "Finding venues in this area..."}
           </p>
         </div>
       )}
@@ -527,6 +604,7 @@ export default function InteractiveVenueExplorer({
       {/* Venue Cards */}
       {!pinsLoading &&
       !venuesLoading &&
+      !isSmartLoading &&
       !pinsError &&
       !venuesError &&
       filteredVenues.length > 0 ? (

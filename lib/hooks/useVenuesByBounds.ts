@@ -44,7 +44,7 @@ export function useVenuesByBounds(
   initialBounds: VenueBounds | null = null,
   options: UseVenuesByBoundsOptions = {}
 ): VenuesByBoundsResult {
-  const { limit = 50, debounceMs = 1000, enabled = true } = options;
+  const { limit = 50, debounceMs = 300, enabled = true } = options;
 
   const [venues, setVenues] = useState<Venue[]>([]);
   const [loading, setLoading] = useState(false);
