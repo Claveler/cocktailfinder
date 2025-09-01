@@ -96,12 +96,7 @@ export function useVenuesByBounds(
         }
 
         const fetchedVenues = data.venues || [];
-        console.log("📊 Venues loaded:", {
-          count: fetchedVenues.length,
-          firstVenue: fetchedVenues[0]?.name,
-          verifications: fetchedVenues[0]?.unique_verifiers,
-          hasComments: fetchedVenues[0]?.recent_verifications?.length > 0,
-        });
+
 
         // Cache the result
         venueCache.set(cacheKey, {
@@ -138,15 +133,10 @@ export function useVenuesByBounds(
 
   const refetch = useCallback(
     (bounds: VenueBounds) => {
-      console.log(
-        "🔄 refetch called with bounds:",
-        bounds,
-        "enabled:",
-        enabled
-      );
+
 
       if (!enabled) {
-        console.log("⚠️ refetch skipped - hook disabled");
+
         return;
       }
 
@@ -160,10 +150,10 @@ export function useVenuesByBounds(
         abortControllerRef.current.abort();
       }
 
-      console.log("⏰ Setting debounced fetch timeout:", debounceMs + "ms");
+
       // Debounce the API call
       debounceTimeoutRef.current = setTimeout(() => {
-        console.log("🚀 Debounce timeout fired - calling fetchVenues");
+
         const abortController = new AbortController();
         abortControllerRef.current = abortController;
 

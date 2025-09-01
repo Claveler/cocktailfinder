@@ -255,7 +255,7 @@ export default function VenueCard({
             className="absolute right-3 top-1/2 -translate-y-1/2 z-10 bg-black/70 backdrop-blur-sm hover:bg-black/90 transition-all duration-200 rounded-full px-3 py-2 group flex items-center gap-2 shadow-lg"
           >
             <span className="text-sm text-white font-medium">See more</span>
-            <CircleChevronRight className="h-4 w-4 text-white group-hover:scale-110 transition-all duration-200" />
+            <CircleChevronRight className="h-4 w-4 text-white/70 group-hover:scale-110 transition-all duration-200" />
           </Link>
         )}
 

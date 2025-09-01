@@ -79,9 +79,6 @@ export default function AuthButton() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       // Auth state change detected
-      if (process.env.NODE_ENV === "development") {
-        console.log("Auth state change:", event, session?.user?.email);
-      }
 
       if (mounted) {
         // Clear timeout immediately when we get any auth state change

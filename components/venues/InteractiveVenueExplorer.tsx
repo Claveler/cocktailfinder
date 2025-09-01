@@ -131,10 +131,7 @@ export default function InteractiveVenueExplorer({
   const [currentMapCenter, setCurrentMapCenter] =
     useState<[number, number]>(fallbackCenter);
 
-  // Debug: Log when currentMapCenter changes
-  useEffect(() => {
-    console.log("🎯 Map center updated to:", currentMapCenter);
-  }, [currentMapCenter]);
+
 
   // Track if we've already updated the map center from fallback changes
   const hasUpdatedFromFallbackRef = useRef<boolean>(false);
@@ -212,7 +209,7 @@ export default function InteractiveVenueExplorer({
   // Transform venue pins to format expected by map component
   // Map ALWAYS shows ALL venues globally for discovery
   const venuesForMap = useMemo(() => {
-    console.log("🗺️ venuesForMap created with", venuePins.length, "pins");
+
     return venuePins.map((pin) => ({
       id: pin.id,
       location: pin.location,
@@ -345,12 +342,7 @@ export default function InteractiveVenueExplorer({
       // Smart debouncing based on movement pattern
       const smartDelay = getSmartDebounceDelay(movementDistance);
 
-      console.log("🗺️ Smart debounce:", {
-        distance: `${movementDistance.toFixed(0)}m`,
-        delay: `${smartDelay}ms`,
-        velocity: `${movementVelocityRef.current.toFixed(2)}m/ms`,
-        newCenter: center,
-      });
+
 
       debounceTimeoutRef.current = setTimeout(() => {
         lastUpdateRef.current = Date.now();
@@ -364,7 +356,7 @@ export default function InteractiveVenueExplorer({
           west: bounds.west,
         };
 
-        console.log("🗺️ Fetching venues for bounds:", apiBounds);
+
         refetchVenues(apiBounds);
       }, smartDelay);
     },
@@ -373,11 +365,7 @@ export default function InteractiveVenueExplorer({
 
   // Update venue cards when detailed venues arrive
   useEffect(() => {
-    console.log("🎯 detailedVenues changed:", {
-      count: detailedVenues.length,
-      loading: venuesLoading,
-      error: venuesError,
-    });
+
 
     if (detailedVenues.length > 0) {
       // Calculate distance from current map center (updates as user moves map)
@@ -396,24 +384,10 @@ export default function InteractiveVenueExplorer({
         (a, b) => a.distance - b.distance
       );
 
-      console.log(
-        "📋 Setting filteredVenues:",
-        sortedVenues.length,
-        "venues, from map center:",
-        currentMapCenter,
-        "distances:",
-        sortedVenues.map((v) => ({
-          name: v.name,
-          distance: v.distance.toFixed(2),
-        }))
-      );
+
       setFilteredVenues(sortedVenues);
     } else {
-      console.log(
-        "📋 Setting filteredVenues to empty (detailedVenues.length =",
-        detailedVenues.length,
-        ")"
-      );
+
       setFilteredVenues([]);
     }
   }, [
@@ -468,7 +442,7 @@ export default function InteractiveVenueExplorer({
       west: initialBounds.west,
     };
 
-    console.log("🚀 Initial venue bounds fetch:", apiBounds);
+
     refetchVenues(apiBounds);
   }, [
     requestUserLocation,
