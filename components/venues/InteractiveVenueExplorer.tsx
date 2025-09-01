@@ -87,8 +87,6 @@ export default function InteractiveVenueExplorer({
   // Ref for venue cards container to handle scrolling
   const venueCardsContainerRef = useRef<HTMLDivElement>(null);
 
-
-
   // Calculate distance between two coordinates in meters
   const calculateDistance = useCallback(
     (coord1: [number, number], coord2: [number, number]): number => {
@@ -265,8 +263,7 @@ export default function InteractiveVenueExplorer({
   );
 
   // Smart debouncing: adapts delay based on movement pattern
-  const getSmartDebounceDelay = useCallback(
-    (movementDistance: number, timeSinceLastMove: number): number => {
+  const getSmartDebounceDelay = useCallback((movementDistance: number): number => {
       // Base delay - much more responsive than 1000ms
       const baseDelay =
         Number(process.env.NEXT_PUBLIC_MAP_UPDATE_DELAY_MS) || 400;
@@ -323,10 +320,7 @@ export default function InteractiveVenueExplorer({
       }
 
       // Smart debouncing based on movement pattern
-      const smartDelay = getSmartDebounceDelay(
-        movementDistance,
-        timeSinceLastMove
-      );
+      const smartDelay = getSmartDebounceDelay(movementDistance);
 
       console.log("🗺️ Smart debounce:", {
         distance: `${movementDistance.toFixed(0)}m`,
