@@ -7,7 +7,7 @@ import LandingPageClient from "./LandingPageClient";
 // Configuration for location-based venue filtering
 const VENUE_SEARCH_RADIUS_KM =
   Number(process.env.NEXT_PUBLIC_VENUE_SEARCH_RADIUS_KM) || 10; // Default radius in kilometers
-const VENUE_POOL_SIZE = 100; // Fetch more venues for better location filtering
+const VENUE_POOL_SIZE = 20; // Reduced for faster initial load - dynamic loading will fetch more as needed
 
 // Function to fetch venues for location-aware homepage
 async function getVenuesForLocationFiltering(): Promise<VenueType[]> {

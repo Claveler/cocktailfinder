@@ -231,14 +231,12 @@ export default function LandingPageClient({
         <div className="md:container mx-auto w-full">
           {/* Interactive Venue Explorer with Map */}
           <InteractiveVenueExplorer
-            allVenues={allVenues}
             maxDistanceKm={maxDistanceKm}
             fallbackCenter={initialMapCenter || [51.5261617, -0.1633234]} // Use query param center or London Business School as fallback (LBS easter egg! 🎓)
             fallbackZoom={initialZoom || undefined}
             searchLocation={searchLocation}
             initialFocusedVenueId={initialFocusedVenueId}
             hasQueryParams={!!(initialMapCenter || initialFocusedVenueId)}
-            currentFilters={currentFilters}
           />
         </div>
       </section>

@@ -72,6 +72,7 @@ interface InteractiveMapProps {
   onLocationRequest?: () => void;
   maxDistanceKm?: number;
   focusedVenueId?: string | null;
+  venueCountOverride?: number; // Override the calculated venue count with external value
 }
 
 // Helper function to check if location is the fallback location (LBS)
@@ -408,6 +409,7 @@ const InteractiveMap = memo(function InteractiveMap({
   onLocationRequest,
   maxDistanceKm,
   focusedVenueId,
+  venueCountOverride,
 }: InteractiveMapProps) {
   // State to track venues visible in current map bounds
   const [visibleVenueCount, setVisibleVenueCount] = useState(0);
@@ -518,7 +520,7 @@ const InteractiveMap = memo(function InteractiveMap({
       />
 
       {/* Venue count overlay - shows venues visible in current map bounds */}
-      <VenueCountOverlay venueCount={visibleVenueCount} />
+      <VenueCountOverlay venueCount={venueCountOverride ?? visibleVenueCount} />
     </div>
   );
 });
