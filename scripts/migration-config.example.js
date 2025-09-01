@@ -1,15 +1,15 @@
 /**
  * Photo Migration Configuration
- * 
+ *
  * Copy this file to `migration-config.js` and update with your actual Supabase credentials.
- * 
+ *
  * How to find your credentials:
- * 
+ *
  * For Piscola2 (Development):
  * 1. Go to: https://supabase.com/dashboard/project/lnoaurqbnmxbsfaahnjw
  * 2. Click Settings → API
  * 3. Copy the Project URL and anon/service_role keys
- * 
+ *
  * For piscola-prod (Production):
  * 1. Go to: https://supabase.com/dashboard/project/udpygouyogrwvwjbzdul
  * 2. Click Settings → API
@@ -19,17 +19,17 @@
 const CONFIG = {
   // Development project (source) - Piscola2
   DEV: {
-    url: 'https://lnoaurqbnmxbsfaahnjw.supabase.co',
-    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...', // Replace with your actual dev anon key
-    serviceRoleKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' // Replace with your actual dev service role key (optional)
+    url: "https://lnoaurqbnmxbsfaahnjw.supabase.co",
+    anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...", // Replace with your actual dev anon key
+    serviceRoleKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...", // Replace with your actual dev service role key (optional)
   },
-  
+
   // Production project (destination) - piscola-prod
   PROD: {
-    url: 'https://udpygouyogrwvwjbzdul.supabase.co',
-    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...', // Replace with your actual prod anon key
-    serviceRoleKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' // Replace with your actual prod service role key (REQUIRED)
-  }
+    url: "https://udpygouyogrwvwjbzdul.supabase.co",
+    anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...", // Replace with your actual prod anon key
+    serviceRoleKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...", // Replace with your actual prod service role key (REQUIRED)
+  },
 };
 
 module.exports = CONFIG;

@@ -41,6 +41,7 @@ This guide will help you migrate all venue photos from your development Supabase
 #### Setup Configuration
 
 1. **Copy the config template**:
+
    ```bash
    cp scripts/migration-config.example.js scripts/migration-config.js
    ```
@@ -60,11 +61,13 @@ This guide will help you migrate all venue photos from your development Supabase
 #### Run Migration
 
 1. **Install dependencies** (if not already done):
+
    ```bash
    npm install
    ```
 
 2. **Run the migration script**:
+
    ```bash
    node scripts/migrate-photos.js
    ```
@@ -107,22 +110,29 @@ After completion, you should have:
 ## 🔧 Troubleshooting
 
 ### "Configuration file not found"
+
 **Solution**: Copy `migration-config.example.js` to `migration-config.js` and update credentials
 
 ### "Bucket not found in production"
+
 **Solution**: Run Step 1 (CREATE_BUCKET.sql) first
 
 ### "Permission denied" during upload
+
 **Solution**: Ensure you're using the **service_role** key for production (not just anon key)
 
 ### Photos still not uploading after migration
-**Solution**: 
+
+**Solution**:
+
 1. Check browser console for specific errors
 2. Verify bucket exists: https://supabase.com/dashboard/project/udpygouyogrwvwjbzdul/storage/buckets
 3. Confirm RLS policies are active
 
 ### Some photos didn't migrate
+
 **Solution**: Check the migration script output for specific error messages. Common causes:
+
 - Network timeouts (re-run the script)
 - Malformed URLs in database
 - File access permissions
@@ -153,6 +163,7 @@ scripts/
 ## 🎉 Success!
 
 Once completed, your production environment will be fully self-contained with:
+
 - All photos hosted in production
 - Working photo uploads
 - Proper security policies
