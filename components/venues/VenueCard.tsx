@@ -219,7 +219,7 @@ export default function VenueCard({
   // Generate card classes with optional selection highlighting
   const getCardClasses = () => {
     const baseClasses =
-      "hover:shadow-xl hover:scale-[1.02] transition-all duration-300 cursor-pointer overflow-hidden";
+      "hover:shadow-xl transition-all duration-300 cursor-pointer overflow-hidden";
     return baseClasses;
   };
 
