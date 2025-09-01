@@ -219,7 +219,7 @@ export default function VenueCard({
   // Generate card classes with optional selection highlighting
   const getCardClasses = () => {
     const baseClasses =
-      "hover:shadow-xl transition-all duration-300 cursor-pointer overflow-hidden";
+      "transition-all duration-300 cursor-pointer overflow-hidden";
     return baseClasses;
   };
 
@@ -246,14 +246,15 @@ export default function VenueCard({
           <div className="absolute inset-0 bg-black/30" />
         </div>
 
-        {/* Navigation Icon - Only show when onCardClick is present */}
+        {/* Navigation Button - Only show when onCardClick is present */}
         {onCardClick && (
           <Link
             href={`/venues/${venue.id}`}
             onClick={handleNavigateClick}
-            className="absolute right-3 top-1/2 -translate-y-1/2 z-10 bg-black/60 backdrop-blur-sm hover:bg-black/80 transition-all duration-200 rounded-full p-2.5 group"
+            className="absolute right-3 top-1/2 -translate-y-1/2 z-10 bg-black/60 backdrop-blur-sm hover:bg-black/80 transition-all duration-200 rounded-full px-2.5 py-1 group flex items-center gap-1.5"
           >
-            <ChevronRight className="h-4 w-4 text-white group-hover:text-white/90 group-hover:translate-x-0.5 transition-all duration-200" />
+            <span className="text-xs text-white font-medium">See more</span>
+            <ChevronRight className="h-3 w-3 text-white group-hover:translate-x-0.5 transition-all duration-200" />
           </Link>
         )}
 
