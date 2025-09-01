@@ -10,13 +10,29 @@ export async function checkAdminRole(): Promise<boolean> {
       data: { user },
     } = await supabase.auth.getUser();
 
-    if (!user) return false;
+    // DEBUG: Log what we're getting
+    console.log("🔍 checkAdminRole DEBUG:", {
+      hasUser: !!user,
+      userId: user?.id,
+      userEmail: user?.email,
+    });
+
+    if (!user) {
+      console.log("❌ checkAdminRole: No user found");
+      return false;
+    }
 
     const { data: profile } = await supabase
       .from("profiles")
       .select("role")
       .eq("id", user.id)
       .single();
+
+    console.log("🔍 Profile lookup result:", {
+      profileFound: !!profile,
+      role: profile?.role,
+      isAdmin: profile?.role === "admin",
+    });
 
     return profile?.role === "admin";
   } catch (error) {
