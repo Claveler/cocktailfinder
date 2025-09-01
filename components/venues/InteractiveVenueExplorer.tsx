@@ -85,7 +85,9 @@ export default function InteractiveVenueExplorer({
   const venueCardsContainerRef = useRef<HTMLDivElement>(null);
 
   // Fixed viewport height for mobile to prevent browser bar resize issues
-  const [fixedMobileHeight, setFixedMobileHeight] = useState<number | null>(null);
+  const [fixedMobileHeight, setFixedMobileHeight] = useState<number | null>(
+    null
+  );
 
   // Calculate distance between two coordinates in meters
   const calculateDistance = useCallback(
@@ -560,7 +562,7 @@ export default function InteractiveVenueExplorer({
   useEffect(() => {
     if (typeof window !== "undefined") {
       const isMobile = window.innerWidth <= 768;
-      
+
       if (isMobile && fixedMobileHeight === null) {
         // Calculate the initial height based on current viewport
         const calculatedHeight = (window.innerHeight * mapHeightVh) / 100 - 64; // 64px = 4rem
@@ -571,7 +573,11 @@ export default function InteractiveVenueExplorer({
 
   // Calculate map height: fixed on mobile, dynamic on desktop
   const getMapHeight = () => {
-    if (typeof window !== "undefined" && window.innerWidth <= 768 && fixedMobileHeight !== null) {
+    if (
+      typeof window !== "undefined" &&
+      window.innerWidth <= 768 &&
+      fixedMobileHeight !== null
+    ) {
       return `${fixedMobileHeight}px`;
     }
     return `calc(${mapHeightVh}vh - 4rem)`;
