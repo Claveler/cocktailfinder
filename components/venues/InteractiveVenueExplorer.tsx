@@ -61,9 +61,6 @@ export default function InteractiveVenueExplorer({
   >([]);
   const [visibleVenueCount, setVisibleVenueCount] = useState(3);
 
-  // Smart loading state - tracks when we're actively fetching new data
-  const [isSmartLoading, setIsSmartLoading] = useState(false);
-
   // Two-tier venue loading:
   // 1. Load all venue pins for map (lightweight, fast)
   const {
@@ -311,7 +308,7 @@ export default function InteractiveVenueExplorer({
         center
       );
       lastMapCenterRef.current = center;
-      
+
       // Update current map center for distance calculations
       setCurrentMapCenter(center);
 
@@ -342,11 +339,6 @@ export default function InteractiveVenueExplorer({
         newCenter: center,
       });
 
-      // Show loading indicator for longer delays to give user feedback
-      if (smartDelay > 300) {
-        setIsSmartLoading(true);
-      }
-
       debounceTimeoutRef.current = setTimeout(() => {
         lastUpdateRef.current = Date.now();
         lastBoundsRef.current = boundsSignature;
@@ -361,7 +353,6 @@ export default function InteractiveVenueExplorer({
 
         console.log("🗺️ Fetching venues for bounds:", apiBounds);
         refetchVenues(apiBounds);
-        setIsSmartLoading(false); // Clear loading indicator when request starts
       }, smartDelay);
     },
     [refetchVenues, calculateMovementDistance, getSmartDebounceDelay]
@@ -393,7 +384,10 @@ export default function InteractiveVenueExplorer({
         "venues, from map center:",
         currentMapCenter,
         "distances:",
-        venuesWithDistance.map(v => ({ name: v.name, distance: v.distance.toFixed(2) }))
+        venuesWithDistance.map((v) => ({
+          name: v.name,
+          distance: v.distance.toFixed(2),
+        }))
       );
       setFilteredVenues(venuesWithDistance);
     } else {
@@ -584,14 +578,12 @@ export default function InteractiveVenueExplorer({
       </div>
 
       {/* Dynamic Venues Based on Map Position */}
-            {/* Loading State - Only show when no venue cards are available */}
+      {/* Loading State - Only show when no venue cards are available */}
       {(pinsLoading || (venuesLoading && filteredVenues.length === 0)) && (
         <div className="p-4 md:p-0 pb-4 flex flex-col items-center justify-center space-y-4 min-h-[200px]">
           <Loader2 className="h-8 w-8 text-primary animate-spin" />
           <p className="text-muted-foreground text-sm">
-            {pinsLoading 
-              ? "Loading map..." 
-              : "Finding venues in this area..."}
+            {pinsLoading ? "Loading map..." : "Finding venues in this area..."}
           </p>
         </div>
       )}
