@@ -60,7 +60,7 @@ export default function InteractiveVenueExplorer({
     (VenueType & { distance: number })[]
   >([]);
   const [visibleVenueCount, setVisibleVenueCount] = useState(3);
-  
+
   // Smart loading state - tracks when we're actively fetching new data
   const [isSmartLoading, setIsSmartLoading] = useState(false);
 
@@ -87,8 +87,7 @@ export default function InteractiveVenueExplorer({
   // Ref for venue cards container to handle scrolling
   const venueCardsContainerRef = useRef<HTMLDivElement>(null);
 
-  // Track previous map center to detect significant movement
-  const previousMapCenterRef = useRef<[number, number] | null>(null);
+
 
   // Calculate distance between two coordinates in meters
   const calculateDistance = useCallback(
@@ -247,44 +246,46 @@ export default function InteractiveVenueExplorer({
   // Old venue update function reference removed - now using two-tier loading
 
   // Calculate movement distance for smart debouncing
-  const calculateMovementDistance = useCallback((
-    oldCenter: [number, number], 
-    newCenter: [number, number]
-  ): number => {
-    const R = 6371e3; // Earth's radius in meters
-    const φ1 = (oldCenter[0] * Math.PI) / 180;
-    const φ2 = (newCenter[0] * Math.PI) / 180;
-    const Δφ = ((newCenter[0] - oldCenter[0]) * Math.PI) / 180;
-    const Δλ = ((newCenter[1] - oldCenter[1]) * Math.PI) / 180;
+  const calculateMovementDistance = useCallback(
+    (oldCenter: [number, number], newCenter: [number, number]): number => {
+      const R = 6371e3; // Earth's radius in meters
+      const φ1 = (oldCenter[0] * Math.PI) / 180;
+      const φ2 = (newCenter[0] * Math.PI) / 180;
+      const Δφ = ((newCenter[0] - oldCenter[0]) * Math.PI) / 180;
+      const Δλ = ((newCenter[1] - oldCenter[1]) * Math.PI) / 180;
 
-    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-      Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      const a =
+        Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+        Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-    return R * c; // Distance in meters
-  }, []);
+      return R * c; // Distance in meters
+    },
+    []
+  );
 
   // Smart debouncing: adapts delay based on movement pattern
-  const getSmartDebounceDelay = useCallback((
-    movementDistance: number,
-    timeSinceLastMove: number
-  ): number => {
-    // Base delay - much more responsive than 1000ms
-    const baseDelay = Number(process.env.NEXT_PUBLIC_MAP_UPDATE_DELAY_MS) || 400;
-    
-    // Quick movements (< 100m) = shorter delay for responsiveness
-    if (movementDistance < 100) {
-      return Math.max(200, baseDelay * 0.4);
-    }
-    
-    // Medium movements (100m - 1km) = base delay
-    if (movementDistance < 1000) {
-      return baseDelay;
-    }
-    
-    // Large movements (> 1km) = longer delay to avoid spam during rapid panning
-    return Math.min(800, baseDelay * 1.5);
-  }, []);
+  const getSmartDebounceDelay = useCallback(
+    (movementDistance: number, timeSinceLastMove: number): number => {
+      // Base delay - much more responsive than 1000ms
+      const baseDelay =
+        Number(process.env.NEXT_PUBLIC_MAP_UPDATE_DELAY_MS) || 400;
+
+      // Quick movements (< 100m) = shorter delay for responsiveness
+      if (movementDistance < 100) {
+        return Math.max(200, baseDelay * 0.4);
+      }
+
+      // Medium movements (100m - 1km) = base delay
+      if (movementDistance < 1000) {
+        return baseDelay;
+      }
+
+      // Large movements (> 1km) = longer delay to avoid spam during rapid panning
+      return Math.min(800, baseDelay * 1.5);
+    },
+    []
+  );
 
   // Map movement handler with smart debouncing and immediate cache response
   const handleMapMovement = useCallback(
@@ -298,15 +299,19 @@ export default function InteractiveVenueExplorer({
       }
 
       // Calculate movement distance for smart debouncing
-      const movementDistance = calculateMovementDistance(lastMapCenterRef.current, center);
+      const movementDistance = calculateMovementDistance(
+        lastMapCenterRef.current,
+        center
+      );
       lastMapCenterRef.current = center;
 
       // Update movement velocity for future decisions
-      movementVelocityRef.current = movementDistance / Math.max(timeSinceLastMove, 1);
+      movementVelocityRef.current =
+        movementDistance / Math.max(timeSinceLastMove, 1);
 
       // Create bounds signature for cache checking
       const boundsSignature = `${bounds.north.toFixed(4)},${bounds.south.toFixed(4)},${bounds.east.toFixed(4)},${bounds.west.toFixed(4)}`;
-      
+
       // If bounds haven't changed significantly, no need to refetch
       if (lastBoundsRef.current === boundsSignature) {
         return;
@@ -318,12 +323,15 @@ export default function InteractiveVenueExplorer({
       }
 
       // Smart debouncing based on movement pattern
-      const smartDelay = getSmartDebounceDelay(movementDistance, timeSinceLastMove);
+      const smartDelay = getSmartDebounceDelay(
+        movementDistance,
+        timeSinceLastMove
+      );
 
       console.log("🗺️ Smart debounce:", {
         distance: `${movementDistance.toFixed(0)}m`,
         delay: `${smartDelay}ms`,
-        velocity: `${movementVelocityRef.current.toFixed(2)}m/ms`
+        velocity: `${movementVelocityRef.current.toFixed(2)}m/ms`,
       });
 
       // Show loading indicator for longer delays to give user feedback
@@ -571,10 +579,10 @@ export default function InteractiveVenueExplorer({
         <div className="p-4 md:p-0 pb-4 flex flex-col items-center justify-center space-y-4 min-h-[200px]">
           <Loader2 className="h-8 w-8 text-primary animate-spin" />
           <p className="text-muted-foreground text-sm">
-            {pinsLoading 
-              ? "Loading map..." 
-              : isSmartLoading 
-                ? "Updating venues..." 
+            {pinsLoading
+              ? "Loading map..."
+              : isSmartLoading
+                ? "Updating venues..."
                 : "Finding venues in this area..."}
           </p>
         </div>
