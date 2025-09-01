@@ -224,6 +224,13 @@ export async function updateVenueAction(
     } = await regularSupabase.auth.getUser();
     console.log("🔧 Admin operation by user:", user?.email);
 
+    // Debug environment variables
+    console.log("🔍 Environment check:", {
+      hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+      hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+      serviceKeyLength: process.env.SUPABASE_SERVICE_ROLE_KEY?.length,
+    });
+
     // Use service role client for the actual update to bypass RLS issues
     const { createClient: createServiceClient } = await import(
       "@supabase/supabase-js"
@@ -232,6 +239,8 @@ export async function updateVenueAction(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
+
+    console.log("✅ Service role client created successfully");
 
     // Prepare the update object
     const venueUpdates: any = {
