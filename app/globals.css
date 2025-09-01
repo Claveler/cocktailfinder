@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Disable pull-to-refresh on mobile */
+html {
+  overscroll-behavior: none;
+}
+
+body {
+  overscroll-behavior-y: none;
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;
