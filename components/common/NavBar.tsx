@@ -110,8 +110,8 @@ export default function NavBar() {
             <img
               src="/assets/piscola-logo.svg"
               alt="Piscola Logo"
-              style={{ height: "2.5rem", width: "auto" }}
-              className="shadow-sm"
+              style={{ height: "2rem", width: "auto" }}
+              className="shadow-sm max-w-[50vw]"
             />
           </Link>
 
