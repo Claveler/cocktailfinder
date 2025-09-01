@@ -22,19 +22,19 @@ export function useVenuePins(): UseVenuePinsResult {
 
   // Initial fetch
   useEffect(() => {
-        const fetchPins = async () => {
+    const fetchPins = async () => {
       try {
         setLoading(true);
         setError(null);
 
         const response = await fetch("/api/venues/pins");
-        
+
         if (!response.ok) {
           throw new Error(`Failed to fetch pins: ${response.statusText}`);
         }
 
         const data = await response.json();
-        
+
         if (data.error) {
           throw new Error(data.error);
         }
@@ -47,7 +47,6 @@ export function useVenuePins(): UseVenuePinsResult {
           err instanceof Error ? err.message : "Failed to fetch venue pins"
         );
       } finally {
-
         setLoading(false);
       }
     };

@@ -131,8 +131,6 @@ export default function InteractiveVenueExplorer({
   const [currentMapCenter, setCurrentMapCenter] =
     useState<[number, number]>(fallbackCenter);
 
-
-
   // Track if we've already updated the map center from fallback changes
   const hasUpdatedFromFallbackRef = useRef<boolean>(false);
 
@@ -209,7 +207,6 @@ export default function InteractiveVenueExplorer({
   // Transform venue pins to format expected by map component
   // Map ALWAYS shows ALL venues globally for discovery
   const venuesForMap = useMemo(() => {
-
     return venuePins.map((pin) => ({
       id: pin.id,
       location: pin.location,
@@ -342,8 +339,6 @@ export default function InteractiveVenueExplorer({
       // Smart debouncing based on movement pattern
       const smartDelay = getSmartDebounceDelay(movementDistance);
 
-
-
       debounceTimeoutRef.current = setTimeout(() => {
         lastUpdateRef.current = Date.now();
         lastBoundsRef.current = boundsSignature;
@@ -356,7 +351,6 @@ export default function InteractiveVenueExplorer({
           west: bounds.west,
         };
 
-
         refetchVenues(apiBounds);
       }, smartDelay);
     },
@@ -365,8 +359,6 @@ export default function InteractiveVenueExplorer({
 
   // Update venue cards when detailed venues arrive
   useEffect(() => {
-
-
     if (detailedVenues.length > 0) {
       // Calculate distance from current map center (updates as user moves map)
       const venuesWithDistance = detailedVenues.map((venue) => ({
@@ -384,10 +376,8 @@ export default function InteractiveVenueExplorer({
         (a, b) => a.distance - b.distance
       );
 
-
       setFilteredVenues(sortedVenues);
     } else {
-
       setFilteredVenues([]);
     }
   }, [
@@ -441,7 +431,6 @@ export default function InteractiveVenueExplorer({
       east: initialBounds.east,
       west: initialBounds.west,
     };
-
 
     refetchVenues(apiBounds);
   }, [

@@ -97,7 +97,6 @@ export function useVenuesByBounds(
 
         const fetchedVenues = data.venues || [];
 
-
         // Cache the result
         venueCache.set(cacheKey, {
           venues: fetchedVenues,
@@ -133,10 +132,7 @@ export function useVenuesByBounds(
 
   const refetch = useCallback(
     (bounds: VenueBounds) => {
-
-
       if (!enabled) {
-
         return;
       }
 
@@ -150,10 +146,8 @@ export function useVenuesByBounds(
         abortControllerRef.current.abort();
       }
 
-
       // Debounce the API call
       debounceTimeoutRef.current = setTimeout(() => {
-
         const abortController = new AbortController();
         abortControllerRef.current = abortController;
 
