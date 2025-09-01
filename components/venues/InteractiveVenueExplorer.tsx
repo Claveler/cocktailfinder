@@ -89,6 +89,10 @@ export default function InteractiveVenueExplorer({
     null
   );
 
+  // Track if initial positioning is complete to avoid showing default location venue cards
+  const [isInitialPositioningComplete, setIsInitialPositioningComplete] =
+    useState(false);
+
   // Calculate distance between two coordinates in meters
   const calculateDistance = useCallback(
     (coord1: [number, number], coord2: [number, number]): number => {
@@ -141,6 +145,8 @@ export default function InteractiveVenueExplorer({
 
     if (!navigator.geolocation) {
       setLocationError("Geolocation is not supported by this browser");
+      // Mark positioning as complete when geolocation not supported
+      setIsInitialPositioningComplete(true);
       return;
     }
 
@@ -156,6 +162,8 @@ export default function InteractiveVenueExplorer({
       (error) => {
         console.warn("Geolocation error:", error);
         setLocationError("Unable to get your location");
+        // Mark positioning as complete even on error to show venue cards for fallback location
+        setIsInitialPositioningComplete(true);
       },
       {
         enableHighAccuracy: true,
@@ -437,6 +445,15 @@ export default function InteractiveVenueExplorer({
     // Only request user location if we don't have query parameters
     if (!hasQueryParams) {
       requestUserLocation();
+      // Add timeout to mark positioning complete if location takes too long
+      const locationTimeout = setTimeout(() => {
+        setIsInitialPositioningComplete(true);
+      }, 5000); // 5 second timeout
+
+      return () => clearTimeout(locationTimeout);
+    } else {
+      // If we have query params, we're not doing location detection, so mark as complete
+      setIsInitialPositioningComplete(true);
     }
 
     // Trigger initial detailed venue fetch for current view
@@ -478,6 +495,9 @@ export default function InteractiveVenueExplorer({
       setStaticMapCenter(newCenter);
       setStaticUserLocation(newCenter);
 
+      // Mark initial positioning as complete
+      setIsInitialPositioningComplete(true);
+
       // Note: Venue filtering now handled by two-tier loading system
 
       // Reset manual location request flag and clear focused venue (user wants their location, not query param venue)
@@ -503,6 +523,9 @@ export default function InteractiveVenueExplorer({
       // Update map center to search location with higher zoom
       setStaticMapCenter(searchLocation);
       setStaticMapZoom(searchZoomLevel);
+
+      // Mark initial positioning as complete
+      setIsInitialPositioningComplete(true);
 
       // Note: Venue filtering now handled by two-tier loading system
     }
@@ -660,11 +683,22 @@ export default function InteractiveVenueExplorer({
         </div>
       )}
 
+      {/* Initial positioning loading state */}
+      {!isInitialPositioningComplete && !hasQueryParams && (
+        <div className="p-4 md:p-0 flex items-center justify-center py-12">
+          <div className="flex flex-col items-center space-y-3 text-gray-600">
+            <Loader2 className="h-6 w-6 animate-spin" />
+            <p className="text-sm">Finding your location...</p>
+          </div>
+        </div>
+      )}
+
       {/* Venue Cards - Show existing cards while loading new ones */}
       {!pinsLoading &&
       !pinsError &&
       !venuesError &&
-      filteredVenues.length > 0 ? (
+      filteredVenues.length > 0 &&
+      isInitialPositioningComplete ? (
         <div ref={venueCardsContainerRef} className="p-4 md:p-0 pb-4 space-y-6">
           {/* Venues Grid */}
           <div className="grid md:grid-cols-3 gap-6">
