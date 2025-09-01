@@ -264,12 +264,12 @@ export default function VenueCard({
           {/* Top Row - Location indicators */}
           <div className="flex items-start justify-between">
             {showDistance && distance !== undefined && (
-              <div className="flex items-center gap-2">
-                <Badge className="text-xs bg-black/60 backdrop-blur-sm text-white border-white/20 hover:bg-black/70">
+              <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-2">
+                <Badge className="text-xs bg-black/60 backdrop-blur-sm text-white border-white/20 hover:bg-black/70 w-fit">
                   {distance.toFixed(1)} km
                 </Badge>
                 {isSelected && (
-                  <div className="flex items-center gap-1 bg-green-500/90 backdrop-blur-sm px-2 py-1 rounded-full">
+                  <div className="flex items-center gap-1 bg-green-500/90 backdrop-blur-sm px-2 py-1 rounded-full w-fit">
                     <MapPin className="w-3 h-3 text-white" />
                     <span className="text-xs text-white font-medium">
                       Closest
