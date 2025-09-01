@@ -411,15 +411,18 @@ export default function InteractiveVenueExplorer({
     calculateDistance,
   ]);
 
-  // Scroll to top when focused venue changes (after venue card click)
+  // Scroll to top when focused venue changes (after venue card click) - mobile only
   useEffect(() => {
     if (focusedVenueId) {
       // Small delay to ensure venues have been reordered
       setTimeout(() => {
-        window.scrollTo({
-          top: 0,
-          behavior: "smooth",
-        });
+        // Only scroll to top on mobile (768px and below)
+        if (window.innerWidth <= 768) {
+          window.scrollTo({
+            top: 0,
+            behavior: "smooth",
+          });
+        }
       }, 100);
     }
   }, [focusedVenueId]);
