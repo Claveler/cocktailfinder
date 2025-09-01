@@ -5,10 +5,14 @@
 /* Disable pull-to-refresh on mobile */
 html {
   overscroll-behavior: none;
+  /* Disable pinch-to-zoom on mobile while allowing panning */
+  touch-action: pan-x pan-y;
 }
 
 body {
   overscroll-behavior-y: none;
+  /* Disable pinch-to-zoom on mobile while allowing panning */
+  touch-action: pan-x pan-y;
 }
 
 @layer utilities {
@@ -23,6 +27,11 @@ body {
   }
   .scrollbar-hide::-webkit-scrollbar {
     display: none; /* Safari and Chrome */
+  }
+
+  /* Allow all touch interactions for maps (enables zoom) */
+  .touch-auto {
+    touch-action: auto;
   }
 
   /* Piscola brand accent utilities */

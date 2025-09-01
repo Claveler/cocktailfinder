@@ -505,7 +505,7 @@ const InteractiveMap = memo(function InteractiveMap({
   return (
     <div
       style={{ height }}
-      className="w-full h-full !rounded-none md:!rounded-xl overflow-hidden relative border-0 md:border"
+      className="w-full h-full !rounded-none md:!rounded-xl overflow-hidden relative border-0 md:border touch-auto"
     >
       <LeafletMapComponent
         venues={approvedVenues}
