@@ -121,6 +121,15 @@ export default function InteractiveVenueExplorer({
   const lastMapCenterRef = useRef<[number, number]>(fallbackCenter);
   const movementVelocityRef = useRef<number>(0);
 
+  // Track current map center for distance calculations (updates on map movement)
+  const [currentMapCenter, setCurrentMapCenter] =
+    useState<[number, number]>(fallbackCenter);
+
+  // Debug: Log when currentMapCenter changes
+  useEffect(() => {
+    console.log("🎯 Map center updated to:", currentMapCenter);
+  }, [currentMapCenter]);
+
   // Track if we've already updated the map center from fallback changes
   const hasUpdatedFromFallbackRef = useRef<boolean>(false);
 
@@ -302,6 +311,9 @@ export default function InteractiveVenueExplorer({
         center
       );
       lastMapCenterRef.current = center;
+      
+      // Update current map center for distance calculations
+      setCurrentMapCenter(center);
 
       // Update movement velocity for future decisions
       movementVelocityRef.current =
@@ -327,6 +339,7 @@ export default function InteractiveVenueExplorer({
         distance: `${movementDistance.toFixed(0)}m`,
         delay: `${smartDelay}ms`,
         velocity: `${movementVelocityRef.current.toFixed(2)}m/ms`,
+        newCenter: center,
       });
 
       // Show loading indicator for longer delays to give user feedback
@@ -363,13 +376,12 @@ export default function InteractiveVenueExplorer({
     });
 
     if (detailedVenues.length > 0) {
-      // Calculate distance from current map center
-      const mapCenter = { lat: staticMapCenter[0], lng: staticMapCenter[1] };
+      // Calculate distance from current map center (updates as user moves map)
       const venuesWithDistance = detailedVenues.map((venue) => ({
         ...venue,
         distance: venue.location
           ? calculateDistance(
-              [mapCenter.lat, mapCenter.lng],
+              [currentMapCenter[0], currentMapCenter[1]],
               [venue.location.lat, venue.location.lng]
             ) / 1000
           : 0, // Convert meters to kilometers
@@ -378,7 +390,10 @@ export default function InteractiveVenueExplorer({
       console.log(
         "📋 Setting filteredVenues:",
         venuesWithDistance.length,
-        "venues"
+        "venues, from map center:",
+        currentMapCenter,
+        "distances:",
+        venuesWithDistance.map(v => ({ name: v.name, distance: v.distance.toFixed(2) }))
       );
       setFilteredVenues(venuesWithDistance);
     } else {
@@ -393,7 +408,7 @@ export default function InteractiveVenueExplorer({
     detailedVenues,
     venuesLoading,
     venuesError,
-    staticMapCenter,
+    currentMapCenter,
     calculateDistance,
   ]);
 
@@ -569,16 +584,14 @@ export default function InteractiveVenueExplorer({
       </div>
 
       {/* Dynamic Venues Based on Map Position */}
-      {/* Loading State */}
-      {(pinsLoading || venuesLoading || isSmartLoading) && (
+            {/* Loading State - Only show when no venue cards are available */}
+      {(pinsLoading || (venuesLoading && filteredVenues.length === 0)) && (
         <div className="p-4 md:p-0 pb-4 flex flex-col items-center justify-center space-y-4 min-h-[200px]">
           <Loader2 className="h-8 w-8 text-primary animate-spin" />
           <p className="text-muted-foreground text-sm">
-            {pinsLoading
-              ? "Loading map..."
-              : isSmartLoading
-                ? "Updating venues..."
-                : "Finding venues in this area..."}
+            {pinsLoading 
+              ? "Loading map..." 
+              : "Finding venues in this area..."}
           </p>
         </div>
       )}
@@ -604,10 +617,8 @@ export default function InteractiveVenueExplorer({
         </div>
       )}
 
-      {/* Venue Cards */}
+      {/* Venue Cards - Show existing cards while loading new ones */}
       {!pinsLoading &&
-      !venuesLoading &&
-      !isSmartLoading &&
       !pinsError &&
       !venuesError &&
       filteredVenues.length > 0 ? (
