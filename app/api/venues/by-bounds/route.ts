@@ -67,8 +67,8 @@ export async function GET(request: NextRequest) {
       .lte("latitude", north)
       .gte("longitude", west)
       .lte("longitude", east)
-      .limit(limit)
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .limit(limit);
 
     if (venuesError) {
       console.error("Error fetching venues by bounds:", venuesError);
@@ -78,19 +78,20 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get venue IDs for verification stats from pisco_verifications table
+    // Get venue IDs for verification stats and recent comments
     const venueIds = venues?.map((v) => v.id) || [];
 
-    // Fetch verification stats from pisco_verifications table
+    // Fetch verification stats efficiently with a single query
     let verificationStats: Record<string, any> = {};
     if (venueIds.length > 0) {
       const { data: stats, error: statsError } = await supabase
         .from("pisco_verifications")
-        .select("*")
-        .in("venue_id", venueIds);
+        .select("venue_id, pisco_status, verified_by, created_at, pisco_notes")
+        .in("venue_id", venueIds)
+        .order("created_at", { ascending: false });
 
       if (stats && !statsError) {
-        // Aggregate verification stats per venue
+        // Efficiently aggregate stats in memory
         verificationStats = stats.reduce((acc: any, verification: any) => {
           const venueId = verification.venue_id;
           if (!acc[venueId]) {
@@ -99,7 +100,7 @@ export async function GET(request: NextRequest) {
               total_verifications: 0,
               unique_verifiers: new Set(),
               last_verified: null,
-              verifications: [],
+              recent_verifications: [],
             };
           }
 
@@ -124,17 +125,26 @@ export async function GET(request: NextRequest) {
             }
           }
 
-          // Store all verifications for comments
-          acc[venueId].verifications.push(verification);
+          // Store recent verifications with comments
+          if (verification.pisco_notes && verification.pisco_notes.trim()) {
+            acc[venueId].recent_verifications.push({
+              id: `${verification.venue_id}_${verification.created_at}`,
+              venue_id: verification.venue_id,
+              verified_by: verification.verified_by,
+              pisco_status: verification.pisco_status,
+              pisco_notes: verification.pisco_notes,
+              created_at: verification.created_at,
+            });
+          }
 
           return acc;
         }, {});
 
-        // Convert Sets to counts and sort verifications by date
+        // Convert Sets to counts and sort recent verifications
         Object.keys(verificationStats).forEach((venueId) => {
           verificationStats[venueId].unique_verifiers =
             verificationStats[venueId].unique_verifiers.size;
-          verificationStats[venueId].verifications.sort(
+          verificationStats[venueId].recent_verifications.sort(
             (a: any, b: any) =>
               new Date(b.created_at).getTime() -
               new Date(a.created_at).getTime()
@@ -167,7 +177,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Transform venues to match expected format
+    // Transform venues to match expected format with calculated stats
     const transformedVenues =
       venues?.map((venue) => {
         const stats = verificationStats[venue.id] || {
@@ -175,7 +185,7 @@ export async function GET(request: NextRequest) {
           total_verifications: 0,
           unique_verifiers: 0,
           last_verified: null,
-          verifications: [],
+          recent_verifications: [],
         };
 
         const featuredVerification = venue.featured_verification_id
@@ -188,15 +198,15 @@ export async function GET(request: NextRequest) {
             venue.latitude && venue.longitude
               ? { lat: venue.latitude, lng: venue.longitude }
               : null,
-          // Include verification stats
+          // Include calculated verification stats
           positive_verifications: stats.positive_verifications,
           total_verifications: stats.total_verifications,
           unique_verifiers: stats.unique_verifiers,
-          last_verified: stats.last_verified,
+          last_verified: stats.last_verified || venue.last_verified,
           // Include featured verification
           featured_verification: featuredVerification,
           // Include recent verifications with comments
-          recent_verifications: stats.verifications.slice(0, 3), // Latest 3 verifications
+          recent_verifications: stats.recent_verifications.slice(0, 3),
         };
       }) || [];
 
