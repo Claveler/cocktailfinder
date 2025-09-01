@@ -10,29 +10,13 @@ export async function checkAdminRole(): Promise<boolean> {
       data: { user },
     } = await supabase.auth.getUser();
 
-    // DEBUG: Log what we're getting
-    console.log("🔍 checkAdminRole DEBUG:", {
-      hasUser: !!user,
-      userId: user?.id,
-      userEmail: user?.email,
-    });
-
-    if (!user) {
-      console.log("❌ checkAdminRole: No user found");
-      return false;
-    }
+    if (!user) return false;
 
     const { data: profile } = await supabase
       .from("profiles")
       .select("role")
       .eq("id", user.id)
       .single();
-
-    console.log("🔍 Profile lookup result:", {
-      profileFound: !!profile,
-      role: profile?.role,
-      isAdmin: profile?.role === "admin",
-    });
 
     return profile?.role === "admin";
   } catch (error) {
@@ -233,7 +217,21 @@ export async function updateVenueAction(
       return { success: false, error: "Admin privileges required" };
     }
 
-    const supabase = createClient();
+    // Get user context first
+    const regularSupabase = createClient();
+    const {
+      data: { user },
+    } = await regularSupabase.auth.getUser();
+    console.log("🔧 Admin operation by user:", user?.email);
+
+    // Use service role client for the actual update to bypass RLS issues
+    const { createClient: createServiceClient } = await import(
+      "@supabase/supabase-js"
+    );
+    const supabase = createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
 
     // Prepare the update object
     const venueUpdates: any = {
