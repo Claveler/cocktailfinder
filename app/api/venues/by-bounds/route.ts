@@ -99,7 +99,7 @@ export async function GET(request: NextRequest) {
               total_verifications: 0,
               unique_verifiers: new Set(),
               last_verified: null,
-              verifications: []
+              verifications: [],
             };
           }
 
@@ -115,8 +115,11 @@ export async function GET(request: NextRequest) {
 
           // Track most recent verification
           if (verification.created_at) {
-            if (!acc[venueId].last_verified || 
-                new Date(verification.created_at) > new Date(acc[venueId].last_verified)) {
+            if (
+              !acc[venueId].last_verified ||
+              new Date(verification.created_at) >
+                new Date(acc[venueId].last_verified)
+            ) {
               acc[venueId].last_verified = verification.created_at;
             }
           }
@@ -128,10 +131,13 @@ export async function GET(request: NextRequest) {
         }, {});
 
         // Convert Sets to counts and sort verifications by date
-        Object.keys(verificationStats).forEach(venueId => {
-          verificationStats[venueId].unique_verifiers = verificationStats[venueId].unique_verifiers.size;
-          verificationStats[venueId].verifications.sort((a: any, b: any) => 
-            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        Object.keys(verificationStats).forEach((venueId) => {
+          verificationStats[venueId].unique_verifiers =
+            verificationStats[venueId].unique_verifiers.size;
+          verificationStats[venueId].verifications.sort(
+            (a: any, b: any) =>
+              new Date(b.created_at).getTime() -
+              new Date(a.created_at).getTime()
           );
         });
       }
@@ -169,7 +175,7 @@ export async function GET(request: NextRequest) {
           total_verifications: 0,
           unique_verifiers: 0,
           last_verified: null,
-          verifications: []
+          verifications: [],
         };
 
         const featuredVerification = venue.featured_verification_id

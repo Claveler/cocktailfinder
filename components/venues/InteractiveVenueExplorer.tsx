@@ -81,8 +81,6 @@ export default function InteractiveVenueExplorer({
     limit: 50,
   });
 
-
-
   // Ref for venue cards container to handle scrolling
   const venueCardsContainerRef = useRef<HTMLDivElement>(null);
 
@@ -272,7 +270,7 @@ export default function InteractiveVenueExplorer({
           east: bounds.east,
           west: bounds.west,
         };
-        
+
         console.log("🗺️ Map moved - fetching venues for bounds:", apiBounds);
         refetchVenues(apiBounds);
       }, debounceDelayMs);
@@ -282,30 +280,46 @@ export default function InteractiveVenueExplorer({
 
   // Update venue cards when detailed venues arrive
   useEffect(() => {
-    console.log("🎯 detailedVenues changed:", { 
-      count: detailedVenues.length, 
-      loading: venuesLoading, 
-      error: venuesError
+    console.log("🎯 detailedVenues changed:", {
+      count: detailedVenues.length,
+      loading: venuesLoading,
+      error: venuesError,
     });
-    
+
     if (detailedVenues.length > 0) {
       // Calculate distance from current map center
       const mapCenter = { lat: staticMapCenter[0], lng: staticMapCenter[1] };
       const venuesWithDistance = detailedVenues.map((venue) => ({
         ...venue,
-        distance: venue.location ? calculateDistance(
-          [mapCenter.lat, mapCenter.lng],
-          [venue.location.lat, venue.location.lng]
-        ) / 1000 : 0, // Convert meters to kilometers
+        distance: venue.location
+          ? calculateDistance(
+              [mapCenter.lat, mapCenter.lng],
+              [venue.location.lat, venue.location.lng]
+            ) / 1000
+          : 0, // Convert meters to kilometers
       }));
 
-      console.log("📋 Setting filteredVenues:", venuesWithDistance.length, "venues");
+      console.log(
+        "📋 Setting filteredVenues:",
+        venuesWithDistance.length,
+        "venues"
+      );
       setFilteredVenues(venuesWithDistance);
     } else {
-      console.log("📋 Setting filteredVenues to empty (detailedVenues.length =", detailedVenues.length, ")");
+      console.log(
+        "📋 Setting filteredVenues to empty (detailedVenues.length =",
+        detailedVenues.length,
+        ")"
+      );
       setFilteredVenues([]);
     }
-  }, [detailedVenues, venuesLoading, venuesError, staticMapCenter, calculateDistance]);
+  }, [
+    detailedVenues,
+    venuesLoading,
+    venuesError,
+    staticMapCenter,
+    calculateDistance,
+  ]);
 
   // Initial setup: Request user location and trigger initial venue fetch
   useEffect(() => {
@@ -325,7 +339,7 @@ export default function InteractiveVenueExplorer({
       east: initialBounds.east,
       west: initialBounds.west,
     };
-    
+
     console.log("🚀 Initial venue bounds fetch:", apiBounds);
     refetchVenues(apiBounds);
   }, [
@@ -557,16 +571,20 @@ export default function InteractiveVenueExplorer({
           {/* Mobile Footer */}
           <MobileFooter />
         </div>
-              ) : (
+      ) : (
         /* No Venues Found */
         <div className="h-[50%] md:h-auto flex flex-col shrink-0 p-4 md:p-0 pb-4 space-y-6">
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center py-12">
               <p className="text-muted-foreground mb-4">
-                {venuesLoading ? "Loading venues..." : "No venues visible in the current map view."}
+                {venuesLoading
+                  ? "Loading venues..."
+                  : "No venues visible in the current map view."}
               </p>
               <p className="text-sm text-muted-foreground mb-6">
-                {venuesLoading ? "Please wait while we find venues in this area." : "Try moving the map to explore different locations."}
+                {venuesLoading
+                  ? "Please wait while we find venues in this area."
+                  : "Try moving the map to explore different locations."}
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 {/* <Button asChild variant="outline">

@@ -20,18 +20,16 @@ export function useVenuePins(): UseVenuePinsResult {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-
-
   // Initial fetch
   useEffect(() => {
     console.log("🚀 useVenuePins useEffect RUNNING!");
-    
+
     const fetchPins = async () => {
       try {
         console.log("📡 Starting fetchPins...");
         setLoading(true);
         setError(null);
-        
+
         const response = await fetch("/api/venues/pins");
         console.log("📡 Response received:", response.status);
 
@@ -47,12 +45,17 @@ export function useVenuePins(): UseVenuePinsResult {
         }
 
         const pins = data.pins || [];
-        console.log("📍 About to set pins state:", { count: pins.length, firstPin: pins[0] });
+        console.log("📍 About to set pins state:", {
+          count: pins.length,
+          firstPin: pins[0],
+        });
         setPins(pins);
         console.log("📍 pins state should now be updated");
       } catch (err) {
         console.error("❌ Error in fetchPins:", err);
-        setError(err instanceof Error ? err.message : "Failed to fetch venue pins");
+        setError(
+          err instanceof Error ? err.message : "Failed to fetch venue pins"
+        );
       } finally {
         console.log("📍 Setting loading to false");
         setLoading(false);
