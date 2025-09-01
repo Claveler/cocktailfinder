@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import LocationSearch from "@/components/search/LocationSearch";
+import { useVirtualKeyboard } from "@/lib/hooks/useVirtualKeyboard";
 
 // Define a global event system for location search and search modal
 declare global {
@@ -22,6 +23,7 @@ export default function GlobalBottomNavBar() {
   const [showSearch, setShowSearch] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
+  const { isKeyboardOpen, keyboardHeight } = useVirtualKeyboard();
 
   const isOnLandingPage = pathname === "/";
 
@@ -88,11 +90,22 @@ export default function GlobalBottomNavBar() {
         <div
           className="fixed inset-0 bg-black/50 z-40 flex items-center justify-center p-4"
           onClick={() => setShowSearch(false)}
+          style={{
+            height: "100dvh", // Use dynamic viewport height for keyboard support
+            minHeight: "100vh", // Fallback for browsers without dvh support
+            paddingTop: isKeyboardOpen ? "5rem" : "0", // Account for header when keyboard is open
+            paddingBottom: isKeyboardOpen ? "1rem" : "0", // Small bottom padding when keyboard is open
+          }}
         >
           <div
             className="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-auto transform transition-all duration-200 scale-100"
             onClick={(e) => e.stopPropagation()}
-            style={{ maxHeight: "80vh" }}
+            style={{
+              maxHeight: isKeyboardOpen
+                ? `calc(100dvh - ${keyboardHeight}px - 2rem)` // Account for exact keyboard height
+                : "calc(100dvh - 8rem)", // Standard height when no keyboard
+              minHeight: "auto",
+            }}
           >
             {/* Compact Header with Close Button */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 rounded-t-2xl">

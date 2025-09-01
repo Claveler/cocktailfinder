@@ -227,7 +227,7 @@ export default function LandingPageClient({
       </section>
 
       {/* Interactive Map and Venues Section */}
-      <section className="py-0 md:py-8 px-0 md:px-4 bg-transparent md:bg-muted/30 min-h-screen md:h-auto">
+      <section className="py-0 md:py-8 px-0 md:px-4 bg-transparent md:bg-muted/30">
         <div className="md:container mx-auto w-full">
           {/* Interactive Venue Explorer with Map */}
           <InteractiveVenueExplorer

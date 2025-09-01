@@ -54,29 +54,14 @@ function formatRelativeTime(dateString: string): string {
     }
 
     const diffMs = now.getTime() - date.getTime();
-
-    // Future dates
-    if (diffMs < 0) {
-      return "Recently";
-    }
-
-    // Check if it's yesterday (previous calendar day)
-    const yesterday = new Date(now);
-    yesterday.setDate(yesterday.getDate() - 1);
-    const isYesterday = date.toDateString() === yesterday.toDateString();
-    if (isYesterday) {
-      return "Yesterday";
-    }
-
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
     const diffWeeks = Math.floor(diffDays / 7);
     const diffMonths = Math.floor(diffDays / 30.44); // Average days per month
     const diffYears = Math.floor(diffDays / 365.25); // Account for leap years
 
-    // Handle case where diffDays is 0 but it's not today or yesterday
-    // This happens when less than 24 hours have passed but it's a different calendar day
-    if (diffDays === 0) {
-      return "Today"; // If it's not same day or yesterday, but < 24h, treat as today
+    // Future dates
+    if (diffMs < 0) {
+      return "Recently";
     }
 
     // Recent days (1-7 days)
@@ -405,7 +390,9 @@ export default function VenueCard({
                       — {venue.featured_verification.verified_by}
                     </span>
                     <span className="text-muted-foreground/60">
-                      {formatDate(venue.featured_verification.created_at)}
+                      {formatRelativeTime(
+                        venue.featured_verification.created_at
+                      )}
                     </span>
                   </div>
                 </div>

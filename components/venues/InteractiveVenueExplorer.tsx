@@ -588,13 +588,6 @@ export default function InteractiveVenueExplorer({
             </div>
           )}
 
-          {/* Desktop See All Venues Button */}
-          <div className="text-center hidden md:block">
-            <Button asChild size="lg" variant="outline" className="px-8">
-              <Link href="/">See All Venues</Link>
-            </Button>
-          </div>
-
           {/* Mobile Footer */}
           <MobileFooter />
         </div>

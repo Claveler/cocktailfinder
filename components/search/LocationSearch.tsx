@@ -238,7 +238,7 @@ export default function LocationSearch({
         <Input
           {...getInputProps()}
           placeholder="London, New York, Madrid…"
-          className="pl-10 pr-10 text-gray-900 h-11 md:h-12 text-sm md:text-base rounded-lg border border-gray-200 shadow-sm bg-white focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all duration-200"
+          className="pl-10 pr-10 text-gray-900 h-11 md:h-12 text-base rounded-lg border border-gray-200 shadow-sm bg-white focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all duration-200"
           autoComplete="off"
           autoFocus={autoFocus}
           inputMode="search"

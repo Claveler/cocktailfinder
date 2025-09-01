@@ -217,7 +217,7 @@ export default function FilterModal({
                     placeholder="Search pisco brands..."
                     value={brandSearch}
                     onChange={(e) => setBrandSearch(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                    className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                   />
                 </div>
 

@@ -281,7 +281,7 @@ export default function FloatingSearchBar({
                     {...getInputProps()}
                     name="q"
                     placeholder="Search by location..."
-                    className="pl-10 pr-4 bg-white"
+                    className="pl-10 pr-4 bg-white text-base"
                     autoComplete="off"
                   />
 
@@ -473,7 +473,7 @@ export default function FloatingSearchBar({
                     {...getInputProps()}
                     name="q"
                     placeholder="Search by location..."
-                    className="pl-10 pr-4 bg-white"
+                    className="pl-10 pr-4 bg-white text-base"
                     autoComplete="off"
                   />
 
