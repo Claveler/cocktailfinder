@@ -256,23 +256,46 @@ export default function WhatIsPiscola() {
             <CardContent className="text-left">
               <div className="space-y-4 text-muted-foreground leading-relaxed">
                 <p>
-                  Piscola.net was born from a very real problem: finding pisco outside of Chile is far harder than it should be. As an exchange student in the US, later working in Australia, and even while studying my MBA in the UK, I kept running into the same frustration. Pisco was missing exactly when I needed it most. And let's be honest: I couldn't get Piscola.com, so here we are.
+                  Piscola.net was born from a very real problem: finding pisco
+                  outside of Chile is far harder than it should be. As an
+                  exchange student in the US, later working in Australia, and
+                  even while studying my MBA in the UK, I kept running into the
+                  same frustration. Pisco was missing exactly when I needed it
+                  most. And let's be honest: I couldn't get Piscola.com, so here
+                  we are.
                 </p>
 
                 <p>
-                  My connection to piscola goes back to my university years in Valparaíso/Viña del Mar. Sharing one was never just about having a drink. It was a social bridge, a way to make friends, and a tradition tied closely to Chilean identity. That sense of connection stayed with me. Years later, while finishing my MBA at LBS, all I really wanted (besides a job) was to have one, or several, piscolas.
+                  My connection to piscola goes back to my university years in
+                  Valparaíso/Viña del Mar. Sharing one was never just about
+                  having a drink. It was a social bridge, a way to make friends,
+                  and a tradition tied closely to Chilean identity. That sense
+                  of connection stayed with me. Years later, while finishing my
+                  MBA at LBS, all I really wanted (besides a job) was to have
+                  one, or several, piscolas.
                 </p>
 
                 <p>
-                  As a Product Manager for the last five years, I've specialized in breaking down problems, mapping solutions, and working with developers. But I wanted to go deeper. Building Piscola.net became the perfect excuse: a way to honor my culture while teaching myself to design and code a full product from scratch. From the first Figma mockups, to semantic HTML, CSS, and functional JavaScript, this project has been my crash course in shipping something end to end.
+                  As a Product Manager for the last five years, I've specialized
+                  in breaking down problems, mapping solutions, and working with
+                  developers. But I wanted to go deeper. Building Piscola.net
+                  became the perfect excuse: a way to honor my culture while
+                  teaching myself to design and code a full product from
+                  scratch. From the first Figma mockups, to semantic HTML, CSS,
+                  and functional JavaScript, this project has been my crash
+                  course in shipping something end to end.
                 </p>
 
                 <p>
-                  Piscola.net is more than a directory. It is a way to make sure that no matter where you are in the world, you can find pisco and feel at home. And lately, with the rise of vibe coding, building it has been faster (and more fun) than ever.
+                  Piscola.net is more than a directory. It is a way to make sure
+                  that no matter where you are in the world, you can find pisco
+                  and feel at home. And lately, with the rise of vibe coding,
+                  building it has been faster (and more fun) than ever.
                 </p>
 
                 <p>
-                  At its heart, Piscola.net is about connection: to our roots, to our traditions, and to the people we share them with.{" "}
+                  At its heart, Piscola.net is about connection: to our roots,
+                  to our traditions, and to the people we share them with.{" "}
                   <b>A Piscola Network.</b>
                 </p>
               </div>
