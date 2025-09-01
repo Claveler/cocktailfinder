@@ -256,7 +256,10 @@ export default function BasicMap({
   );
 
   return (
-    <div style={{ height }} className="w-full rounded-lg overflow-hidden touch-auto">
+    <div
+      style={{ height }}
+      className="w-full rounded-lg overflow-hidden touch-auto"
+    >
       <LeafletMapComponent
         venues={approvedVenues}
         center={center}
