@@ -379,7 +379,9 @@ export default function InteractiveVenueExplorer({
       }));
 
       // Sort venues by distance (closest first)
-      const sortedVenues = venuesWithDistance.sort((a, b) => a.distance - b.distance);
+      const sortedVenues = venuesWithDistance.sort(
+        (a, b) => a.distance - b.distance
+      );
 
       console.log(
         "📋 Setting filteredVenues:",
@@ -416,7 +418,7 @@ export default function InteractiveVenueExplorer({
       setTimeout(() => {
         window.scrollTo({
           top: 0,
-          behavior: 'smooth'
+          behavior: "smooth",
         });
       }, 100);
     }
