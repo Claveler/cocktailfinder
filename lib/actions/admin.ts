@@ -222,7 +222,7 @@ export async function updateVenueAction(
     const {
       data: { user },
     } = await regularSupabase.auth.getUser();
-    console.log("🔧 Admin operation by user:", user?.email);
+    console.log("🔧 Admin operation by user:", user?.email, "at", new Date().toISOString());
 
     // Debug environment variables
     console.log("🔍 Environment check:", {
