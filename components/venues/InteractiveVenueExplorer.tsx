@@ -263,7 +263,8 @@ export default function InteractiveVenueExplorer({
   );
 
   // Smart debouncing: adapts delay based on movement pattern
-  const getSmartDebounceDelay = useCallback((movementDistance: number): number => {
+  const getSmartDebounceDelay = useCallback(
+    (movementDistance: number): number => {
       // Base delay - much more responsive than 1000ms
       const baseDelay =
         Number(process.env.NEXT_PUBLIC_MAP_UPDATE_DELAY_MS) || 400;
