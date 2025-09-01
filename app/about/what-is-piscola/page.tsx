@@ -1,3 +1,6 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,10 +20,42 @@ import Link from "next/link";
 import Image from "next/image";
 
 export default function WhatIsPiscola() {
+  // Fixed viewport height for mobile to prevent browser bar resize issues
+  const [fixedMobileHeight, setFixedMobileHeight] = useState<number | null>(
+    null
+  );
+
+  // Capture initial viewport height on mobile to prevent browser bar resize issues
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const isMobile = window.innerWidth <= 768;
+
+      if (isMobile && fixedMobileHeight === null) {
+        // Capture the full viewport height for the hero section
+        const calculatedHeight = window.innerHeight;
+        setFixedMobileHeight(calculatedHeight);
+      }
+    }
+  }, [fixedMobileHeight]);
+
+  // Calculate hero height: fixed on mobile, dynamic on desktop
+  const getHeroHeight = () => {
+    if (
+      typeof window !== "undefined" &&
+      window.innerWidth <= 768 &&
+      fixedMobileHeight !== null
+    ) {
+      return `${fixedMobileHeight}px`;
+    }
+    return "100vh"; // Dynamic on desktop
+  };
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="relative h-screen min-h-[600px] flex items-center justify-center overflow-hidden">
+      <section
+        className="relative min-h-[600px] flex items-center justify-center overflow-hidden"
+        style={{ height: getHeroHeight() }}
+      >
         {/* Background Image */}
         <div className="absolute inset-0">
           <Image
