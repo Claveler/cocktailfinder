@@ -378,18 +378,21 @@ export default function InteractiveVenueExplorer({
           : 0, // Convert meters to kilometers
       }));
 
+      // Sort venues by distance (closest first)
+      const sortedVenues = venuesWithDistance.sort((a, b) => a.distance - b.distance);
+
       console.log(
         "📋 Setting filteredVenues:",
-        venuesWithDistance.length,
+        sortedVenues.length,
         "venues, from map center:",
         currentMapCenter,
         "distances:",
-        venuesWithDistance.map((v) => ({
+        sortedVenues.map((v) => ({
           name: v.name,
           distance: v.distance.toFixed(2),
         }))
       );
-      setFilteredVenues(venuesWithDistance);
+      setFilteredVenues(sortedVenues);
     } else {
       console.log(
         "📋 Setting filteredVenues to empty (detailedVenues.length =",
@@ -405,6 +408,19 @@ export default function InteractiveVenueExplorer({
     currentMapCenter,
     calculateDistance,
   ]);
+
+  // Scroll to top when focused venue changes (after venue card click)
+  useEffect(() => {
+    if (focusedVenueId) {
+      // Small delay to ensure venues have been reordered
+      setTimeout(() => {
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+      }, 100);
+    }
+  }, [focusedVenueId]);
 
   // Initial setup: Request user location and trigger initial venue fetch
   useEffect(() => {
