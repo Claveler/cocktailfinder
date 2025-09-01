@@ -250,47 +250,29 @@ export default function WhatIsPiscola() {
           >
             <CardHeader>
               <CardTitle className="text-2xl text-center text-foreground">
-                Why We Celebrate Piscola
+                Why Piscola.net?
               </CardTitle>
             </CardHeader>
             <CardContent className="text-left">
               <div className="space-y-4 text-muted-foreground leading-relaxed">
                 <p>
-                  Piscola.net was born from a very simple yet personal need:
-                  finding pisco outside of Chile is far more difficult than it
-                  should be. My journey abroad made this reality clear to me. As
-                  an exchange student in the United States, I often looked for
-                  ways to share Chilean culture with friends but quickly
-                  realized that pisco was nearly impossible to find. Later,
-                  during my work and holiday visa in Australia, I experienced
-                  the same frustration. The pattern repeated itself while
-                  studying for my MBA in the UK, and continues today as I live
-                  in Spain. Each place reinforced the same truth: pisco, one of
-                  Chile's most emblematic spirits, was missing when I needed it
-                  most.
+                  Piscola.net was born from a very real problem: finding pisco outside of Chile is far harder than it should be. As an exchange student in the US, later working in Australia, and even while studying my MBA in the UK, I kept running into the same frustration. Pisco was missing exactly when I needed it most. And let's be honest: I couldn't get Piscola.com, so here we are.
                 </p>
 
                 <p>
-                  My connection to pisco started much earlier, during my youth.
-                  In Chile, and especially during my formative years studying at
-                  university in Valparaíso, the piscola was more than just a
-                  drink. It was a social bridge, a way to connect, to make new
-                  friends, and to celebrate life's milestones. Sharing a piscola
-                  was part of the typical Chilean experience—something familiar,
-                  unpretentious, and deeply tied to our sense of belonging. It
-                  carried with it not just a taste, but the feeling of home.
+                  My connection to piscola goes back to my university years in Valparaíso/Viña del Mar. Sharing one was never just about having a drink. It was a social bridge, a way to make friends, and a tradition tied closely to Chilean identity. That sense of connection stayed with me. Years later, while finishing my MBA at LBS, all I really wanted (besides a job) was to have one, or several, piscolas.
                 </p>
 
                 <p>
-                  Piscola.net exists to bring that feeling closer to Chileans
-                  abroad and to anyone curious about discovering our culture. It
-                  is more than just a directory—it's a way to make sure that no
-                  matter where you are in the world, you can find pisco and
-                  enjoy a taste of Chile when you need it most.
+                  As a Product Manager for the last five years, I've specialized in breaking down problems, mapping solutions, and working with developers. But I wanted to go deeper. Building Piscola.net became the perfect excuse: a way to honor my culture while teaching myself to design and code a full product from scratch. From the first Figma mockups, to semantic HTML, CSS, and functional JavaScript, this project has been my crash course in shipping something end to end.
                 </p>
+
                 <p>
-                  At its heart, Piscola.net is about connection: to our roots,
-                  to our traditions, and to the people we share them with.{" "}
+                  Piscola.net is more than a directory. It is a way to make sure that no matter where you are in the world, you can find pisco and feel at home. And lately, with the rise of vibe coding, building it has been faster (and more fun) than ever.
+                </p>
+
+                <p>
+                  At its heart, Piscola.net is about connection: to our roots, to our traditions, and to the people we share them with.{" "}
                   <b>A Piscola Network.</b>
                 </p>
               </div>
