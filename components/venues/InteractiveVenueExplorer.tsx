@@ -134,6 +134,25 @@ export default function InteractiveVenueExplorer({
   // Track if we've already updated the map center from fallback changes
   const hasUpdatedFromFallbackRef = useRef<boolean>(false);
 
+  // Function to programmatically set location (exposed globally for onboarding)
+  const setOnboardingLocation = useCallback(() => {
+    const lbsLocation: [number, number] = [51.5261617, -0.1633234]; // London Business School
+    setCurrentMapCenter(lbsLocation);
+    setStaticMapCenter(lbsLocation);
+    setHasSearchedLocation(true); // Prevent auto-location from overriding
+    setIsInitialPositioningComplete(true); // Mark positioning as complete
+
+    // Fetch venues for the new location
+    const bounds = calculateApproximateBounds(lbsLocation, fallbackZoom);
+    const apiBounds = {
+      north: bounds.north,
+      south: bounds.south,
+      east: bounds.east,
+      west: bounds.west,
+    };
+    refetchVenues(apiBounds);
+  }, [fallbackZoom, refetchVenues]);
+
   // Request user location (internal - for automatic geolocation on load)
   const requestUserLocation = useCallback(() => {
     if (typeof window === "undefined") return;
@@ -203,6 +222,37 @@ export default function InteractiveVenueExplorer({
       }
     );
   }, []);
+
+  // Function to restore user location after onboarding (exposed globally)
+  const restoreUserLocation = useCallback(() => {
+    if (userLocation) {
+      // User has a known location, restore it
+      const userLocationArray: [number, number] = [
+        userLocation.lat,
+        userLocation.lng,
+      ];
+      setCurrentMapCenter(userLocationArray);
+      setStaticMapCenter(userLocationArray);
+      setHasSearchedLocation(false); // Allow future auto-location updates
+
+      // Fetch venues for the user's location
+      const bounds = calculateApproximateBounds(
+        userLocationArray,
+        fallbackZoom
+      );
+      const apiBounds = {
+        north: bounds.north,
+        south: bounds.south,
+        east: bounds.east,
+        west: bounds.west,
+      };
+      refetchVenues(apiBounds);
+    } else {
+      // User location not available, try to get it
+      setHasSearchedLocation(false); // Reset search flag
+      requestUserLocation(); // Trigger location request
+    }
+  }, [userLocation, fallbackZoom, refetchVenues, requestUserLocation]);
 
   // Transform venue pins to format expected by map component
   // Map ALWAYS shows ALL venues globally for discovery
@@ -541,6 +591,20 @@ export default function InteractiveVenueExplorer({
     };
   }, []);
 
+  // Expose location functions globally for onboarding tour
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      (window as any).setOnboardingLocation = setOnboardingLocation;
+      (window as any).restoreUserLocation = restoreUserLocation;
+    }
+    return () => {
+      if (typeof window !== "undefined") {
+        delete (window as any).setOnboardingLocation;
+        delete (window as any).restoreUserLocation;
+      }
+    };
+  }, [setOnboardingLocation, restoreUserLocation]);
+
   // Get map height from environment variable (default to 3/7 of viewport = 42.86%)
   const mapHeightVh = Number(process.env.NEXT_PUBLIC_MAP_HEIGHT_VH) || 42.86;
 
@@ -739,7 +803,7 @@ export default function InteractiveVenueExplorer({
                 <p className="text-sm text-muted-foreground mb-6">
                   {venuesLoading
                     ? "Please wait while we find venues in this area."
-                    : "Try moving the map to explore different locations."}
+                    : "Try moving the map to explore different locations, or add a new venue yourself!"}
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
                   {/* <Button asChild variant="outline">

@@ -37,7 +37,18 @@ export default function OnboardingTour({
       if (!hasCompletedTour && startTour) {
         // Small delay to ensure page elements are loaded
         const timer = setTimeout(() => {
-          setRunTour(true);
+          // Set location to LBS to ensure venues are visible for the tour
+          if (
+            typeof window !== "undefined" &&
+            (window as any).setOnboardingLocation
+          ) {
+            (window as any).setOnboardingLocation();
+          }
+
+          // Start the tour after setting location
+          setTimeout(() => {
+            setRunTour(true);
+          }, 500);
         }, 500);
         return () => clearTimeout(timer);
       }
@@ -69,7 +80,8 @@ export default function OnboardingTour({
           </h3>
           <p className="text-muted-foreground leading-relaxed">
             Click and drag to explore different areas. Tap the pins to see venue
-            details, or use pinch gestures to zoom in and out on mobile.
+            details in the cards below, or use pinch gestures to zoom in and out
+            on mobile.
           </p>
         </div>
       ),
@@ -109,6 +121,7 @@ export default function OnboardingTour({
         </div>
       ),
       placement: "top",
+      disableScrolling: true, // Bottom nav bar is fixed, no scrolling needed
     },
     {
       target: "[data-tour='filter-button']",
@@ -125,6 +138,7 @@ export default function OnboardingTour({
         </div>
       ),
       placement: "top",
+      disableScrolling: true, // Bottom nav bar is fixed, no scrolling needed
     },
     {
       target: "[data-tour='add-venue-button']",
@@ -141,6 +155,7 @@ export default function OnboardingTour({
         </div>
       ),
       placement: "top",
+      disableScrolling: true, // Bottom nav bar is fixed, no scrolling needed
     },
   ];
 
@@ -169,6 +184,16 @@ export default function OnboardingTour({
         localStorage.setItem(TOUR_STORAGE_KEY, "true");
       }
       setRunTour(false);
+
+      // Restore user location when tour finishes
+      if (
+        status === "finished" &&
+        typeof window !== "undefined" &&
+        (window as any).restoreUserLocation
+      ) {
+        (window as any).restoreUserLocation();
+      }
+
       onTourEnd?.();
     }
   };
@@ -177,7 +202,18 @@ export default function OnboardingTour({
   const restartTour = () => {
     setRunTour(false); // Stop current tour first
     setTimeout(() => {
-      setRunTour(true); // Restart from beginning
+      // Set location to LBS to ensure venues are visible for the tour
+      if (
+        typeof window !== "undefined" &&
+        (window as any).setOnboardingLocation
+      ) {
+        (window as any).setOnboardingLocation();
+      }
+
+      // Start the tour after setting location
+      setTimeout(() => {
+        setRunTour(true); // Restart from beginning
+      }, 500);
     }, 100);
   };
 

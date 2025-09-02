@@ -35,7 +35,7 @@ export default function RootLayout({
       >
         <ServerThemeProvider>
           <NavBar />
-          <main className="min-h-screen pb-16 md:pb-8">{children}</main>
+          <main className="min-h-screen pt-16 pb-16 md:pb-8">{children}</main>
           <Footer />
           <GlobalBottomNavBar />
           <Toaster richColors position="top-right" />

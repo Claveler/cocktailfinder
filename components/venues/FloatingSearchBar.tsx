@@ -288,7 +288,7 @@ export default function FloatingSearchBar({
                   {/* Downshift suggestions dropdown */}
                   <div {...getMenuProps()} className="relative">
                     {isOpen && suggestions.length > 0 && (
-                      <div className="absolute top-1 left-0 right-0 mt-1 bg-white rounded-md shadow-lg border border-gray-200 max-h-60 overflow-y-auto z-[99999]">
+                      <div className="absolute top-1 left-0 right-0 mt-1 bg-white rounded-md shadow-lg border border-gray-200 max-h-60 overflow-y-auto z-[300]">
                         {suggestions.map((suggestion, index) => (
                           <div
                             key={suggestion.place_id}
@@ -480,7 +480,7 @@ export default function FloatingSearchBar({
                   {/* Downshift suggestions dropdown */}
                   <div {...getMenuProps()} className="relative">
                     {isOpen && suggestions.length > 0 && (
-                      <div className="absolute top-1 left-0 right-0 mt-1 bg-white rounded-md shadow-lg border border-gray-200 max-h-60 overflow-y-auto z-[99999]">
+                      <div className="absolute top-1 left-0 right-0 mt-1 bg-white rounded-md shadow-lg border border-gray-200 max-h-60 overflow-y-auto z-[300]">
                         {suggestions.map((suggestion, index) => (
                           <div
                             key={suggestion.place_id}
