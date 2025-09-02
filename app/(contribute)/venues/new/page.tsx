@@ -106,6 +106,7 @@ export default function NewVenuePage() {
   const [ambiance, setAmbiance] = useState<string[]>([]);
   const [newAmbiance, setNewAmbiance] = useState("");
   const [photos, setPhotos] = useState<File[]>([]);
+  const [photoPreviewUrls, setPhotoPreviewUrls] = useState<string[]>([]);
   const [uploadingPhotos, setUploadingPhotos] = useState(false);
 
   // Database brands
@@ -148,6 +149,15 @@ export default function NewVenuePage() {
 
     fetchBrands();
   }, []);
+
+  // Cleanup preview URLs when component unmounts
+  useEffect(() => {
+    return () => {
+      photoPreviewUrls.forEach((url) => {
+        URL.revokeObjectURL(url);
+      });
+    };
+  }, [photoPreviewUrls]);
 
   const handleInputChange = (field: keyof typeof formData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -197,11 +207,22 @@ export default function NewVenuePage() {
     const files = Array.from(e.target.files || []);
     // Limit to 10 photos max
     const newPhotos = files.slice(0, 10 - photos.length);
+
+    // Generate preview URLs for new photos
+    const newPreviewUrls = newPhotos.map((file) => URL.createObjectURL(file));
+
     setPhotos((prev) => [...prev, ...newPhotos]);
+    setPhotoPreviewUrls((prev) => [...prev, ...newPreviewUrls]);
   };
 
   const removePhoto = (index: number) => {
+    // Revoke the preview URL to free memory
+    if (photoPreviewUrls[index]) {
+      URL.revokeObjectURL(photoPreviewUrls[index]);
+    }
+
     setPhotos((prev) => prev.filter((_, i) => i !== index));
+    setPhotoPreviewUrls((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -297,6 +318,12 @@ export default function NewVenuePage() {
             }
           }
         }
+
+        // Cleanup preview URLs after successful submission
+        photoPreviewUrls.forEach((url) => {
+          URL.revokeObjectURL(url);
+        });
+        setPhotoPreviewUrls([]);
 
         router.push(`/venues/new/success?venueId=${venueId}`);
       } catch (error) {
@@ -839,8 +866,18 @@ export default function NewVenuePage() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {photos.map((photo, index) => (
                     <div key={index} className="relative">
-                      <div className="aspect-square bg-gray-100 rounded-lg flex items-center justify-center">
-                        <Camera className="h-8 w-8 text-gray-400" />
+                      <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                        {photoPreviewUrls[index] ? (
+                          <img
+                            src={photoPreviewUrls[index]}
+                            alt={photo.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Camera className="h-8 w-8 text-gray-400" />
+                          </div>
+                        )}
                       </div>
                       <p className="text-xs mt-1 truncate">{photo.name}</p>
                       <Button
