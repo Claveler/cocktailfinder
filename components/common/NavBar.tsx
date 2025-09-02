@@ -82,6 +82,19 @@ export default function NavBar() {
               >
                 Why Piscola.net?
               </Link>
+              <button
+                className="text-sm font-medium transition-colors hover:text-primary"
+                onClick={() => {
+                  if (
+                    typeof window !== "undefined" &&
+                    (window as any).restartOnboardingTour
+                  ) {
+                    (window as any).restartOnboardingTour();
+                  }
+                }}
+              >
+                How to use?
+              </button>
             </div>
           </div>
 
@@ -169,6 +182,20 @@ export default function NavBar() {
                 >
                   Why Piscola.net?
                 </Link>
+                <button
+                  className="text-sm font-medium transition-colors hover:text-primary py-2 block text-left w-full"
+                  onClick={() => {
+                    closeMobileMenu();
+                    if (
+                      typeof window !== "undefined" &&
+                      (window as any).restartOnboardingTour
+                    ) {
+                      (window as any).restartOnboardingTour();
+                    }
+                  }}
+                >
+                  How to use?
+                </button>
 
                 {/* Language Toggle - Mobile */}
                 <div className="pt-4 border-t">

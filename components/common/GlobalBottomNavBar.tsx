@@ -239,6 +239,7 @@ export default function GlobalBottomNavBar() {
           <div className="grid grid-cols-3 h-16 md:h-14">
             {/* Search Button */}
             <Button
+              data-tour="search-button"
               variant="ghost"
               className="h-full rounded-none md:rounded-l-full flex flex-col items-center justify-center gap-1 text-gray-600 hover:text-primary hover:bg-gray-50 md:hover:bg-gray-100/80"
               onClick={handleSearchClick}
@@ -249,6 +250,7 @@ export default function GlobalBottomNavBar() {
 
             {/* Filter Button */}
             <Button
+              data-tour="filter-button"
               variant="ghost"
               className={`h-full rounded-none flex flex-col items-center justify-center gap-1 hover:bg-gray-50 md:hover:bg-gray-100/80 ${
                 currentFilters.venueTypes.length > 0 ||
@@ -273,6 +275,7 @@ export default function GlobalBottomNavBar() {
 
             {/* Add Venue Button */}
             <Button
+              data-tour="add-venue-button"
               variant="ghost"
               className="h-full rounded-none md:rounded-r-full flex flex-col items-center justify-center gap-1 text-gray-600 hover:text-primary hover:bg-gray-50 md:hover:bg-gray-100/80"
               onClick={handleAddVenueClick}

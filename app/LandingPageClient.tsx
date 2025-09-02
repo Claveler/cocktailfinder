@@ -9,6 +9,7 @@ import Image from "next/image";
 import LocationSearch from "@/components/search/LocationSearch";
 import InteractiveVenueExplorer from "@/components/venues/InteractiveVenueExplorer";
 import HomePageClient from "@/app/HomePageClient";
+import OnboardingTour from "@/components/onboarding/OnboardingTour";
 import type { Venue as VenueType } from "@/lib/venues";
 import type { FilterState } from "@/components/filters/FilterModal";
 
@@ -240,6 +241,9 @@ export default function LandingPageClient({
           />
         </div>
       </section>
+
+      {/* Onboarding Tour */}
+      <OnboardingTour startTour={true} />
     </div>
   );
 }

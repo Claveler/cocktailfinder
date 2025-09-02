@@ -573,6 +573,7 @@ export default function InteractiveVenueExplorer({
     <div className="md:space-y-8">
       {/* Interactive Map - Sticky on Mobile */}
       <div
+        data-tour="map-container"
         className="sticky top-16 md:relative md:top-auto z-30 md:h-auto"
         style={{ height: getMapHeight() }}
       >
@@ -656,83 +657,106 @@ export default function InteractiveVenueExplorer({
         </div>
       )}
 
-      {/* Venue Cards - Show existing cards while loading new ones */}
-      {!pinsLoading &&
-      !pinsError &&
-      !venuesError &&
-      filteredVenues.length > 0 &&
-      isInitialPositioningComplete ? (
-        <div ref={venueCardsContainerRef} className="p-4 md:p-0 pb-4 space-y-6">
-          {/* Venues Grid */}
-          <div className="grid md:grid-cols-3 gap-6">
-            {filteredVenues.slice(0, visibleVenueCount).map((venue, index) => (
-              <VenueCard
-                key={`${venue.id}-${venue.distance.toFixed(2)}`}
-                venue={venue}
-                showDistance={true}
-                distance={venue.distance}
-                onCardClick={handleVenueCardClick}
-                isSelected={index === 0} // Highlight the first card (closest to map center)
-              />
-            ))}
-          </div>
-
-          {/* Explanation Text - Desktop Only */}
-          <div className="text-center hidden md:block">
-            <p className="text-sm text-muted-foreground mb-4">
-              Showing venues closest to map center • Move the map to explore
-              different areas
-            </p>
-          </div>
-
-          {/* See More Button - Only show if more venues available */}
-          {filteredVenues.length > visibleVenueCount && (
-            <div className="text-center">
-              <Button
-                onClick={handleSeeMoreVenues}
-                size="lg"
-                variant="outline"
-                className="px-8 md:hidden"
-              >
-                See More Venues (
-                {Math.min(3, filteredVenues.length - visibleVenueCount)} more)
-              </Button>
+      {/* Venue Cards Area - Always visible container for tour targeting */}
+      <div data-tour="venue-cards-area" className="min-h-[200px]">
+        {/* Mobile fallback when no cards are loaded */}
+        {!isInitialPositioningComplete && (
+          <div className="md:hidden min-h-[100px] flex items-center justify-center">
+            <div
+              data-tour="first-venue-card-fallback"
+              className="text-center text-sm text-muted-foreground p-4 border-2 border-dashed border-muted rounded-lg"
+            >
+              Venue cards will appear here as you explore the map
             </div>
-          )}
+          </div>
+        )}
+        {/* Venue Cards - Show existing cards while loading new ones */}
+        {!pinsLoading &&
+        !pinsError &&
+        !venuesError &&
+        filteredVenues.length > 0 &&
+        isInitialPositioningComplete ? (
+          <div
+            ref={venueCardsContainerRef}
+            className="p-4 md:p-0 pb-4 space-y-6"
+          >
+            {/* Venues Grid */}
+            <div className="grid md:grid-cols-3 gap-6">
+              {filteredVenues
+                .slice(0, visibleVenueCount)
+                .map((venue, index) => (
+                  <div
+                    key={`${venue.id}-${venue.distance.toFixed(2)}`}
+                    data-tour={index === 0 ? "first-venue-card" : undefined}
+                  >
+                    <VenueCard
+                      venue={venue}
+                      showDistance={true}
+                      distance={venue.distance}
+                      onCardClick={handleVenueCardClick}
+                      isSelected={index === 0} // Highlight the first card (closest to map center)
+                    />
+                  </div>
+                ))}
+            </div>
 
-          {/* Mobile Footer */}
-          <MobileFooter />
-        </div>
-      ) : (
-        /* No Venues Found */
-        <div className="h-[50%] md:h-auto flex flex-col shrink-0 p-4 md:p-0 pb-4 space-y-6">
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center py-12">
-              <p className="text-muted-foreground mb-4">
-                {venuesLoading
-                  ? "Loading venues..."
-                  : "No venues visible in the current map view."}
+            {/* Explanation Text - Desktop Only */}
+            <div className="text-center hidden md:block">
+              <p className="text-sm text-muted-foreground mb-4">
+                Showing venues closest to map center • Move the map to explore
+                different areas
               </p>
-              <p className="text-sm text-muted-foreground mb-6">
-                {venuesLoading
-                  ? "Please wait while we find venues in this area."
-                  : "Try moving the map to explore different locations."}
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                {/* <Button asChild variant="outline">
-                  <Link href="/">View All Venues</Link>
-                </Button> */}
-                <Button asChild>
-                  <Link href="/venues/new">Add a Venue</Link>
+            </div>
+
+            {/* See More Button - Only show if more venues available */}
+            {filteredVenues.length > visibleVenueCount && (
+              <div className="text-center">
+                <Button
+                  onClick={handleSeeMoreVenues}
+                  size="lg"
+                  variant="outline"
+                  className="px-8 md:hidden"
+                >
+                  See More Venues (
+                  {Math.min(3, filteredVenues.length - visibleVenueCount)} more)
                 </Button>
               </div>
-            </div>
-          </div>
+            )}
 
-          {/* Mobile Footer */}
-          <MobileFooter />
-        </div>
-      )}
+            {/* Mobile Footer */}
+            <MobileFooter />
+          </div>
+        ) : (
+          /* No Venues Found */
+          <div className="h-[50%] md:h-auto flex flex-col shrink-0 p-4 md:p-0 pb-4 space-y-6">
+            <div className="flex-1 flex items-center justify-center">
+              <div className="text-center py-12">
+                <p className="text-muted-foreground mb-4">
+                  {venuesLoading
+                    ? "Loading venues..."
+                    : "No venues visible in the current map view."}
+                </p>
+                <p className="text-sm text-muted-foreground mb-6">
+                  {venuesLoading
+                    ? "Please wait while we find venues in this area."
+                    : "Try moving the map to explore different locations."}
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  {/* <Button asChild variant="outline">
+                  <Link href="/">View All Venues</Link>
+                </Button> */}
+                  <Button asChild>
+                    <Link href="/venues/new">Add a Venue</Link>
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Mobile Footer */}
+            <MobileFooter />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
