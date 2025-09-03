@@ -156,7 +156,7 @@ export default function VenuesPageClient({
         venue.location.lng,
       ];
       setMapCenter(newCenter);
-      setMapZoom(15); // Zoom in when focusing on a specific venue
+      setMapZoom(searchZoomLevel); // Zoom in when focusing on a specific venue
     }
   };
 
