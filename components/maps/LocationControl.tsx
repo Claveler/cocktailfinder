@@ -5,6 +5,7 @@ import { useMap } from "react-leaflet";
 import L from "leaflet";
 import { MapPin } from "lucide-react";
 import { getThemeColorAsHex, getThemeColorAsHexDarker } from "@/lib/utils";
+import { MAP_CONFIG } from "@/lib/config/map";
 
 interface LocationControlProps {
   userLocation: [number, number] | null;
@@ -15,7 +16,7 @@ interface LocationControlProps {
 export default function LocationControl({
   userLocation,
   onLocationRequest,
-  zoom = Number(process.env.NEXT_PUBLIC_MAP_ZOOM_LEVEL) || 13,
+  zoom = MAP_CONFIG.DEFAULT_ZOOM,
 }: LocationControlProps) {
   const map = useMap();
 
