@@ -21,7 +21,16 @@ import {
   ChileWarningModal,
   useChileValidation,
 } from "@/lib/chile-validation";
-import { Save, Loader2, X, Plus, Upload, Trash2, Image, AlertTriangle } from "lucide-react";
+import {
+  Save,
+  Loader2,
+  X,
+  Plus,
+  Upload,
+  Trash2,
+  Image,
+  AlertTriangle,
+} from "lucide-react";
 import { updateVenueAction } from "@/lib/actions/admin";
 import DeleteConfirmationModal from "@/components/admin/DeleteConfirmationModal";
 import { uploadPhoto, deletePhoto } from "@/lib/storage";
@@ -495,12 +504,16 @@ export default function VenueEditForm({ venue }: VenueEditFormProps) {
                 ⚠️ Coordinates Need Manual Verification
               </h4>
               <p className="text-sm text-amber-700">
-                This venue was submitted using a mobile app Google Maps URL that didn't contain precise coordinates. 
-                Placeholder coordinates (London center) were used. Please verify and update the exact location 
-                using the coordinate fields below or by pasting a desktop Google Maps URL.
+                This venue was submitted using a mobile app Google Maps URL that
+                didn't contain precise coordinates. Placeholder coordinates
+                (London center) were used. Please verify and update the exact
+                location using the coordinate fields below or by pasting a
+                desktop Google Maps URL.
               </p>
               <p className="text-xs text-amber-600">
-                💡 <strong>Current coordinates:</strong> {venue.location?.lat.toFixed(6)}, {venue.location?.lng.toFixed(6)} (placeholder)
+                💡 <strong>Current coordinates:</strong>{" "}
+                {venue.location?.lat.toFixed(6)},{" "}
+                {venue.location?.lng.toFixed(6)} (placeholder)
               </p>
             </div>
           </div>
@@ -555,7 +568,12 @@ export default function VenueEditForm({ venue }: VenueEditFormProps) {
           <Label htmlFor="address">Address *</Label>
           <Textarea
             id="address"
-            value={formData.address?.replace(" (coordinates need verification)", "") || ""}
+            value={
+              formData.address?.replace(
+                " (coordinates need verification)",
+                ""
+              ) || ""
+            }
             onChange={(e) =>
               setFormData((prev) => ({ ...prev, address: e.target.value }))
             }

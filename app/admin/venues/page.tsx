@@ -101,7 +101,10 @@ async function VenuesTable() {
                           {venue.city}, {venue.country}
                         </div>
                         <div className="text-muted-foreground">
-                          {venue.address?.replace(" (coordinates need verification)", "")}
+                          {venue.address?.replace(
+                            " (coordinates need verification)",
+                            ""
+                          )}
                         </div>
                         {venue.location && (
                           <div className="text-xs text-amber-600 font-medium">
@@ -119,7 +122,9 @@ async function VenuesTable() {
                       <div>
                         {venue.city}, {venue.country}
                       </div>
-                      <div className="text-muted-foreground">{venue.address}</div>
+                      <div className="text-muted-foreground">
+                        {venue.address}
+                      </div>
                       {venue.location && (
                         <div className="text-xs text-muted-foreground">
                           {venue.location.lat.toFixed(4)},{" "}
