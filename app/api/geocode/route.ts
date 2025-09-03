@@ -100,12 +100,16 @@ async function searchLocations(
   limit: number
 ): Promise<LocationResult[]> {
   try {
+    // Fetch more results than needed so we can sort by importance
+    const fetchLimit = Math.max(15, limit * 3);
+
     const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=${limit}&addressdetails=1`,
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=${fetchLimit}&addressdetails=1&accept-language=en&extratags=1`,
       {
         method: "GET",
         headers: {
           "User-Agent": "PiscolaApp/1.0 (contact@piscola.net)",
+          "Accept-Language": "en-US,en;q=0.9",
         },
       }
     );
@@ -115,7 +119,22 @@ async function searchLocations(
     }
 
     const data = await response.json();
-    return data;
+
+    // Sort results by importance (higher importance = more significant places)
+    // This prioritizes major cities like Athens, Greece over smaller towns
+    const sortedData = data.sort((a: LocationResult, b: LocationResult) => {
+      const importanceA = parseFloat((a as any).importance || "0");
+      const importanceB = parseFloat((b as any).importance || "0");
+
+      // Add bonus for national capitals
+      const bonusA = (a as any).extratags?.capital === "yes" ? 0.1 : 0;
+      const bonusB = (b as any).extratags?.capital === "yes" ? 0.1 : 0;
+
+      return importanceB + bonusB - (importanceA + bonusA);
+    });
+
+    // Return only the requested number of results
+    return sortedData.slice(0, limit);
   } catch (error) {
     console.error("Nominatim search error:", error);
     return [];
