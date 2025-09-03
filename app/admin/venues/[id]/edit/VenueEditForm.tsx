@@ -21,7 +21,7 @@ import {
   ChileWarningModal,
   useChileValidation,
 } from "@/lib/chile-validation";
-import { Save, Loader2, X, Plus, Upload, Trash2, Image } from "lucide-react";
+import { Save, Loader2, X, Plus, Upload, Trash2, Image, AlertTriangle } from "lucide-react";
 import { updateVenueAction } from "@/lib/actions/admin";
 import DeleteConfirmationModal from "@/components/admin/DeleteConfirmationModal";
 import { uploadPhoto, deletePhoto } from "@/lib/storage";
@@ -485,6 +485,28 @@ export default function VenueEditForm({ venue }: VenueEditFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Coordinate Verification Warning */}
+      {venue.address?.includes("(coordinates need verification)") && (
+        <div className="border border-amber-200 bg-amber-50 rounded-lg p-4">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
+            <div className="space-y-2">
+              <h4 className="font-medium text-amber-800">
+                ⚠️ Coordinates Need Manual Verification
+              </h4>
+              <p className="text-sm text-amber-700">
+                This venue was submitted using a mobile app Google Maps URL that didn't contain precise coordinates. 
+                Placeholder coordinates (London center) were used. Please verify and update the exact location 
+                using the coordinate fields below or by pasting a desktop Google Maps URL.
+              </p>
+              <p className="text-xs text-amber-600">
+                💡 <strong>Current coordinates:</strong> {venue.location?.lat.toFixed(6)}, {venue.location?.lng.toFixed(6)} (placeholder)
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Basic Information */}
       <div className="grid md:grid-cols-2 gap-4">
         <div className="space-y-2">
@@ -533,7 +555,7 @@ export default function VenueEditForm({ venue }: VenueEditFormProps) {
           <Label htmlFor="address">Address *</Label>
           <Textarea
             id="address"
-            value={formData.address}
+            value={formData.address?.replace(" (coordinates need verification)", "") || ""}
             onChange={(e) =>
               setFormData((prev) => ({ ...prev, address: e.target.value }))
             }

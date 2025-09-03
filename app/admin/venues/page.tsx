@@ -9,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Users, Clock, MapPin } from "lucide-react";
+import { Users, Clock, MapPin, AlertTriangle } from "lucide-react";
 import { getPendingVenues } from "@/lib/actions/admin";
 import VenueActions from "./VenueActions";
 
@@ -78,21 +78,57 @@ async function VenuesTable() {
                 </Badge>
               </TableCell>
               <TableCell>
-                <div className="flex items-start gap-2">
-                  <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-                  <div className="text-sm">
-                    <div>
-                      {venue.city}, {venue.country}
-                    </div>
-                    <div className="text-muted-foreground">{venue.address}</div>
-                    {venue.location && (
-                      <div className="text-xs text-muted-foreground">
-                        {venue.location.lat.toFixed(4)},{" "}
-                        {venue.location.lng.toFixed(4)}
+                {/* Check if venue needs coordinate verification */}
+                {venue.address?.includes("(coordinates need verification)") ? (
+                  <div className="space-y-2">
+                    {/* Warning banner */}
+                    <div className="flex items-center gap-2 p-2 bg-amber-50 border border-amber-200 rounded-md">
+                      <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
+                      <div className="text-sm">
+                        <div className="font-medium text-amber-800">
+                          ⚠️ Coordinates Need Verification
+                        </div>
+                        <div className="text-amber-700 text-xs">
+                          From mobile app URL - placeholder coordinates used
+                        </div>
                       </div>
-                    )}
+                    </div>
+                    {/* Location info */}
+                    <div className="flex items-start gap-2">
+                      <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                      <div className="text-sm">
+                        <div>
+                          {venue.city}, {venue.country}
+                        </div>
+                        <div className="text-muted-foreground">
+                          {venue.address?.replace(" (coordinates need verification)", "")}
+                        </div>
+                        {venue.location && (
+                          <div className="text-xs text-amber-600 font-medium">
+                            📍 Placeholder: {venue.location.lat.toFixed(4)},{" "}
+                            {venue.location.lng.toFixed(4)}
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="flex items-start gap-2">
+                    <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                    <div className="text-sm">
+                      <div>
+                        {venue.city}, {venue.country}
+                      </div>
+                      <div className="text-muted-foreground">{venue.address}</div>
+                      {venue.location && (
+                        <div className="text-xs text-muted-foreground">
+                          {venue.location.lat.toFixed(4)},{" "}
+                          {venue.location.lng.toFixed(4)}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </TableCell>
               <TableCell>
                 <div className="text-sm">

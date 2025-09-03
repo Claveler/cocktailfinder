@@ -125,6 +125,7 @@ export interface ParseResult {
   coordinates?: Coordinates;
   venueInfo?: VenueInfo;
   error?: string;
+  requiresManualReview?: boolean; // Indicates coordinates are placeholders and need admin verification
 }
 
 /**
@@ -270,10 +271,55 @@ async function parseGoogleMapsUrlDirect(url: string): Promise<ParseResult> {
       }
     }
 
+    // 4. FALLBACK: Try to extract coordinates from HTML content (for Android URLs and other embedded formats)
     if (!coordinates) {
+      try {
+        const htmlCoordinates = await extractCoordinatesFromHTML(url);
+        if (htmlCoordinates) {
+          coordinates = htmlCoordinates;
+          extractionMethod = "html_content_extraction";
+          console.log(
+            `[Maps] Coordinates extracted using method: ${extractionMethod}`,
+            {
+              coordinates,
+              url: url.substring(0, 100) + "...",
+            }
+          );
+        }
+      } catch (error) {
+        console.log("[Maps] HTML coordinate extraction failed:", error);
+        // Continue to fallback logic
+      }
+    }
+
+    if (!coordinates) {
+      // For URLs that contain venue info but no coordinates (like mobile app links),
+      // provide placeholder coordinates and let the user know they'll need manual review
+      const urlVenueInfo = extractVenueInfoFromUrl(url);
+
+      if (urlVenueInfo.name || urlVenueInfo.address || urlVenueInfo.city) {
+        // We found venue information but no coordinates
+        // Use placeholder coordinates (center of London as a neutral default)
+        const placeholderCoordinates = { lat: 51.5074, lng: -0.1278 };
+
+        return {
+          success: true,
+          coordinates: placeholderCoordinates,
+          venueInfo: {
+            ...urlVenueInfo,
+            // Add a note that coordinates need manual verification
+            address: urlVenueInfo.address
+              ? `${urlVenueInfo.address} (coordinates need verification)`
+              : undefined,
+          },
+          requiresManualReview: true,
+        };
+      }
+
       return {
         success: false,
-        error: "Could not extract coordinates from this Google Maps URL",
+        error:
+          "Could not extract coordinates or venue information from this Google Maps URL",
       };
     }
 
@@ -472,10 +518,23 @@ function extractVenueInfoFromUrl(url: string): {
     let venueName: string | undefined;
 
     if (placeMatch) {
-      venueName = decodeURIComponent(placeMatch[1])
+      const rawPlaceName = decodeURIComponent(placeMatch[1])
         .replace(/\+/g, " ")
         .replace(/%20/g, " ")
         .trim();
+
+      // Check if the place name contains full address info (like Android URLs)
+      if (rawPlaceName.includes(",")) {
+        const addressInfo = parseAddressFromQuery(rawPlaceName);
+        return {
+          name: cleanVenueName(addressInfo.name),
+          address: addressInfo.address,
+          city: addressInfo.city,
+          country: addressInfo.country,
+        };
+      }
+
+      venueName = rawPlaceName;
     }
 
     // 2. Extract address info from query parameters
@@ -542,6 +601,41 @@ function extractVenueInfoFromUrl(url: string): {
     return { name: cleanVenueName(venueName) };
   } catch {
     return {};
+  }
+}
+
+/**
+ * Extract coordinates from HTML content using server-side parsing
+ */
+async function extractCoordinatesFromHTML(
+  url: string
+): Promise<Coordinates | null> {
+  try {
+    const response = await fetch("/api/maps/parse-coordinates", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ url }),
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const result = await response.json();
+
+    if (result.success && result.coordinates) {
+      const { lat, lng } = result.coordinates;
+      if (isValidCoordinate(lat, lng)) {
+        return { lat, lng };
+      }
+    }
+
+    return null;
+  } catch (error) {
+    console.log("[Maps] Error calling HTML coordinate extraction API:", error);
+    return null;
   }
 }
 

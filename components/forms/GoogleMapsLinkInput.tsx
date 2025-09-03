@@ -66,23 +66,46 @@ export default function GoogleMapsLinkInput({
       if (result.success && result.coordinates) {
         onCoordinatesExtracted(result.coordinates, mapsUrl, result.venueInfo);
 
-        // Build success message with venue info if available
-        let message = `${isShortUrl ? "Short URL expanded and coordinates extracted" : "Coordinates extracted"}: ${formatCoordinates(result.coordinates)}`;
+        // Handle manual review cases (mobile app URLs without coordinates)
+        if (result.requiresManualReview) {
+          let message = `ℹ️ Venue information extracted from mobile app link\n`;
+          message += `⚠️ Using placeholder coordinates - admin will verify actual location\n`;
+          message += `📍 Placeholder: ${formatCoordinates(result.coordinates)}`;
 
-        if (result.venueInfo?.name) {
-          message += `\nVenue: ${result.venueInfo.name}`;
-        }
-        if (result.venueInfo?.address) {
-          message += `\nAddress: ${result.venueInfo.address}`;
-        }
-        if (result.venueInfo?.city) {
-          message += `\nCity: ${result.venueInfo.city}`;
+          if (result.venueInfo?.name) {
+            message += `\nVenue: ${result.venueInfo.name}`;
+          }
+          if (result.venueInfo?.address) {
+            message += `\nAddress: ${result.venueInfo.address}`;
+          }
+          if (result.venueInfo?.city) {
+            message += `\nCity: ${result.venueInfo.city}`;
+          }
+
+          setStatus({
+            type: "success",
+            message,
+          });
+        } else {
+          // Build normal success message with venue info if available
+          let message = `${isShortUrl ? "Short URL expanded and coordinates extracted" : "Coordinates extracted"}: ${formatCoordinates(result.coordinates)}`;
+
+          if (result.venueInfo?.name) {
+            message += `\nVenue: ${result.venueInfo.name}`;
+          }
+          if (result.venueInfo?.address) {
+            message += `\nAddress: ${result.venueInfo.address}`;
+          }
+          if (result.venueInfo?.city) {
+            message += `\nCity: ${result.venueInfo.city}`;
+          }
+
+          setStatus({
+            type: "success",
+            message,
+          });
         }
 
-        setStatus({
-          type: "success",
-          message,
-        });
         setMapsUrl(""); // Clear the input after successful extraction
       } else {
         setStatus({

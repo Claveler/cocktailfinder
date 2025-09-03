@@ -322,6 +322,9 @@ export default function NewVenuePage() {
     closeModal,
   } = useChileValidation();
 
+  // Track if coordinates need manual review (from mobile app URLs)
+  const [requiresManualReview, setRequiresManualReview] = useState(false);
+
   // Database brands
   const [commonBrands, setCommonBrands] = useState<string[]>([]);
   const [loadingBrands, setLoadingBrands] = useState(true);
@@ -389,6 +392,12 @@ export default function NewVenuePage() {
     originalUrl?: string,
     venueInfo?: VenueInfo
   ) => {
+    // Check if this is from a mobile app URL with placeholder coordinates
+    const isPlaceholder = venueInfo?.address?.includes(
+      "(coordinates need verification)"
+    );
+    setRequiresManualReview(isPlaceholder || false);
+
     // Always populate the form data first
     setFormData((prev) => ({
       ...prev,
@@ -609,6 +618,30 @@ export default function NewVenuePage() {
             />
           </CardContent>
         </Card>
+
+        {/* Manual Review Warning */}
+        {requiresManualReview && (
+          <div className="border border-amber-200 bg-amber-50 dark:bg-amber-900/20 rounded-md p-4">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
+              <div className="space-y-2">
+                <h4 className="font-medium text-amber-800 dark:text-amber-200">
+                  Coordinates Need Verification
+                </h4>
+                <p className="text-sm text-amber-700 dark:text-amber-300">
+                  Your mobile app link provided venue information but no precise
+                  coordinates. We've used placeholder coordinates for now. An
+                  admin will verify and update the exact location after you
+                  submit the venue.
+                </p>
+                <p className="text-xs text-amber-600 dark:text-amber-400">
+                  ℹ️ This is normal for links shared from Google Maps mobile
+                  apps. Your venue will still be added successfully!
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Basic Information */}
         <Card>
