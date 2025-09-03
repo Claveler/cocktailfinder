@@ -13,7 +13,10 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const query = searchParams.get("q");
-    const limit = searchParams.get("limit") || "5";
+    const limit = parseInt(searchParams.get("limit") || "5");
+
+    // Fetch more results than needed so we can sort by importance
+    const fetchLimit = Math.max(15, limit * 3);
 
     if (!query || query.trim().length < 2) {
       return NextResponse.json(
@@ -25,11 +28,12 @@ export async function GET(request: NextRequest) {
     // Call Nominatim search API from server (no CORS issues)
     const nominatimUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
       query.trim()
-    )}&limit=${limit}&addressdetails=1&extratags=1`;
+    )}&limit=${fetchLimit}&addressdetails=1&extratags=1&accept-language=en`;
 
     const response = await fetch(nominatimUrl, {
       headers: {
         "User-Agent": "Piscola.net location search",
+        "Accept-Language": "en-US,en;q=0.9",
       },
     });
 
@@ -42,8 +46,22 @@ export async function GET(request: NextRequest) {
 
     const data = await response.json();
 
-    // Transform data to match expected format
-    const transformedData = data.map((item: any) => ({
+    // Sort results by importance (higher importance = more significant places)
+    // This prioritizes major cities like Athens, Greece over smaller towns
+    const sortedData = data.sort((a: any, b: any) => {
+      const importanceA = parseFloat(a.importance || "0");
+      const importanceB = parseFloat(b.importance || "0");
+
+      // Add bonus for national capitals
+      const bonusA = a.extratags?.capital === "yes" ? 0.1 : 0;
+      const bonusB = b.extratags?.capital === "yes" ? 0.1 : 0;
+
+      return importanceB + bonusB - (importanceA + bonusA);
+    });
+
+    // Return only the requested number of results, transformed to expected format
+    const limitedData = sortedData.slice(0, limit);
+    const transformedData = limitedData.map((item: any) => ({
       place_id: item.place_id,
       display_name: item.display_name,
       lat: item.lat,
@@ -96,10 +114,11 @@ export async function POST(request: NextRequest) {
 
     // Call Nominatim API from server (no CORS issues)
     const response = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1&zoom=18`,
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1&zoom=18&accept-language=en`,
       {
         headers: {
           "User-Agent": "Piscola.net venue submission",
+          "Accept-Language": "en-US,en;q=0.9",
         },
       }
     );
