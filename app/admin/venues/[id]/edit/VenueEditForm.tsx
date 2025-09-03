@@ -16,6 +16,11 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import {
+  CHILE_WARNING_TEXT,
+  ChileWarningModal,
+  useChileValidation,
+} from "@/lib/chile-validation";
 import { Save, Loader2, X, Plus, Upload, Trash2, Image } from "lucide-react";
 import { updateVenueAction } from "@/lib/actions/admin";
 import DeleteConfirmationModal from "@/components/admin/DeleteConfirmationModal";
@@ -278,6 +283,15 @@ export default function VenueEditForm({ venue }: VenueEditFormProps) {
   const [uploadingPhotos, setUploadingPhotos] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
+  // Chile validation hook
+  const {
+    chileWarningOpen,
+    handleCountryChange: chileHandleCountryChange,
+    handleGoogleMapsExtraction,
+    validateFormSubmission,
+    closeModal,
+  } = useChileValidation();
+
   // Brand management
   const [newBrand, setNewBrand] = useState("");
   const [newAmbiance, setNewAmbiance] = useState("");
@@ -321,6 +335,7 @@ export default function VenueEditForm({ venue }: VenueEditFormProps) {
     originalUrl?: string,
     venueInfo?: VenueInfo
   ) => {
+    // Always populate the form data first
     setFormData((prev) => ({
       ...prev,
       latitude: coordinates.lat,
@@ -334,6 +349,9 @@ export default function VenueEditForm({ venue }: VenueEditFormProps) {
       country:
         venueInfo?.country && !prev.country ? venueInfo.country : prev.country,
     }));
+
+    // Check if the extracted location is in Chile and show warning
+    handleGoogleMapsExtraction(venueInfo?.country);
   };
 
   // Photo management functions
@@ -377,9 +395,23 @@ export default function VenueEditForm({ venue }: VenueEditFormProps) {
     []
   );
 
+  const handleCountryChange = (value: string) => {
+    chileHandleCountryChange(value, (validCountry) => {
+      setFormData((prev) => ({ ...prev, country: validCountry }));
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setUploadingPhotos(false);
+
+    // Prevent venues in Chile (should be caught by modal, but double-check)
+    if (!validateFormSubmission(formData.country)) {
+      setIsSubmitting(false);
+      return;
+    }
+
     setUploadingPhotos(true);
 
     try {
@@ -527,9 +559,7 @@ export default function VenueEditForm({ venue }: VenueEditFormProps) {
             <Label htmlFor="country">Country *</Label>
             <Select
               value={formData.country}
-              onValueChange={(value) =>
-                setFormData((prev) => ({ ...prev, country: value }))
-              }
+              onValueChange={handleCountryChange}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select country" />
@@ -542,6 +572,9 @@ export default function VenueEditForm({ venue }: VenueEditFormProps) {
                 ))}
               </SelectContent>
             </Select>
+            <p className="text-xs text-muted-foreground mt-1">
+              {CHILE_WARNING_TEXT}
+            </p>
           </div>
         </div>
 
@@ -981,6 +1014,13 @@ export default function VenueEditForm({ venue }: VenueEditFormProps) {
           name: venue.name,
         }}
         redirectAfterDelete="/admin/venues"
+      />
+
+      {/* Chile Warning Modal */}
+      <ChileWarningModal
+        isOpen={chileWarningOpen}
+        onClose={closeModal}
+        context="edit"
       />
     </form>
   );

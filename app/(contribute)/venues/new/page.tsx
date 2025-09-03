@@ -19,6 +19,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
+  CHILE_WARNING_TEXT,
+  ChileWarningModal,
+  useChileValidation,
+} from "@/lib/chile-validation";
+import {
   MapPin,
   Upload,
   X,
@@ -308,6 +313,15 @@ export default function NewVenuePage() {
   const [photoPreviewUrls, setPhotoPreviewUrls] = useState<string[]>([]);
   const [uploadingPhotos, setUploadingPhotos] = useState(false);
 
+  // Chile validation hook
+  const {
+    chileWarningOpen,
+    handleCountryChange,
+    handleGoogleMapsExtraction,
+    validateFormSubmission,
+    closeModal,
+  } = useChileValidation();
+
   // Database brands
   const [commonBrands, setCommonBrands] = useState<string[]>([]);
   const [loadingBrands, setLoadingBrands] = useState(true);
@@ -359,6 +373,14 @@ export default function NewVenuePage() {
   }, [photoPreviewUrls]);
 
   const handleInputChange = (field: keyof typeof formData, value: string) => {
+    // Special handling for country selection
+    if (field === "country") {
+      handleCountryChange(value, (validCountry) => {
+        setFormData((prev) => ({ ...prev, country: validCountry }));
+      });
+      return;
+    }
+
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -367,6 +389,7 @@ export default function NewVenuePage() {
     originalUrl?: string,
     venueInfo?: VenueInfo
   ) => {
+    // Always populate the form data first
     setFormData((prev) => ({
       ...prev,
       latitude: coordinates.lat.toString(),
@@ -378,6 +401,9 @@ export default function NewVenuePage() {
       city: venueInfo?.city || prev.city,
       country: venueInfo?.country || prev.country,
     }));
+
+    // Check if the extracted location is in Chile and show warning
+    handleGoogleMapsExtraction(venueInfo?.country);
   };
 
   const addBrand = (brand: string) => {
@@ -437,6 +463,11 @@ export default function NewVenuePage() {
       !formData.country
     ) {
       setError("Please fill in all required fields");
+      return;
+    }
+
+    // Prevent venues in Chile (should be caught by modal, but double-check)
+    if (!validateFormSubmission(formData.country)) {
       return;
     }
 
@@ -664,6 +695,9 @@ export default function NewVenuePage() {
                     ))}
                   </SelectContent>
                 </Select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {CHILE_WARNING_TEXT}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -1153,6 +1187,13 @@ export default function NewVenuePage() {
           </CardContent>
         </Card>
       </form>
+
+      {/* Chile Warning Modal */}
+      <ChileWarningModal
+        isOpen={chileWarningOpen}
+        onClose={closeModal}
+        context="create"
+      />
     </div>
   );
 }
