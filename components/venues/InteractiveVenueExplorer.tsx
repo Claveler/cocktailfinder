@@ -13,7 +13,6 @@ import { calculateApproximateBounds } from "@/lib/distance";
 import type { MapBounds } from "@/lib/distance";
 
 import { useVenuesByBounds } from "@/lib/hooks/useVenuesByBounds";
-import { MAP_CONFIG } from "@/lib/config/map";
 import { useVenuePins } from "@/lib/hooks/useVenuePins";
 
 interface InteractiveVenueExplorerProps {
@@ -27,14 +26,15 @@ interface InteractiveVenueExplorerProps {
 
 export default function InteractiveVenueExplorer({
   maxDistanceKm = 15,
-  fallbackCenter = MAP_CONFIG.DEFAULT_CENTER, // London Business School default (LBS easter egg! 🎓)
-  fallbackZoom = MAP_CONFIG.DEFAULT_ZOOM,
+  fallbackCenter = [51.5261617, -0.1633234], // London Business School default (LBS easter egg! 🎓)
+  fallbackZoom = Number(process.env.NEXT_PUBLIC_MAP_ZOOM_LEVEL) || 13,
   searchLocation = null,
   initialFocusedVenueId = null,
   hasQueryParams = false,
 }: InteractiveVenueExplorerProps) {
-  // Search zoom level from config
-  const searchZoomLevel = MAP_CONFIG.SEARCH_ZOOM;
+  // Environment variables for zoom levels
+  const searchZoomLevel =
+    Number(process.env.NEXT_PUBLIC_SEARCH_ZOOM_LEVEL) || 15;
 
   // User location state
   const [userLocation, setUserLocation] = useState<{

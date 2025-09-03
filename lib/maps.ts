@@ -2,6 +2,104 @@
  * Utility functions for parsing Google Maps URLs and extracting coordinates
  */
 
+// ISO country code to standardized country name mapping
+const ISO_COUNTRY_MAPPINGS: Record<string, string> = {
+  // Common countries
+  US: "United States",
+  GB: "United Kingdom",
+  CL: "Chile",
+  AR: "Argentina",
+  PE: "Peru",
+  BO: "Bolivia",
+  ES: "Spain",
+  FR: "France",
+  DE: "Germany",
+  IT: "Italy",
+  CA: "Canada",
+  AU: "Australia",
+  BR: "Brazil",
+  MX: "Mexico",
+  JP: "Japan",
+  CN: "China",
+  IN: "India",
+  RU: "Russia",
+  KR: "South Korea",
+  KP: "North Korea",
+  NL: "Netherlands",
+  BE: "Belgium",
+  CH: "Switzerland",
+  AT: "Austria",
+  SE: "Sweden",
+  NO: "Norway",
+  DK: "Denmark",
+  FI: "Finland",
+  PL: "Poland",
+  CZ: "Czech Republic",
+  HU: "Hungary",
+  PT: "Portugal",
+  GR: "Greece",
+  TR: "Turkey",
+  EG: "Egypt",
+  ZA: "South Africa",
+  NG: "Nigeria",
+  KE: "Kenya",
+  MA: "Morocco",
+  TN: "Tunisia",
+  SG: "Singapore",
+  TH: "Thailand",
+  MY: "Malaysia",
+  ID: "Indonesia",
+  PH: "Philippines",
+  VN: "Vietnam",
+  NZ: "New Zealand",
+  IE: "Ireland",
+  IS: "Iceland",
+  IL: "Israel",
+  SA: "Saudi Arabia",
+  AE: "United Arab Emirates",
+  QA: "Qatar",
+  KW: "Kuwait",
+  OM: "Oman",
+  BH: "Bahrain",
+  JO: "Jordan",
+  LB: "Lebanon",
+  SY: "Syria",
+  IQ: "Iraq",
+  IR: "Iran",
+  AF: "Afghanistan",
+  PK: "Pakistan",
+  BD: "Bangladesh",
+  LK: "Sri Lanka",
+  NP: "Nepal",
+  BT: "Bhutan",
+  MM: "Myanmar",
+  LA: "Laos",
+  KH: "Cambodia",
+  TW: "Taiwan",
+  HK: "China", // Hong Kong -> China for our purposes
+  MO: "China", // Macau -> China for our purposes
+};
+
+/**
+ * Normalize country using ISO code (preferred) or country name fallback
+ */
+function normalizeCountryName(
+  country?: string,
+  countryCode?: string
+): string | undefined {
+  // Prefer ISO country code if available
+  if (countryCode) {
+    const normalizedFromCode = ISO_COUNTRY_MAPPINGS[countryCode.toUpperCase()];
+    if (normalizedFromCode) return normalizedFromCode;
+  }
+
+  // Fallback to country name if no ISO code or code not found
+  if (!country) return undefined;
+
+  // Return the country name as-is (it might already match our standardized list)
+  return country;
+}
+
 // Shared validation patterns for Google Maps URLs
 export const GOOGLE_MAPS_URL_PATTERNS = [
   /^https?:\/\/(www\.)?google\.com\/maps/,
@@ -185,12 +283,16 @@ async function parseGoogleMapsUrlDirect(url: string): Promise<ParseResult> {
     // Then get additional address information using reverse geocoding
     const geocodedInfo = await reverseGeocode(coordinates);
 
-    // Combine URL info with geocoded info, preferring URL info when available
+    // Combine URL info with geocoded info, preferring GEOCODED address over URL address
+    // URL extraction can be unreliable for addresses, geocoding is more accurate
     const finalVenueInfo = {
       name: cleanVenueName(venueName || urlVenueInfo.name),
-      address: urlVenueInfo.address || geocodedInfo.address,
+      address: geocodedInfo.address || urlVenueInfo.address, // Prefer geocoded address
       city: urlVenueInfo.city || geocodedInfo.city,
-      country: urlVenueInfo.country || geocodedInfo.country,
+      country: normalizeCountryName(
+        urlVenueInfo.country || geocodedInfo.country,
+        geocodedInfo.countryCode
+      ),
     };
 
     return {
@@ -532,6 +634,7 @@ async function reverseGeocode(coordinates: Coordinates): Promise<{
   address?: string;
   city?: string;
   country?: string;
+  countryCode?: string;
 }> {
   // Try Nominatim first (OpenStreetMap)
   const nominatimResult = await tryNominatimGeocoding(coordinates);
@@ -545,29 +648,37 @@ async function reverseGeocode(coordinates: Coordinates): Promise<{
 }
 
 /**
- * Try Nominatim (OpenStreetMap) reverse geocoding
+ * Try Nominatim (OpenStreetMap) reverse geocoding via our API proxy
  */
 async function tryNominatimGeocoding(coordinates: Coordinates): Promise<{
   address?: string;
   city?: string;
   country?: string;
+  countryCode?: string;
 }> {
   try {
     const { lat, lng } = coordinates;
-    const response = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1&zoom=18`,
-      {
-        headers: {
-          "User-Agent": "Piscola.net venue submission",
-        },
-      }
-    );
+
+    // Use our API endpoint to avoid CORS issues
+    const response = await fetch("/api/geocode", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ lat, lng }),
+    });
 
     if (!response.ok) {
       return {};
     }
 
-    const data = await response.json();
+    const result = await response.json();
+
+    if (!result.success || !result.data) {
+      return {};
+    }
+
+    const data = result.data;
 
     if (data.address) {
       const addr = data.address;
@@ -585,37 +696,59 @@ async function tryNominatimGeocoding(coordinates: Coordinates): Promise<{
         addressParts.push(addr.footway);
       }
 
-      // If no road, try other location indicators
-      if (addressParts.length === 0 || addressParts.length === 1) {
+      // Only add building/amenity if we have NO street-level address
+      if (addressParts.length === 0) {
         if (addr.amenity) addressParts.push(addr.amenity);
         if (addr.building) addressParts.push(addr.building);
-        if (addr.neighbourhood) addressParts.push(addr.neighbourhood);
-        if (addr.suburb) addressParts.push(addr.suburb);
-        if (addr.commercial) addressParts.push(addr.commercial);
       }
 
-      const address =
-        addressParts.join(" ") || data.display_name?.split(",")[0];
+      // Create final address - prefer our built address, fallback to first part of display_name
+      let address;
+      if (addressParts.length > 0) {
+        // Join with comma for clarity: "3, Spring Street" instead of "3 Spring Street"
+        address = addressParts.join(", ");
+      } else {
+        // Fallback to first part of display_name, but avoid administrative areas
+        const displayParts = data.display_name?.split(",") || [];
+        address = displayParts[0]?.trim();
 
-      // Determine city with improved priority
+        // Skip if the first part looks like an administrative area
+        if (
+          address &&
+          (address.includes("City of") ||
+            address.includes("Borough of") ||
+            address.includes("District") ||
+            address.includes("County"))
+        ) {
+          address = displayParts[1]?.trim() || address;
+        }
+      }
+
+      // Determine city with improved priority (avoid administrative districts)
       const city =
         addr.city ||
         addr.town ||
         addr.municipality ||
-        addr.borough ||
-        addr.district ||
         addr.village ||
         addr.hamlet ||
-        addr.county ||
-        addr.state_district;
+        // Only use borough/district if no proper city found and not overly administrative
+        (addr.borough && !addr.borough.includes("City of")
+          ? addr.borough
+          : undefined) ||
+        (addr.district && !addr.district.includes("City of")
+          ? addr.district
+          : undefined) ||
+        addr.county;
 
-      // Determine country
+      // Determine country and country code
       const country = addr.country;
+      const countryCode = addr.country_code; // ISO code from Nominatim
 
       return {
         address: address || undefined,
         city: city || undefined,
         country: country || undefined,
+        countryCode: countryCode?.toUpperCase() || undefined,
       };
     }
 
@@ -632,6 +765,7 @@ async function tryAlternativeGeocoding(coordinates: Coordinates): Promise<{
   address?: string;
   city?: string;
   country?: string;
+  countryCode?: string;
 }> {
   try {
     const { lat, lng } = coordinates;
@@ -650,17 +784,21 @@ async function tryAlternativeGeocoding(coordinates: Coordinates): Promise<{
 
     const data = await response.json();
 
-    // Build address from components
+    // Build address from components - only use street-level data
     const addressParts = [];
     if (data.streetNumber) addressParts.push(data.streetNumber);
     if (data.streetName) addressParts.push(data.streetName);
 
-    const address = addressParts.join(" ") || data.locality;
+    // Only return an address if we have actual street-level data
+    // Don't fall back to administrative areas like "City of Westminster"
+    const address =
+      addressParts.length > 0 ? addressParts.join(" ") : undefined;
 
     return {
       address: address || undefined,
       city: data.city || data.locality || undefined,
       country: data.countryName || undefined,
+      countryCode: data.countryCode?.toUpperCase() || undefined,
     };
   } catch {
     return {};

@@ -42,12 +42,12 @@ export async function GET() {
         },
       })) || [];
 
-    // Cache for 5 minutes - synced with bounds API to prevent count mismatches
+    // Cache for 10 minutes since pins don't change often
     return NextResponse.json(
       { pins, count: pins.length },
       {
         headers: {
-          "Cache-Control": "public, max-age=300, stale-while-revalidate=60", // 5 min cache - synced with bounds API
+          "Cache-Control": "public, max-age=600, stale-while-revalidate=120", // 10 min cache
         },
       }
     );
