@@ -1,7 +1,69 @@
 import { NextRequest, NextResponse } from "next/server";
 
 /**
- * Reverse geocoding API endpoint - proxies Nominatim to avoid CORS issues
+ * Geocoding API endpoint - proxies Nominatim to avoid CORS issues
+ * GET: Forward geocoding (search locations by text)
+ * POST: Reverse geocoding (get location from coordinates)
+ */
+
+/**
+ * Forward geocoding - search locations by query text
+ */
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const query = searchParams.get("q");
+    const limit = searchParams.get("limit") || "5";
+
+    if (!query || query.trim().length < 2) {
+      return NextResponse.json(
+        { error: "Query parameter 'q' is required (minimum 2 characters)" },
+        { status: 400 }
+      );
+    }
+
+    // Call Nominatim search API from server (no CORS issues)
+    const nominatimUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+      query.trim()
+    )}&limit=${limit}&addressdetails=1&extratags=1`;
+
+    const response = await fetch(nominatimUrl, {
+      headers: {
+        "User-Agent": "Piscola.net location search",
+      },
+    });
+
+    if (!response.ok) {
+      return NextResponse.json(
+        { error: "Search service unavailable" },
+        { status: 503 }
+      );
+    }
+
+    const data = await response.json();
+
+    // Transform data to match expected format
+    const transformedData = data.map((item: any) => ({
+      place_id: item.place_id,
+      display_name: item.display_name,
+      lat: item.lat,
+      lon: item.lon,
+      type: "location",
+      class: item.class,
+    }));
+
+    return NextResponse.json(transformedData);
+  } catch (error) {
+    console.error("Forward geocoding error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * Reverse geocoding - get location from coordinates
  */
 export async function POST(request: NextRequest) {
   try {
@@ -51,10 +113,7 @@ export async function POST(request: NextRequest) {
 
     const data = await response.json();
 
-    return NextResponse.json({
-      success: true,
-      data,
-    });
+    return NextResponse.json({ success: true, data });
   } catch (error) {
     console.error("Geocoding error:", error);
     return NextResponse.json(
