@@ -17,6 +17,7 @@ import {
   calculateApproximateBounds,
   calculateDistance,
 } from "@/lib/distance";
+import { MAP_CONFIG } from "@/lib/config/map";
 // import { createRoot } from "react-dom/client"; // Unused
 
 // Enhanced venue type definition
@@ -48,10 +49,9 @@ function MapUpdater({
   const map = useMap();
 
   useEffect(() => {
-    const flyToDuration = Number(process.env.NEXT_PUBLIC_FLYTO_DURATION) || 1.5;
     map.flyTo(center, zoom, {
       animate: true,
-      duration: flyToDuration,
+      duration: MAP_CONFIG.FLY_TO_DURATION,
     });
   }, [map, center, zoom]);
 
@@ -95,8 +95,7 @@ function ZoomDebugger() {
 
     const logZoom = () => {
       const currentZoom = map.getZoom();
-      const clusteringDisableZoom =
-        Number(process.env.NEXT_PUBLIC_CLUSTERING_DISABLE_ZOOM) || 14;
+      const clusteringDisableZoom = MAP_CONFIG.CLUSTERING_DISABLE_ZOOM;
     };
 
     // Log initial zoom
@@ -130,9 +129,8 @@ function VenueFocuser({
     const venue = venues.find((v) => v.id === focusedVenueId);
     if (!venue || !venue.location) return;
 
-    // Get search zoom level from environment variable
-    const searchZoomLevel =
-      Number(process.env.NEXT_PUBLIC_SEARCH_ZOOM_LEVEL) || 15;
+    // Get search zoom level from config
+    const searchZoomLevel = MAP_CONFIG.SEARCH_ZOOM;
 
     // Use setView to center the map on the venue location
     map.setView([venue.location.lat, venue.location.lng], searchZoomLevel);
@@ -150,8 +148,7 @@ function PinClickHandler() {
     (window as any).handlePinClick = (venue: Venue) => {
       if (!venue.location || !map) return;
 
-      const searchZoomLevel =
-        Number(process.env.NEXT_PUBLIC_SEARCH_ZOOM_LEVEL) || 15;
+      const searchZoomLevel = MAP_CONFIG.SEARCH_ZOOM;
       map.setView([venue.location.lat, venue.location.lng], searchZoomLevel);
     };
 
@@ -344,9 +341,7 @@ const LeafletMapComponent = memo(function LeafletMapComponent({
         spiderfyOnMaxZoom={true}
         showCoverageOnHover={false}
         zoomToBoundsOnClick={true}
-        disableClusteringAtZoom={
-          Number(process.env.NEXT_PUBLIC_CLUSTERING_DISABLE_ZOOM) || 14
-        }
+        disableClusteringAtZoom={MAP_CONFIG.CLUSTERING_DISABLE_ZOOM}
         iconCreateFunction={(cluster: any) => {
           const count = cluster.getChildCount();
           let size = "small";
@@ -402,8 +397,8 @@ const LeafletMapComponent = memo(function LeafletMapComponent({
 const InteractiveMap = memo(function InteractiveMap({
   venues,
   height = "400px",
-  center = [51.5261617, -0.1633234], // Default to London Business School (LBS easter egg! 🎓)
-  zoom = Number(process.env.NEXT_PUBLIC_MAP_ZOOM_LEVEL) || 13,
+  center = MAP_CONFIG.DEFAULT_CENTER, // Default to London Business School (LBS easter egg! 🎓)
+  zoom = MAP_CONFIG.DEFAULT_ZOOM,
   onBoundsChange,
   userLocation,
   onLocationRequest,
