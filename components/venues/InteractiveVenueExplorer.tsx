@@ -540,6 +540,17 @@ export default function InteractiveVenueExplorer({
       // Mark initial positioning as complete
       setIsInitialPositioningComplete(true);
 
+      // Scroll to top on mobile when search location is updated
+      setTimeout(() => {
+        // Only scroll to top on mobile (768px and below)
+        if (window.innerWidth <= 768) {
+          window.scrollTo({
+            top: 0,
+            behavior: "smooth",
+          });
+        }
+      }, 100);
+
       // Note: Venue filtering now handled by two-tier loading system
     }
   }, [searchLocation, searchZoomLevel]);
