@@ -10,6 +10,7 @@ import {
   calculateApproximateBounds,
 } from "@/lib/distance";
 import type { MapBounds } from "@/lib/distance";
+import { MAP_CONFIG } from "@/lib/config/map";
 
 interface VenuesPageClientProps {
   venues: Venue[]; // Filtered venues for left sidebar
@@ -24,10 +25,9 @@ export default function VenuesPageClient({
   initialCenter,
   searchLocation = null,
 }: VenuesPageClientProps) {
-  // Environment variables (same as landing page)
-  const fallbackZoom = Number(process.env.NEXT_PUBLIC_MAP_ZOOM_LEVEL) || 13;
-  const searchZoomLevel =
-    Number(process.env.NEXT_PUBLIC_SEARCH_ZOOM_LEVEL) || 15;
+  // Map configuration (centralized config)
+  const fallbackZoom = MAP_CONFIG.DEFAULT_ZOOM;
+  const searchZoomLevel = MAP_CONFIG.SEARCH_ZOOM;
   const venuesLimit = Number(process.env.NEXT_PUBLIC_VENUES_LIMIT) || 20;
 
   // Map state
