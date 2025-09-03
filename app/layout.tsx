@@ -6,6 +6,7 @@ import GlobalBottomNavBar from "@/components/common/GlobalBottomNavBar";
 import { primaryFont, monoFont, headingFont } from "@/lib/fonts";
 import { Toaster } from "sonner";
 import ServerThemeProvider from "@/components/theme/ServerThemeProvider";
+import { Analytics } from "@vercel/analytics/react";
 
 export const metadata: Metadata = {
   title: "Piscola.net",
@@ -39,6 +40,7 @@ export default function RootLayout({
           <Footer />
           <GlobalBottomNavBar />
           <Toaster richColors position="top-right" />
+          <Analytics />
         </ServerThemeProvider>
       </body>
     </html>
