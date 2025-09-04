@@ -223,9 +223,22 @@ export async function getVenueById(
       return { data: null, error: new Error("Venue not found") };
     }
 
-    // Access control: only show approved venues unless user owns it
+    // Check if user is admin
+    let isAdmin = false;
+    if (userId) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", userId)
+        .single();
+      isAdmin = profile?.role === "admin";
+    }
+
+    // Access control: approved venues for everyone, pending venues for admins/owners only
     const canAccess =
-      venue.status === "approved" || (userId && venue.created_by === userId);
+      venue.status === "approved" ||
+      isAdmin ||
+      (userId && venue.created_by === userId);
 
     if (!canAccess) {
       return { data: null, error: new Error("Venue not found") };
