@@ -617,7 +617,7 @@ export default function NewVenuePage() {
                   preload="metadata"
                 >
                   <source
-                    src="/assets/howtosharefromgmaps.MP4"
+                    src="/assets/howtosharefromgmaps.mp4"
                     type="video/mp4"
                   />
                   Your browser does not support the video tag.
