@@ -604,6 +604,31 @@ export default function NewVenuePage() {
             </p>
           </CardHeader>
           <CardContent>
+            {/* Instructional Video */}
+            <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <h4 className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-3 flex items-center gap-2">
+                <HelpCircle className="h-4 w-4" />
+                How to get a Google Maps link on iPhone
+              </h4>
+              <div className="space-y-3">
+                <video
+                  className="w-full max-w-sm mx-auto rounded-lg border shadow-sm"
+                  controls
+                  preload="metadata"
+                >
+                  <source
+                    src="/assets/howtosharefromgmaps.MP4"
+                    type="video/mp4"
+                  />
+                  Your browser does not support the video tag.
+                </video>
+                <p className="text-sm text-blue-700 dark:text-blue-300">
+                  This short video shows how to copy a Google Maps link from the
+                  iPhone app. The process is similar on Android devices.
+                </p>
+              </div>
+            </div>
+
             <GoogleMapsLinkInput
               onCoordinatesExtracted={handleCoordinatesExtracted}
               currentCoordinates={
