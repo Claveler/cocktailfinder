@@ -150,6 +150,17 @@ function PinClickHandler() {
 
       const searchZoomLevel = MAP_CONFIG.SEARCH_ZOOM;
       map.setView([venue.location.lat, venue.location.lng], searchZoomLevel);
+
+      // Scroll to top on mobile when map pin is clicked
+      setTimeout(() => {
+        // Only scroll to top on mobile (768px and below)
+        if (window.innerWidth <= 768) {
+          window.scrollTo({
+            top: 0,
+            behavior: "smooth",
+          });
+        }
+      }, 100);
     };
 
     return () => {
