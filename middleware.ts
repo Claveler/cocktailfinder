@@ -2,6 +2,13 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
+  // Detect Instagram in-app browser
+  const userAgent = request.headers.get("user-agent") || "";
+  const isInstagramBrowser =
+    userAgent.includes("Instagram") ||
+    userAgent.includes("FBAN") ||
+    userAgent.includes("FBAV");
+
   // Handle Instagram/Facebook redirect issues by cleaning tracking parameters
   // and ensuring proper headers for social media in-app browsers
   const url = request.nextUrl.clone();
@@ -71,13 +78,37 @@ export async function middleware(request: NextRequest) {
   supabaseResponse.headers.set("X-Content-Type-Options", "nosniff");
   supabaseResponse.headers.set("Referrer-Policy", "origin-when-cross-origin");
 
-  // Specific headers for social media in-app browsers
-  supabaseResponse.headers.set(
-    "Cache-Control",
-    "no-cache, no-store, must-revalidate"
-  );
-  supabaseResponse.headers.set("Pragma", "no-cache");
-  supabaseResponse.headers.set("Expires", "0");
+  // Specific headers for Instagram in-app browser (known React.js compatibility issues)
+  if (isInstagramBrowser) {
+    // Force no caching to prevent stale content issues
+    supabaseResponse.headers.set(
+      "Cache-Control",
+      "no-cache, no-store, must-revalidate, max-age=0"
+    );
+    supabaseResponse.headers.set("Pragma", "no-cache");
+    supabaseResponse.headers.set("Expires", "0");
+
+    // Add Content Security Policy for Instagram compatibility
+    supabaseResponse.headers.set(
+      "Content-Security-Policy",
+      "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https:; img-src 'self' data: https:; connect-src 'self' https:;"
+    );
+
+    // Force specific content type
+    supabaseResponse.headers.set("Content-Type", "text/html; charset=utf-8");
+
+    // Add specific headers for iOS Instagram compatibility
+    supabaseResponse.headers.set("X-UA-Compatible", "IE=edge");
+    supabaseResponse.headers.set("format-detection", "telephone=no");
+  } else {
+    // Standard headers for other browsers
+    supabaseResponse.headers.set(
+      "Cache-Control",
+      "no-cache, no-store, must-revalidate"
+    );
+    supabaseResponse.headers.set("Pragma", "no-cache");
+    supabaseResponse.headers.set("Expires", "0");
+  }
 
   return supabaseResponse;
 }

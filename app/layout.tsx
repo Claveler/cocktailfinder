@@ -88,6 +88,20 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="Piscola.net" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="referrer" content="origin-when-cross-origin" />
+
+        {/* Instagram in-app browser compatibility */}
+        <meta name="format-detection" content="telephone=no" />
+        <meta name="application-name" content="Piscola.net" />
+        <meta name="msapplication-TileColor" content="#dc2626" />
+        <meta name="msapplication-config" content="none" />
+
+        {/* Prevent Instagram from adding tracking parameters */}
+        <meta property="fb:app_id" content="" />
+        <meta property="ia:markup_url" content="https://piscola.net" />
+
+        {/* Force UTF-8 encoding for compatibility */}
+        <meta charSet="utf-8" />
+
         <link rel="canonical" href="https://piscola.net" />
       </head>
       <body
