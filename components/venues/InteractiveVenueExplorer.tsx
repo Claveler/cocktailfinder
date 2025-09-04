@@ -15,6 +15,7 @@ import type { MapBounds } from "@/lib/distance";
 import { useVenuesByBounds } from "@/lib/hooks/useVenuesByBounds";
 import { useVenuePins } from "@/lib/hooks/useVenuePins";
 import { MAP_CONFIG } from "@/lib/config/map";
+import { CHILE_MODAL_DESCRIPTION } from "@/lib/chile-validation";
 
 interface InteractiveVenueExplorerProps {
   maxDistanceKm?: number;
@@ -93,6 +94,11 @@ export default function InteractiveVenueExplorer({
   const [isInitialPositioningComplete, setIsInitialPositioningComplete] =
     useState(false);
 
+  // Chile country detection state
+  const [isMapInChile, setIsMapInChile] = useState(false);
+  const [isChileMessageDismissed, setIsChileMessageDismissed] = useState(false);
+  const [isDetectingCountry, setIsDetectingCountry] = useState(false);
+
   // Calculate distance between two coordinates in meters
   const calculateDistance = useCallback(
     (coord1: [number, number], coord2: [number, number]): number => {
@@ -152,6 +158,41 @@ export default function InteractiveVenueExplorer({
     };
     refetchVenues(apiBounds);
   }, [fallbackZoom, refetchVenues]);
+
+  // Detect country from coordinates using reverse geocoding
+  const detectCountryFromCoordinates = useCallback(
+    async (coordinates: [number, number]) => {
+      try {
+        setIsDetectingCountry(true);
+
+        const response = await fetch("/api/geocode", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ lat: coordinates[0], lng: coordinates[1] }),
+        });
+
+        if (!response.ok) {
+          return null;
+        }
+
+        const result = await response.json();
+        if (result.success && result.data && result.data.address) {
+          const country = result.data.address.country;
+          return country;
+        }
+
+        return null;
+      } catch (error) {
+        console.warn("Error detecting country:", error);
+        return null;
+      } finally {
+        setIsDetectingCountry(false);
+      }
+    },
+    []
+  );
 
   // Request user location (internal - for automatic geolocation on load)
   const requestUserLocation = useCallback(() => {
@@ -555,6 +596,41 @@ export default function InteractiveVenueExplorer({
     }
   }, [searchLocation, searchZoomLevel]);
 
+  // Detect Chile when map center changes (debounced) - listens to actual map center, not just static center
+  useEffect(() => {
+    const countryDetectionTimeoutRef = setTimeout(async () => {
+      if (currentMapCenter) {
+        const country = await detectCountryFromCoordinates(currentMapCenter);
+        const isInChile = country === "Chile";
+
+        setIsMapInChile(isInChile);
+
+        // Auto-dismiss message when leaving Chile (reset dismissed state)
+        if (!isInChile) {
+          setIsChileMessageDismissed(false);
+        }
+      }
+    }, 800); // 800ms debounce - quick enough for good UX, long enough to avoid excessive API calls
+
+    return () => clearTimeout(countryDetectionTimeoutRef);
+  }, [currentMapCenter, detectCountryFromCoordinates]);
+
+  // Scroll to top when Chile message appears (mobile only)
+  useEffect(() => {
+    if (isMapInChile && !isChileMessageDismissed) {
+      // Small delay to ensure message has rendered
+      setTimeout(() => {
+        // Only scroll to top on mobile (768px and below)
+        if (window.innerWidth <= 768) {
+          window.scrollTo({
+            top: 0,
+            behavior: "smooth",
+          });
+        }
+      }, 100);
+    }
+  }, [isMapInChile, isChileMessageDismissed]);
+
   // Handle window resize to update venue filtering for responsive viewport changes
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -691,13 +767,28 @@ export default function InteractiveVenueExplorer({
       </div>
 
       {/* Dynamic Venues Based on Map Position */}
-      {/* Loading State - Only show when no venue cards are available */}
-      {(pinsLoading || (venuesLoading && filteredVenues.length === 0)) && (
-        <div className="p-4 md:p-0 pb-4 flex flex-col items-center justify-center space-y-4 min-h-[200px]">
-          <Loader2 className="h-8 w-8 text-primary animate-spin" />
-          <p className="text-muted-foreground text-sm">
-            {pinsLoading ? "Loading map..." : "Finding venues in this area..."}
-          </p>
+
+      {/* Chile Information Banner - Fixed position to prevent jumping */}
+      {isMapInChile && !isChileMessageDismissed && (
+        <div className="p-4 md:p-0 pb-4">
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 relative">
+            <button
+              onClick={() => setIsChileMessageDismissed(true)}
+              className="absolute top-2 right-2 text-amber-600 hover:text-amber-800 transition-colors"
+              aria-label="Dismiss message"
+            >
+              <X className="h-4 w-4" />
+            </button>
+            <div className="pr-8">
+              <h3 className="font-semibold text-amber-800 mb-2 flex items-center gap-2">
+                🇨🇱 Browsing Chile
+              </h3>
+              <p className="text-amber-700 text-sm leading-relaxed">
+                {CHILE_MODAL_DESCRIPTION} You won't find venues listed here
+                since pisco is readily available throughout Chile.
+              </p>
+            </div>
+          </div>
         </div>
       )}
 
