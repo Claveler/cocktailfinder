@@ -9,9 +9,8 @@ import ServerThemeProvider from "@/components/theme/ServerThemeProvider";
 import { Analytics } from "@vercel/analytics/react";
 
 export const metadata: Metadata = {
-  title: "Piscola.net - Find Pisco in Your City",
-  description:
-    "Discover the best venues to enjoy Chile's iconic cocktail, Piscola, wherever you are. Search, explore, and taste authentic pisco experiences worldwide.",
+  title: "Piscola.net | The Piscola Network",
+  description: "Find the best venues to enjoy Piscola in your city",
   keywords:
     "pisco, piscola, cocktail, Chilean drink, venues, bars, restaurants, find pisco",
   authors: [{ name: "Piscola.net" }],
@@ -28,17 +27,16 @@ export const metadata: Metadata = {
     apple: "/favicon.png",
   },
   openGraph: {
-    title: "Piscola.net - Find Pisco in Your City",
-    description:
-      "Discover the best venues to enjoy Chile's iconic cocktail, Piscola, wherever you are. Search, explore, and taste authentic pisco experiences worldwide.",
+    title: "Piscola.net | The Piscola Network",
+    description: "Find the best venues to enjoy Piscola in your city",
     url: "https://piscola.net",
     siteName: "Piscola.net",
     images: [
       {
-        url: "/assets/piscolahero.png",
+        url: "/assets/piscola-logo.svg",
         width: 1200,
         height: 630,
-        alt: "Piscola.net - Find Pisco in Your City",
+        alt: "Piscola.net",
       },
     ],
     locale: "en_US",
@@ -46,10 +44,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Piscola.net - Find Pisco in Your City",
-    description:
-      "Discover the best venues to enjoy Chile's iconic cocktail, Piscola, wherever you are.",
-    images: ["/assets/piscolahero.png"],
+    title: "Piscola.net | The Piscola Network",
+    description: "Find the best venues to enjoy Piscola in your city",
+    images: ["/assets/piscola-logo.svg"],
     creator: "@piscolanet",
   },
   robots: {
