@@ -2,6 +2,32 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
+  // Handle Instagram/Facebook redirect issues by cleaning tracking parameters
+  // and ensuring proper headers for social media in-app browsers
+  const url = request.nextUrl.clone();
+
+  // Clean Facebook/Instagram tracking parameters that can cause issues
+  const trackingParams = [
+    "fbclid",
+    "gclid",
+    "utm_source",
+    "utm_medium",
+    "utm_campaign",
+  ];
+  let hasTrackingParams = false;
+
+  trackingParams.forEach((param) => {
+    if (url.searchParams.has(param)) {
+      url.searchParams.delete(param);
+      hasTrackingParams = true;
+    }
+  });
+
+  // If we cleaned tracking params, redirect to clean URL
+  if (hasTrackingParams) {
+    return NextResponse.redirect(url);
+  }
+
   let supabaseResponse = NextResponse.next({
     request,
   });
@@ -39,6 +65,19 @@ export async function middleware(request: NextRequest) {
 
   // Optional: Add any route protection logic here
   // For now, we'll just refresh the session
+
+  // Add headers to improve Instagram/Facebook in-app browser compatibility
+  supabaseResponse.headers.set("X-Frame-Options", "SAMEORIGIN");
+  supabaseResponse.headers.set("X-Content-Type-Options", "nosniff");
+  supabaseResponse.headers.set("Referrer-Policy", "origin-when-cross-origin");
+
+  // Specific headers for social media in-app browsers
+  supabaseResponse.headers.set(
+    "Cache-Control",
+    "no-cache, no-store, must-revalidate"
+  );
+  supabaseResponse.headers.set("Pragma", "no-cache");
+  supabaseResponse.headers.set("Expires", "0");
 
   return supabaseResponse;
 }
