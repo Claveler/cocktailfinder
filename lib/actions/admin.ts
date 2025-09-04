@@ -217,35 +217,7 @@ export async function updateVenueAction(
       return { success: false, error: "Admin privileges required" };
     }
 
-    // Get user context first
-    const regularSupabase = createClient();
-    const {
-      data: { user },
-    } = await regularSupabase.auth.getUser();
-    console.log(
-      "🔧 Admin operation by user:",
-      user?.email,
-      "at",
-      new Date().toISOString()
-    );
-
-    // Debug environment variables
-    console.log("🔍 Environment check:", {
-      hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
-      hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
-      serviceKeyLength: process.env.SUPABASE_SERVICE_ROLE_KEY?.length,
-    });
-
-    // Use service role client for the actual update to bypass RLS issues
-    const { createClient: createServiceClient } = await import(
-      "@supabase/supabase-js"
-    );
-    const supabase = createServiceClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
-
-    console.log("✅ Service role client created successfully");
+    const supabase = createClient();
 
     // Prepare the update object
     const venueUpdates: any = {

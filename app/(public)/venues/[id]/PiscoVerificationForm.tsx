@@ -26,7 +26,7 @@ export default function PiscoVerificationForm({
   currentNotes,
 }: PiscoVerificationFormProps) {
   const [piscoStatus, setPiscoStatus] = useState(currentStatus);
-  const [piscoNotes, setPiscoNotes] = useState(currentNotes || "");
+  const [piscoNotes, setPiscoNotes] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -197,10 +197,10 @@ export default function PiscoVerificationForm({
           id="pisco_notes"
           placeholder={
             piscoStatus === "available"
-              ? "e.g., They have Alto del Carmen and Control C. Staff can make Piscola on request..."
+              ? "Tell us about their pisco selection, your review might get featured if it's particularly helpful"
               : piscoStatus === "unavailable"
-                ? "e.g., Manager confirmed they don't stock pisco, only whisky and vodka..."
-                : "Share any details about pisco availability at this venue..."
+                ? "Share why pisco isn't available, help fellow pisco lovers understand the situation"
+                : "Add your insights about pisco at this venue, great details get featured"
           }
           value={piscoNotes}
           onChange={(e) => setPiscoNotes(e.target.value)}
