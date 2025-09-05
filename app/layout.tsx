@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     description: "Find the best venues to enjoy Piscola in your city",
     images: [
       {
-        url: "/assets/siteiniphone.png",
+        url: "/assets/opengraph-thumbnail.png",
         width: 1200,
         height: 630,
         alt: "Piscola.net - Find the best venues to enjoy Piscola",
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Piscola.net | The Piscola Network",
     description: "Find the best venues to enjoy Piscola in your city",
-    images: ["/assets/siteiniphone.png"],
+    images: ["/assets/opengraph-thumbnail.png"],
   },
 };
 
