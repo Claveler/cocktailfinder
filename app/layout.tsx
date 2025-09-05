@@ -18,11 +18,11 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "Piscola.net | The Piscola Network",
-    description: "Find the best venues to enjoy Piscola in your city",
+    description: "Find the best venues to enjoy piscola in your city",
     images: [
       {
         url: "/assets/opengraph-thumbnail.png",
-        alt: "Piscola.net - Find the best venues to enjoy Piscola",
+        alt: "Piscola.net - Find the best venues to enjoy piscola",
       },
     ],
     type: "website",
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Piscola.net | The Piscola Network",
-    description: "Find the best venues to enjoy Piscola in your city",
+    description: "Find the best venues to enjoy piscola in your city",
     images: ["/assets/opengraph-thumbnail.png"],
   },
 };
