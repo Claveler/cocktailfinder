@@ -238,6 +238,7 @@ export default function LandingPageClient({
             searchLocation={searchLocation}
             initialFocusedVenueId={initialFocusedVenueId}
             hasQueryParams={!!(initialMapCenter || initialFocusedVenueId)}
+            filters={currentFilters}
           />
         </div>
       </section>

@@ -11,6 +11,7 @@ import Link from "next/link";
 import type { Venue as VenueType } from "@/lib/venues";
 import { calculateApproximateBounds } from "@/lib/distance";
 import type { MapBounds } from "@/lib/distance";
+import type { FilterState } from "@/components/filters/FilterModal";
 
 import { useVenuesByBounds } from "@/lib/hooks/useVenuesByBounds";
 import { useVenuePins } from "@/lib/hooks/useVenuePins";
@@ -24,6 +25,7 @@ interface InteractiveVenueExplorerProps {
   searchLocation?: [number, number] | null;
   initialFocusedVenueId?: string | null;
   hasQueryParams?: boolean;
+  filters?: FilterState;
 }
 
 export default function InteractiveVenueExplorer({
@@ -33,6 +35,7 @@ export default function InteractiveVenueExplorer({
   searchLocation = null,
   initialFocusedVenueId = null,
   hasQueryParams = false,
+  filters = { venueTypes: [], brands: [] },
 }: InteractiveVenueExplorerProps) {
   // Search zoom level from config
   const searchZoomLevel = MAP_CONFIG.SEARCH_ZOOM;
@@ -295,18 +298,17 @@ export default function InteractiveVenueExplorer({
     }
   }, [userLocation, fallbackZoom, refetchVenues, requestUserLocation]);
 
-  // Transform venue pins to format expected by map component
-  // Map ALWAYS shows ALL venues globally for discovery
+  // Transform filtered venues to format expected by map component
+  // Map shows same venues as cards (filtered results)
   const venuesForMap = useMemo(() => {
-    return venuePins.map((pin) => ({
-      id: pin.id,
-      location: pin.location,
-      // Add minimal required properties for map component
-      name: "",
-      status: "approved" as const,
-      type: "bar" as const,
+    return filteredVenues.map((venue) => ({
+      id: venue.id,
+      location: venue.location,
+      name: venue.name,
+      status: venue.status,
+      type: venue.type || "bar",
     }));
-  }, [venuePins, pinsLoading, pinsError]);
+  }, [filteredVenues]);
 
   // Get user location on mount
   useEffect(() => {
@@ -448,11 +450,41 @@ export default function InteractiveVenueExplorer({
     [refetchVenues, calculateMovementDistance, getSmartDebounceDelay]
   );
 
-  // Update venue cards when detailed venues arrive
+  // Filter function to apply venue type and brand filters
+  const applyFilters = useCallback(
+    (venues: VenueType[]) => {
+      if (
+        !filters ||
+        (filters.venueTypes.length === 0 && filters.brands.length === 0)
+      ) {
+        return venues; // No filters applied
+      }
+
+      return venues.filter((venue) => {
+        // Check venue type filter
+        const venueTypeMatch =
+          filters.venueTypes.length === 0 ||
+          filters.venueTypes.includes(venue.type || "");
+
+        // Check brand filter - venue must have at least one of the selected brands
+        const brandMatch =
+          filters.brands.length === 0 ||
+          venue.brands.some((brand) => filters.brands.includes(brand));
+
+        return venueTypeMatch && brandMatch;
+      });
+    },
+    [filters]
+  );
+
+  // Update venue cards when detailed venues arrive or filters change
   useEffect(() => {
     if (detailedVenues.length > 0) {
+      // Apply filters first
+      const filteredByType = applyFilters(detailedVenues);
+
       // Calculate distance from current map center (updates as user moves map)
-      const venuesWithDistance = detailedVenues.map((venue) => ({
+      const venuesWithDistance = filteredByType.map((venue) => ({
         ...venue,
         distance: venue.location
           ? calculateDistance(
@@ -477,6 +509,7 @@ export default function InteractiveVenueExplorer({
     venuesError,
     currentMapCenter,
     calculateDistance,
+    applyFilters,
   ]);
 
   // Scroll to top when focused venue changes (after venue card click) - mobile only
