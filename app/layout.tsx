@@ -22,8 +22,6 @@ export const metadata: Metadata = {
     images: [
       {
         url: "/assets/opengraph-thumbnail.png",
-        width: 1200,
-        height: 630,
         alt: "Piscola.net - Find the best venues to enjoy Piscola",
       },
     ],
