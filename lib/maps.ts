@@ -209,24 +209,25 @@ async function parseGoogleMapsUrlDirect(url: string): Promise<ParseResult> {
       }
     }
 
-    // 3. SMART FALLBACK: If pattern matching worked but didn't give a house number, try HTML extraction
+    // 3. SMART FALLBACK: If pattern matching worked but gives no house number, try HTML extraction
     if (coordinates) {
       try {
-        // Quick reverse geocode to check if we got a house number
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_SITE_URL}/api/geocode`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              lat: coordinates.lat,
-              lng: coordinates.lng,
-            }),
-          }
+        console.log(
+          "[Maps] Checking if pattern matching gives a house number..."
         );
 
-        if (response.ok) {
-          const geocodeData = await response.json();
+        // Quick reverse geocode to check if we got a house number
+        const geocodeResponse = await fetch("/api/geocode", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            lat: coordinates.lat,
+            lng: coordinates.lng,
+          }),
+        });
+
+        if (geocodeResponse.ok) {
+          const geocodeData = await geocodeResponse.json();
           const hasHouseNumber = geocodeData?.data?.address?.house_number;
 
           if (!hasHouseNumber) {
@@ -247,11 +248,15 @@ async function parseGoogleMapsUrlDirect(url: string): Promise<ParseResult> {
                 }
               );
             }
+          } else {
+            console.log(
+              `[Maps] Pattern matching has house number: ${hasHouseNumber}, keeping pattern matching coordinates`
+            );
           }
         }
       } catch (error) {
         console.log(
-          "[Maps] House number check or HTML extraction failed:",
+          "[Maps] House number check failed, keeping pattern matching coordinates:",
           error
         );
         // Continue with original coordinates
