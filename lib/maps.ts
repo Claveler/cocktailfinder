@@ -209,7 +209,79 @@ async function parseGoogleMapsUrlDirect(url: string): Promise<ParseResult> {
       }
     }
 
-    // 3. LOWEST PRIORITY: Fallback to general @ coordinate extraction
+    // 3. SMART FALLBACK: If pattern matching worked but didn't give a house number, try HTML extraction
+    if (coordinates) {
+      try {
+        // Quick reverse geocode to check if we got a house number
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_SITE_URL}/api/geocode`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              lat: coordinates.lat,
+              lng: coordinates.lng,
+            }),
+          }
+        );
+
+        if (response.ok) {
+          const geocodeData = await response.json();
+          const hasHouseNumber = geocodeData?.data?.address?.house_number;
+
+          if (!hasHouseNumber) {
+            console.log(
+              "[Maps] Pattern matching gave no house number, trying HTML extraction..."
+            );
+            const htmlCoordinates = await extractCoordinatesFromHTML(url);
+            if (htmlCoordinates) {
+              coordinates = htmlCoordinates;
+              extractionMethod =
+                "html_content_extraction(house_number_upgrade)";
+              console.log(
+                `[Maps] Coordinates extracted using method: ${extractionMethod}`,
+                {
+                  coordinates,
+                  upgradedFrom: "pattern_matching_no_house_number",
+                  url: url.substring(0, 100) + "...",
+                }
+              );
+            }
+          }
+        }
+      } catch (error) {
+        console.log(
+          "[Maps] House number check or HTML extraction failed:",
+          error
+        );
+        // Continue with original coordinates
+      }
+    }
+
+    // 4. EMERGENCY FALLBACK: Only try HTML extraction if pattern matching completely failed
+    if (!coordinates) {
+      try {
+        const htmlCoordinates = await extractCoordinatesFromHTML(url);
+        if (htmlCoordinates) {
+          coordinates = htmlCoordinates;
+          extractionMethod = "html_content_extraction(emergency_fallback)";
+          console.log(
+            `[Maps] Coordinates extracted using method: ${extractionMethod}`,
+            {
+              coordinates,
+              precision:
+                htmlCoordinates.lat.toString().split(".")[1]?.length || 0,
+              url: url.substring(0, 100) + "...",
+            }
+          );
+        }
+      } catch (error) {
+        console.log("[Maps] HTML coordinate extraction failed:", error);
+        // Continue to other fallback methods
+      }
+    }
+
+    // 5. LOWEST PRIORITY: Fallback to general @ coordinate extraction
     if (!coordinates) {
       const coordinateMatch = url.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*),/);
       if (coordinateMatch) {
@@ -268,27 +340,6 @@ async function parseGoogleMapsUrlDirect(url: string): Promise<ParseResult> {
             }
           }
         }
-      }
-    }
-
-    // 4. FALLBACK: Try to extract coordinates from HTML content (for Android URLs and other embedded formats)
-    if (!coordinates) {
-      try {
-        const htmlCoordinates = await extractCoordinatesFromHTML(url);
-        if (htmlCoordinates) {
-          coordinates = htmlCoordinates;
-          extractionMethod = "html_content_extraction";
-          console.log(
-            `[Maps] Coordinates extracted using method: ${extractionMethod}`,
-            {
-              coordinates,
-              url: url.substring(0, 100) + "...",
-            }
-          );
-        }
-      } catch (error) {
-        console.log("[Maps] HTML coordinate extraction failed:", error);
-        // Continue to fallback logic
       }
     }
 
