@@ -86,13 +86,13 @@ function extractCoordinatesFromHtml(
       // Determine lat vs lng based on ranges and geographic logic
       // Latitude: -90 to 90, Longitude: -180 to 180
       let lat: number, lng: number;
-      
+
       if (Math.abs(firstNum) > 90) {
         // First number is definitely longitude (outside latitude range)
         lng = firstNum;
         lat = secondNum;
       } else if (Math.abs(secondNum) > 90) {
-        // Second number is definitely longitude (outside latitude range)  
+        // Second number is definitely longitude (outside latitude range)
         lng = secondNum;
         lat = firstNum;
       } else {
@@ -101,14 +101,14 @@ function extractCoordinatesFromHtml(
         // - For most locations, longitude has larger absolute value than latitude
         // - US: lat ~25-50, lng ~-65 to -175 (longitude is negative and larger)
         // - Europe: lat ~35-70, lng ~-10 to 40 (varies)
-        
+
         if (Math.abs(firstNum) > Math.abs(secondNum)) {
           // First number has larger absolute value - likely longitude
           lng = firstNum;
           lat = secondNum;
         } else {
           // Second number has larger absolute value - likely longitude
-          lng = secondNum; 
+          lng = secondNum;
           lat = firstNum;
         }
       }
