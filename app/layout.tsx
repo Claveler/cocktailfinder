@@ -16,6 +16,25 @@ export const metadata: Metadata = {
     shortcut: "/favicon.png",
     apple: "/favicon.png",
   },
+  openGraph: {
+    title: "Piscola.net | The Piscola Network",
+    description: "Find the best venues to enjoy Piscola in your city",
+    images: [
+      {
+        url: "/assets/siteiniphone.png",
+        width: 1200,
+        height: 630,
+        alt: "Piscola.net - Find the best venues to enjoy Piscola",
+      },
+    ],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Piscola.net | The Piscola Network",
+    description: "Find the best venues to enjoy Piscola in your city",
+    images: ["/assets/siteiniphone.png"],
+  },
 };
 
 export default function RootLayout({
