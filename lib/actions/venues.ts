@@ -246,8 +246,8 @@ export async function updateVenuePiscoInfo(
       throw new Error("Invalid pisco status");
     }
 
-    // Insert new verification record into history
-    const { error: insertError } = await supabase
+    // Insert new verification record into history (use service client)
+    const { error: insertError } = await serviceSupabase
       .from("pisco_verifications")
       .insert({
         venue_id: venueId,
@@ -270,8 +270,8 @@ export async function updateVenuePiscoInfo(
       verified_by: profile?.full_name || "Anonymous User",
     };
 
-    // Update venue pisco information
-    const { error: updateError } = await supabase
+    // Update venue pisco information (use service client)
+    const { error: updateError } = await serviceSupabase
       .from("venues")
       .update(updateData)
       .eq("id", venueId);
